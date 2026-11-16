@@ -1091,7 +1091,7 @@ function retryLevel(st) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
+  module.exports = { buildLevel, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
     dijkstra, rangeDist, hasLOS, newRun, setupLevel, rollDice, rollTurn, assignComplete, confirmEnergy, setLoot, lvOf, mStat, monBonus,
     HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,

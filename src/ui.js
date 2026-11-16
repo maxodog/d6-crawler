@@ -52,10 +52,19 @@
   if (W) {
     const i0 = LANG === 'en' ? 1 : 0, done = new Set();
     for (const k of Object.keys(GAMES)) GAMES[k].name = W.games[k].split('|')[i0];
+    // aventuras con mapas, cifras y aparición propias del mundo
+    for (const g in (W.levels || {})) {
+      const mons = {};
+      GAMES[g].levels = W.levels[g].map((d, i) => {
+        const mon = mons[d.m] || (mons[d.m] = Object.assign({ key: d.m, name: d.m, plural: d.m }, W.stats[d.m]));
+        return Object.assign(buildLevel({ title: d.t.split('|')[i0], at: d.at, num: i + 1 }, { mon, map: d.map }), { own: true });
+      });
+    }
+    useGame('base');
     for (const g of Object.keys(GAMES)) for (const lv of GAMES[g].levels) {
       if (!done.has(lv.mon)) { done.add(lv.mon); const n = (W.mon[lv.mon.key] || '').split('|'), j = LANG === 'en' ? 2 : 0; if (n[j]) { lv.mon.name = n[j]; lv.mon.plural = n[j + 1] || n[j]; } }
       const b = lv.title.replace(/ (I|II|III)$/, ''), suf = lv.title.slice(b.length), t = W.titles[b];
-      lv.title = (t ? t.split('|')[i0] : lv.mon.name) + suf;
+      if (!lv.own) lv.title = (t ? t.split('|')[i0] : lv.mon.name) + suf;
     }
   } else if (LANG === 'en') {
     const MON = { spider: ['Spider', 'Spiders'], skeleton: ['Skeleton', 'Skeletons'], orc: ['Orc', 'Orcs'], demon: ['Demon', 'Demons'], ogre: ['Ember Ogre', 'Ember Ogre'],
@@ -354,7 +363,8 @@
     { key: 'base', name: 'One Card Dungeon' }, { key: 'mguf', name: "M'Guf-yn Returns" }, { key: 'peak', name: L('Montaña Eterna', 'Eternal Peak') },
     { key: 'harbour', name: 'Harbour Clash' }, { key: 'hell', name: L('La Puerta del Infierno', "Hell's Door") }
   ];
-  if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0]; PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
+  if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0];
+    for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k]; PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
   const heroesOf = pack => HERO_KEYS.filter(k => HEROES[k].pack === pack);
   const ICON_WIND = svg(`<path d="M4 11h13c4 0 5-5 1.5-5.5M4 17h19c4 0 5 5 1.5 5.5M4 23h9c3 0 4 3 1.5 3.5"/>`);
   const ITEM_ICONS = {

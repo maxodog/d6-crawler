@@ -41,11 +41,11 @@ const WORLDS = {
       holy: 'Pergamino protector|Pergamino|Ward Scroll|Scroll', laurel: 'Cetro del escriba|Cetro|Scribe\'s Scepter|Scepter', fist: 'Martillo de roca|Martillo|Rock Hammer|Hammer', mail: 'Escudo de bronce|Escudo|Bronze Shield|Shield' },
     // reemplazos en los textos (frases completas primero; respetan mayúsculas)
     terms: {
-      es: [['Cáliz de Brasas', 'Primer hallazgo'], ["Fin de M'Guf-yn", 'Más allá del reflejo'], ['Rey de la cima', 'Señor de la bruma'], ['Lobo de mar', 'Rey de la selva'], ['Portero del Infierno', 'Guardián del saber'], ['la Montaña Eterna', 'La Fortaleza entre la Bruma'], ['tres demonios', 'tres espíritus jaguar'], ['su carta', 'su ficha'], ['Una carta', 'Un mapa'], ['Usar la cota', 'Usar el escudo'], ['la cota', 'el escudo'], ['Piedra de la Perdición', 'Losa del Escriba'], ['casillas malditas', 'casillas de arena maldita'], ['casilla maldita', 'casilla de arena maldita'],
+      es: [['de la caja original', 'del juego base'], ['la caja original', 'el juego base'], ['Empiezas con la original', 'Empiezas con el juego base'], ['Se empieza con la original', 'Se empieza con el juego base'], ['de la original', 'del juego base'], ['Cáliz de Brasas', 'Primer hallazgo'], ["Fin de M'Guf-yn", 'Más allá del reflejo'], ['Rey de la cima', 'Señor de la bruma'], ['Lobo de mar', 'Rey de la selva'], ['Portero del Infierno', 'Guardián del saber'], ['la Montaña Eterna', 'La Fortaleza entre la Bruma'], ['tres demonios', 'tres espíritus jaguar'], ['su carta', 'su ficha'], ['Una carta', 'Un mapa'], ['Usar la cota', 'Usar el escudo'], ['la cota', 'el escudo'], ['Piedra de la Perdición', 'Losa del Escriba'], ['casillas malditas', 'casillas de arena maldita'], ['casilla maldita', 'casilla de arena maldita'],
         ['Casillas malditas', 'Casillas de arena maldita'], ['Casilla maldita', 'Casilla de arena maldita'], ['ventiscas', 'brumas'], ['ventisca', 'bruma'], ['Ventiscas', 'Brumas'], ['Ventisca', 'Bruma'],
         ['cofres', 'relicarios'], ['cofre', 'relicario'], ['Cofres', 'Relicarios'], ['Cofre', 'Relicario'], ['agua', 'pantano'], ['Agua', 'Pantano'],
         ['mazmorras', 'ruinas'], ['mazmorra', 'ruina'], ['Mazmorras', 'Ruinas'], ['Mazmorra', 'Ruina']],
-      en: [['Ember Chalice', 'First Find'], ["End of M'Guf-yn", 'Beyond the Reflection'], ['King of the Peak', 'Lord of the Mist'], ['Sea Wolf', 'King of the Jungle'], ['Gatekeeper of Hell', 'Keeper of Lore'], ['three demons', 'three jaguar spirits'], ['their card', 'their sheet'], ['One card', 'One map'], ['Use the mail', 'Use the shield'], ['the mail', 'the shield'], ['Stone of Doom', 'Scribe\'s Slab'], ['cursed tiles', 'cursed sand tiles'], ['cursed tile', 'cursed sand tile'], ['Cursed tiles', 'Cursed sand tiles'],
+      en: [['from the original box', 'from the base game'], ['You start with the original', 'You start with the base game'], ['from the original', 'from the base game'], ['Ember Chalice', 'First Find'], ["End of M'Guf-yn", 'Beyond the Reflection'], ['King of the Peak', 'Lord of the Mist'], ['Sea Wolf', 'King of the Jungle'], ['Gatekeeper of Hell', 'Keeper of Lore'], ['three demons', 'three jaguar spirits'], ['their card', 'their sheet'], ['One card', 'One map'], ['Use the mail', 'Use the shield'], ['the mail', 'the shield'], ['Stone of Doom', 'Scribe\'s Slab'], ['cursed tiles', 'cursed sand tiles'], ['cursed tile', 'cursed sand tile'], ['Cursed tiles', 'Cursed sand tiles'],
         ['Cursed tile', 'Cursed sand tile'], ['blizzards', 'mists'], ['blizzard', 'mist'], ['Blizzards', 'Mists'], ['Blizzard', 'Mist'], ['chests', 'reliquaries'], ['chest', 'reliquary'], ['Chests', 'Reliquaries'],
         ['Chest', 'Reliquary'], ['water', 'swamp'], ['Water', 'Swamp'], ['dungeons', 'ruins'], ['dungeon', 'ruin'], ['Dungeons', 'Ruins'], ['Dungeon', 'Ruin']]
     }
@@ -77,6 +77,25 @@ const WORLDS = {
       'Legión de diablillos': 'Nido de larvas|Larva Nest', 'Penitentes del fuego': 'Río de magma|Magma River', 'Bandada infernal': 'Nube de ceniza|Ash Cloud', 'Fauces gemelas': 'Fauces gemelas|Twin Maws',
       'Horda del Averno': 'Erupción|Eruption', 'Cárcel de los condenados': 'Cráter|Crater', 'Tormenta de alas': 'Tormenta ígnea|Firestorm', 'Abismo sin fondo': 'Núcleo del planeta|Planet Core'
     },
+    // Juego base propio: mapas, cifras y aparición distintos del original ('#' muro, 'S' entrada, 'U' salida)
+    stats: { spider: { hp: 2, spd: 6, atk: 4, def: 3, rng: 2 }, skeleton: { hp: 3, spd: 3, atk: 6, def: 4, rng: 5 },
+      orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 2 }, demon: { hp: 5, spd: 5, atk: 6, def: 5, rng: 4 } },
+    levels: { base: [
+      { t: 'Barrio infestado|Infested Block',  m: 'spider',   map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[3,0],[4,2]] },
+      { t: 'Puente acorazado|Armored Bridge',  m: 'orc',      map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[3,0]] },
+      { t: 'Avenida ácida|Acid Avenue',        m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[1,0]] },
+      { t: 'Plaza del rugido|Roar Square',     m: 'demon',    map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[0,0]] },
+      { t: 'Estación tomada|Overrun Station',  m: 'spider',   map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[2,0],[4,0],[4,2]] },
+      { t: 'Muelle de carga|Loading Dock',     m: 'orc',      map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[4,0],[0,1]] },
+      { t: 'Torres de vigía|Watchtowers',      m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[2,0],[4,0],[0,2]] },
+      { t: 'Túnel del metro|Subway Tunnel',    m: 'demon',    map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[3,0],[0,2]] },
+      { t: 'Mercado en ruinas|Ruined Market',  m: 'spider',   map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[4,0],[2,1],[4,2]] },
+      { t: 'Central eléctrica|Power Plant',    m: 'orc',      map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[0,0],[4,2]] },
+      { t: 'Azoteas|Rooftops',                 m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[0,0],[2,1],[4,2],[1,3]] },
+      { t: 'Corazón de la ciudad|City Heart',  m: 'demon',    map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[4,0],[2,1]] }
+    ] },
+    heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
+      necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },
     heroes: { paladin: 'Bastión|Bastion', barbarian: 'Furia|Fury', ranger: 'Francotirador|Sniper', mage: 'Oráculo|Oracle', necromancer: 'Sobrecarga|Overload', cleric: 'Mecánica|Mechanic',
       knight: 'Ariete|Ram', rogue: 'Hacker|Hacker', sherpa: 'Fantasma|Phantom', corsair: 'Saltador|Jumper', demonhunter: 'Arpón|Harpoon' },
     items: { cloak: 'Calefactor de núcleo|Calefactor|Core Heater|Heater', axe: 'Espada de plasma|Espada|Plasma Blade|Blade', herbs: 'Nanorreparación|Nanorrep.|Nano-Repair|Repair',
@@ -85,10 +104,10 @@ const WORLDS = {
       pendant: 'Reactor de respaldo|Reactor|Backup Reactor|Reactor', holy: 'Refrigerante|Refrig.|Coolant|Coolant', laurel: 'Implante de control|Implante|Control Implant|Implant',
       fist: 'Puño sísmico|Puño|Seismic Fist|Fist', mail: 'Placas de titanio|Placas|Titanium Plating|Plating' },
     terms: {
-      es: [['Cáliz de Brasas', 'Primera defensa'], ["Fin de M'Guf-yn", 'Alerta desactivada'], ['Rey de la cima', 'Rompehielos'], ['Lobo de mar', 'Guardián de la bahía'], ['Portero del Infierno', 'Sellador de fisuras'], ['tres demonios', 'tres rugidores'], ['su carta', 'su ficha'], ['Una carta', 'Un sector'], ['Usar la cota', 'Usar las placas'], ['la cota', 'las placas'], ['Piedra de la Perdición', 'Roca del Núcleo'], ['casillas malditas', 'grietas de magma'], ['casilla maldita', 'grieta de magma'],
+      es: [['de la caja original', 'del juego base'], ['la caja original', 'el juego base'], ['Empiezas con la original', 'Empiezas con el juego base'], ['Se empieza con la original', 'Se empieza con el juego base'], ['de la original', 'del juego base'], ['Cáliz de Brasas', 'Primera defensa'], ["Fin de M'Guf-yn", 'Alerta desactivada'], ['Rey de la cima', 'Rompehielos'], ['Lobo de mar', 'Guardián de la bahía'], ['Portero del Infierno', 'Sellador de fisuras'], ['tres demonios', 'tres rugidores'], ['su carta', 'su ficha'], ['Una carta', 'Un sector'], ['Usar la cota', 'Usar las placas'], ['la cota', 'las placas'], ['Piedra de la Perdición', 'Roca del Núcleo'], ['casillas malditas', 'grietas de magma'], ['casilla maldita', 'grieta de magma'],
         ['Casillas malditas', 'Grietas de magma'], ['Casilla maldita', 'Grieta de magma'], ['cofres', 'contenedores'], ['cofre', 'contenedor'], ['Cofres', 'Contenedores'], ['Cofre', 'Contenedor'],
         ['mazmorras', 'zonas'], ['mazmorra', 'zona'], ['Mazmorras', 'Zonas'], ['Mazmorra', 'Zona']],
-      en: [['Ember Chalice', 'First Defense'], ["End of M'Guf-yn", 'Alert Cleared'], ['King of the Peak', 'Icebreaker'], ['Sea Wolf', 'Bay Guardian'], ['Gatekeeper of Hell', 'Rift Sealer'], ['three demons', 'three roarers'], ['their card', 'their sheet'], ['One card', 'One sector'], ['Use the mail', 'Use the plating'], ['the mail', 'the plating'], ['Stone of Doom', 'Core Rock'], ['cursed tiles', 'magma cracks'], ['cursed tile', 'magma crack'], ['Cursed tiles', 'Magma cracks'],
+      en: [['from the original box', 'from the base game'], ['You start with the original', 'You start with the base game'], ['from the original', 'from the base game'], ['Ember Chalice', 'First Defense'], ["End of M'Guf-yn", 'Alert Cleared'], ['King of the Peak', 'Icebreaker'], ['Sea Wolf', 'Bay Guardian'], ['Gatekeeper of Hell', 'Rift Sealer'], ['three demons', 'three roarers'], ['their card', 'their sheet'], ['One card', 'One sector'], ['Use the mail', 'Use the plating'], ['the mail', 'the plating'], ['Stone of Doom', 'Core Rock'], ['cursed tiles', 'magma cracks'], ['cursed tile', 'magma crack'], ['Cursed tiles', 'Magma cracks'],
         ['Cursed tile', 'Magma crack'], ['chests', 'crates'], ['chest', 'crate'], ['Chests', 'Crates'], ['Chest', 'Crate'], ['dungeons', 'zones'], ['dungeon', 'zone'], ['Dungeons', 'Zones'], ['Dungeon', 'Zone']]
     }
   }
