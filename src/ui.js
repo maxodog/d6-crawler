@@ -327,6 +327,62 @@
     butcher: svg(`<path d="M7 11 4 3l6 3M25 11l3-8-6 3"/><path d="M8 12c0-5 3-8 8-8s8 3 8 8v6c0 5-3 9-8 9s-8-4-8-9z" ${F}/><circle cx="13" cy="14" r="2" ${S}/><circle cx="19" cy="14" r="2" ${S}/><path d="M12 22h8M14 20v4M18 20v4M4 14l-1 14M3 17h4"/>`),
     lord: svg(`<path d="M6 12 3 2l8 6M26 12l3-10-8 6"/><path d="M16 4l-3 6M16 4l3 6" /><path d="M7 11h18v8c0 5-4 9-9 11-5-2-9-6-9-11z" ${F}/><path d="M10 15l4 2M22 15l-4 2"/><circle cx="12.500" cy="18" r="1.300" ${S}/><circle cx="19.500" cy="18" r="1.300" ${S}/><path d="M12 24l2 2 2-2 2 2 2-2M28 8v22M26 8c0 3 4 3 4 0"/>`)
   });
+  // Íconos de monstruos propios de cada mundo (32×32, trazo de línea como el resto del juego)
+  const WORLD_ICONS_SRC = {
+  arch: {
+    spider: `<path d="M9 20c0-4 3-6 7-6s7 2 7 6-3 5-7 5-7-1-7-5z" ${F}/><path d="M16 14c0-4 3-8 7-9 3 0 4 3 2 5"/><path d="M25 10l2-1M9 18 4 15M4 15l-1-4 3 1M23 18l5-3M28 15l1-4-3 1M10 23l-4 3M22 23l4 3M16 25v4"/><circle cx="13.5" cy="18.5" r="1" ${S}/><circle cx="18.5" cy="18.5" r="1" ${S}/>`,
+    skeleton: `<path d="M9 13a7 7 0 0 1 14 0v11c0 3-3 5-7 5s-7-2-7-5z" ${F}/><path d="M9 14h14M9 19l14-3M9 23l14-2M11 27l11-3"/><circle cx="13" cy="10.5" r="1.3" ${S}/><circle cx="19" cy="10.5" r="1.3" ${S}/>`,
+    orc: `<rect x="10" y="4" width="12" height="9" rx="1" ${F}/><rect x="6" y="14" width="20" height="10" rx="1" ${F}/><path d="M9 24v5M23 24v5M10 18h4M18 21h4M16 14v10"/><path d="M13 9h2M17 9h2"/>`,
+    demon: `<path d="M6 10l3-6 5 4h4l5-4 3 6c1 3 1 7-1 10-2 4-6 7-9 7s-7-3-9-7c-2-3-2-7-1-10z" ${F}/><circle cx="12" cy="15" r="1.5" ${S}/><circle cx="20" cy="15" r="1.5" ${S}/><path d="M14 21l2 2 2-2M10 9l1 1M21 10l1-1M8 19h3M21 19h3M9 22l2-1M23 22l-2-1"/>`,
+    ogre: `<path d="M4 6c1 5 4 7 7 7M28 6c-1 5-4 7-7 7"/><path d="M10 12c0-3 3-4 6-4s6 1 6 4v8c0 4-3 8-6 8s-6-4-6-8z" ${F}/><circle cx="13" cy="15" r="1.2" ${S}/><circle cx="19" cy="15" r="1.2" ${S}/><circle cx="16" cy="25" r="2.5"/><path d="M14 21h4"/>`,
+    reaper: `<ellipse cx="16" cy="14" rx="8" ry="10" ${F}/><path d="M16 24v5M11 29h10"/><path d="M13 13c0-2 1.5-3 3-3s3 1 3 3-1.5 4-3 4-3-2-3-4zM12 21c1-2 2.5-3 4-3s3 1 4 3"/>`,
+    drake: `<path d="M5 26l3-3 3 3-3 3zM10 21l3-3 3 3-3 3zM16 18l3-3 3 3-3 3zM19 12l3-3 3 3-3 3z" ${F}/><path d="M22 7l3-4 3 4-3 2z"/><circle cx="25" cy="5.5" r=".7" ${S}/>`,
+    mguf: `<circle cx="11" cy="12" r="5" ${F}/><circle cx="21" cy="12" r="5" style="fill:currentColor;fill-opacity:.55"/><path d="M4 29c0-5 3-9 7-9s7 4 7 9M14 29c0-5 3-9 7-9s7 4 7 9" /><path d="M16 3v26" stroke-dasharray="2 2"/>`,
+    goblin: `<path d="M16 12c-2-4-6-6-12-5 2 2 2 4 1 7 3-1 5 0 6 2 1-2 3-3 5-4zM16 12c2-4 6-6 12-5-2 2-2 4-1 7-3-1-5 0-6 2-1-2-3-3-5-4z" ${F}/><path d="M14 10l-1-3M18 10l1-3"/><circle cx="16" cy="14" r="2.5"/><path d="M6 24h7M19 24h7M9 28h14"/>`,
+    wolf: `<path d="M7 8l3 4M25 8l-3 4"/><path d="M8 16c0-5 4-8 8-8s8 3 8 8v11l-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2z" ${F}/><path d="M12.5 15l2 1M19.5 15l-2 1M14.5 20l1.5 1.5 1.5-1.5"/>`,
+    yeti: `<path d="M9 13 16 4l7 9z" ${F}/><rect x="10" y="13" width="12" height="11" rx="2" ${F}/><path d="M12 17h3M17 17h3M14 21h4M8 27h16M12 24v3M20 24v3"/>`,
+    sorcerer: `<path d="M16 3c-6 0-9 6-9 12v13h18V15c0-6-3-12-9-12z" ${F}/><path d="M10 15c2-3 4-4 6-4s4 1 6 4c-2 3-4 4-6 4s-4-1-6-4z"/><circle cx="16" cy="15" r="1.6" ${S}/><path d="M12 22v6M16 21v7M20 22v6"/>`,
+    crab: `<ellipse cx="16" cy="17" rx="7" ry="8" ${F}/><circle cx="12" cy="9" r="2.5"/><circle cx="20" cy="9" r="2.5"/><path d="M9 14 4 10 3 6M23 14l5-4 1-4M9 21l-5 4-1 4M23 21l5 4 1 4"/><circle cx="14" cy="16" r="1" ${S}/><circle cx="18.5" cy="19" r="1" ${S}/><circle cx="15" cy="21" r=".8" ${S}/>`,
+    octopus: `<path d="M16 4c2 0 3 2 3 4v9c0 3-1 5-3 7-2 2-2 4 0 6" ${F}/><path d="M16 4c-2 0-3 2-3 4v9c0 3 1 5 3 7M13 10l-6-3M19 10l6-3M13 17l-6 4M19 17l6 4"/><circle cx="14.5" cy="7" r=".9" ${S}/><circle cx="17.5" cy="7" r=".9" ${S}/>`,
+    zombie: `<path d="M3 17c2-4 6-6 11-6l14 3c1 1 1 3 0 4l-14 3c-5 0-9-1-11-4z" ${F}/><path d="M14 17h14M16 14l1 3 1-3 1 3 1-3 1 3 1-3M16 20l1-3 1 3 1-3 1 3 1-3 1 3"/><circle cx="10" cy="14" r="1.4" ${S}/>`,
+    kraken: `<path d="M16 26c-6 0-10-3-10-8s4-8 9-8 7 3 7 6-2 4-5 4-4-2-4-3" ${F}/><path d="M16 26c5 0 9-2 11-6M22 10l3-4 3 1-2 3z"/><circle cx="25" cy="7.5" r=".8" ${S}/>`,
+    imp: `<ellipse cx="16" cy="18" rx="7" ry="9" ${F}/><path d="M16 9v18M12 9l-2-4M20 9l2-4M9 15 4 12M9 19H3M9 23l-5 3M23 15l5-3M23 19h6M23 23l5 3"/><circle cx="16" cy="10" r="3"/>`,
+    chained: `<path d="M8 6h14c2 0 3 1 3 3v17c0 2-1 3-3 3H10c-2 0-3-1-3-3" ${F}/><path d="M7 26V8c0-1 1-2 2-2M11 12h10M11 16h10M11 20h7"/><path d="M27 3 19 21l-1 3 2-2z"/>`,
+    fiend: `<path d="M16 9 9 4 3 6l3 5-2 5 7-2M16 9l7-5 6 2-3 5 2 5-7-2" ${F}/><path d="M11 14h10v10l-5 4-5-4z" ${F}/><circle cx="14" cy="18" r="1" ${S}/><circle cx="18" cy="18" r="1" ${S}/><path d="M9 28h14"/>`,
+    maw: `<path d="M4 28c2-4 3-10 4-16 1-5 4-8 8-8s7 3 8 8c1 6 2 12 4 16" ${F}/><circle cx="16" cy="11" r="4.5"/><path d="M13 9.5l1.5 1.5M19 9.5 17.5 11M13 12.5l1.5-1M19 12.5l-1.5-1M2 28h28"/>`,
+    cultist: `<path d="M3 8c5-2 10-1 13 2 3-3 8-4 13-2v17c-5-2-10-1-13 2-3-3-8-4-13-2z" ${F}/><path d="M16 10v17"/><circle cx="10" cy="15" r="1.4" ${S}/><circle cx="22" cy="15" r="1.4" ${S}/><path d="M8 20h4M20 20h4"/>`,
+    goat: `<path d="M8 28V14c0-6 3-10 8-10s8 4 8 10v14l-4-3H12z" ${F}/><path d="M8 14h16M8 18h4M20 18h4M8 22h4M20 22h4"/><circle cx="13.5" cy="14.5" r="1" ${S}/><circle cx="18.5" cy="14.5" r="1" ${S}/><path d="M14.5 20h3"/>`,
+    butcher: `<path d="M9 3l3 10M23 3l-3 10"/><path d="M10 13c0-3 2-4 6-4s6 1 6 4v6l-6 9-6-9z" ${F}/><circle cx="13" cy="15" r="1.2" ${S}/><circle cx="19" cy="15" r="1.2" ${S}/><path d="M14.5 22h3"/>`,
+    lord: `<path d="M7 11 9 3l4 5 3-5 3 5 4-5 2 8z" ${F}/><path d="M9 12c0 0 0 8 7 8s7-8 7-8"/><circle cx="13" cy="14.5" r="1" ${S}/><circle cx="19" cy="14.5" r="1" ${S}/><path d="M5 29c1-5 5-8 11-8s10 3 11 8M8 24c2-1 3-3 3-5M24 24c-2-1-3-3-3-5"/>`
+  },
+  kaiju: {
+    spider: `<circle cx="16" cy="17" r="10" ${F}/><path d="M9 19c2 4 12 4 14 0zM11 19l1 2 1.5-2 1.5 2 1-2 1.5 2 1.5-2 1 2"/><circle cx="12" cy="13" r="1.6" ${S}/><circle cx="20" cy="13" r="1.6" ${S}/><path d="M8 9 6 6M24 9l2-3"/>`,
+    skeleton: `<path d="M5 27c0-7 3-13 9-13 3 0 5 2 5 5" ${F}/><path d="M14 14c0-4 2-7 5-7"/><circle cx="18" cy="10" r="1" ${S}/><path d="M21 12c3 0 5 1 6 3M24 20c1 2 1 4 0 5-1-1-2-3 0-5zM27 15c1 1.5 1 3 0 4-1-1-1-2.5 0-4z"/>`,
+    orc: `<path d="M3 24c0-9 6-15 13-15s13 6 13 15z" ${F}/><path d="M9 24c0-6 2-12 7-15M23 24c0-6-2-12-7-15M16 9v15M4 18h24"/><circle cx="27" cy="21" r="1" ${S}/>`,
+    demon: `<path d="M6 28V16c0-6 4-10 10-10s10 4 10 10v12" ${F}/><path d="M8 9 5 4l5 3M24 9l3-5-5 3M11 4l2 3M21 4l-2 3"/><path d="M10 18h12v6c-2 2-4 3-6 3s-4-1-6-3z"/><path d="M12 18l1 2 1-2 1 2 1-2 1 2 1-2 1 2 1-2"/><circle cx="12" cy="13" r="1.4" ${S}/><circle cx="20" cy="13" r="1.4" ${S}/>`,
+    ogre: `<path d="M4 22c0-7 5-12 12-12s12 5 12 12z" ${F}/><path d="M10 22l2-6h8l2 6M12 16l4-6 4 6M8 10l2-6 3 4 3-5 3 5 3-4 2 6"/><path d="M28 20c2 0 3 1 3 2"/>`,
+    reaper: `<path d="M16 16C12 8 6 5 2 7c1 5 4 9 9 10-4 1-6 5-5 9 4 0 8-3 10-8M16 16c4-8 10-11 14-9-1 5-4 9-9 10 4 1 6 5 5 9-4 0-8-3-10-8" ${F}/><circle cx="9" cy="11" r="1.5"/><circle cx="23" cy="11" r="1.5"/><path d="M16 9v14M14 7l2 2 2-2"/>`,
+    drake: `<path d="M3 13c4-4 8-5 13-1 5-4 9-3 13 1-4 0-7 2-8 5l-5 1-5-1c-1-3-4-5-8-5z" ${F}/><path d="M18 18 13 24h4l-3 6 7-8h-4l3-4"/>`,
+    mguf: `<path d="M7 11 3 3l7 4M25 11l4-8-7 4"/><path d="M7 14c0-6 4-9 9-9s9 3 9 9v8c0 4-4 7-9 7s-9-3-9-7z" ${F}/><path d="M11 25h3v-2c-2-1-3-3-3-5 0-3 2-5 5-5s5 2 5 5c0 2-1 4-3 5v2h3"/>`,
+    goblin: `<ellipse cx="16" cy="17" rx="6" ry="4" ${F}/><circle cx="16" cy="11" r="3"/><path d="M11 15 5 12M11 17H4M11 19l-6 3M21 15l6-3M21 17h7M21 19l6 3M14 8l-2-4M18 8l2-4"/><path d="M16 23v6M13 26h6M14 24l4 4M18 24l-4 4"/>`,
+    wolf: `<path d="M6 14l2-10 5 6h6l5-6 2 10-2 8-8 7-8-7z" ${F}/><path d="M11 15l3 1M21 15l-3 1M14 22l2 2 2-2"/><path d="M4 18l3-1M28 18l-3-1M5 23l3-2M27 23l-3-2"/>`,
+    yeti: `<path d="M4 27c0-10 5-17 12-17s12 7 12 17z" ${F}/><path d="M10 20c-2 2-3 5-2 8M22 20c2 2 3 5 2 8"/><circle cx="13" cy="16" r="1.2" ${S}/><circle cx="19" cy="16" r="1.2" ${S}/><path d="M12 6l4 4 4-4M10 21c1 2 3 3 6 3s5-1 6-3"/>`,
+    sorcerer: `<path d="M5 9l6-5h10l6 5v15l-6 5H11l-6-5z" ${F}/><path d="M9 16c2-3 4-4 7-4s5 1 7 4c-2 3-4 4-7 4s-5-1-7-4z"/><path d="M16 13v6" stroke-width="2.5"/><path d="M8 6l3 4M24 26l-3-4M26 8l-3 3"/>`,
+    crab: `<path d="M7 16c0-4 4-7 9-7s9 3 9 7-4 7-9 7-9-3-9-7z" ${F}/><path d="M10 12h12M8 16h16M10 20h12"/><path d="M7 14 3 9l2-4 3 4M25 14l4-5-2-4-3 4M8 20l-4 4M24 20l4 4M12 23l-2 5M20 23l2 5"/>`,
+    octopus: `<path d="M3 18c3-6 6-6 9 0s6 6 9 0 5-5 8-2" ${F}/><path d="M3 18c3-6 6-6 9 0s6 6 9 0 5-5 8-2"/><circle cx="27" cy="15" r="1" ${S}/><path d="M13 5l-3 6h4l-2 5M22 4l-2 4h3l-2 4"/>`,
+    zombie: `<path d="M5 22c0-7 4-12 10-12s10 5 10 12z" ${F}/><path d="M10 22l3-7h4l3 7M13 15l2-5M5 22h20M25 18c3 0 4 1 4 3s-2 2-4 1"/><path d="M8 22v4M22 22v4"/>`,
+    kraken: `<path d="M16 3c4 3 6 8 6 13H10c0-5 2-10 6-13z" ${F}/><circle cx="13.5" cy="12" r="1.2" ${S}/><circle cx="18.5" cy="12" r="1.2" ${S}/><path d="M11 16c0 5-3 8-6 10M14 16c0 5-1 9-3 12M18 16c0 5 1 9 3 12M21 16c0 5 3 8 6 10"/>`,
+    imp: `<path d="M5 22c0-3 2-5 5-5h1c1-3 3-4 5-4s4 1 5 4h1c3 0 5 2 5 5s-2 5-5 5H10c-3 0-5-2-5-5z" ${F}/><path d="M11 17v10M16 13v14M21 17v10"/><circle cx="25" cy="21" r="1" ${S}/><path d="M9 9l1 2M15 6l1 3M22 8l-1 2"/>`,
+    chained: `<path d="M4 28l6-14h12l6 14z" ${F}/><path d="M10 14c-1-3 0-5 2-6M22 14c1-3 0-5-2-6M13 20h6"/><circle cx="13" cy="17" r="1" ${S}/><circle cx="19" cy="17" r="1" ${S}/><path d="M16 8c-1-2 0-4 2-5M12 5c0-1 1-2 2-2M20 4c1 0 2 1 2 2"/>`,
+    fiend: `<path d="M8 15c0-6 3-9 8-9s8 3 8 9v5c0 5-3 8-8 8s-8-3-8-8z" ${F}/><path d="M16 6v22M8 16h16M12 6 9 3M20 6l3-3M8 19 4 21M24 19l4 2M9 24l-4 3M23 24l4 3"/><path d="M4 9l1 1M27 10l1-1M6 4l1 1"/>`,
+    maw: `<circle cx="16" cy="16" r="12" ${F}/><circle cx="16" cy="16" r="6"/><path d="M16 4v4M16 24v4M4 16h4M24 16h4M7.5 7.5l3 3M21.5 21.5l3 3M24.5 7.5l-3 3M10.5 21.5l-3 3"/>`,
+    cultist: `<ellipse cx="11" cy="20" rx="5" ry="6" ${F}/><ellipse cx="21" cy="20" rx="5" ry="6" ${F}/><ellipse cx="16" cy="11" rx="4.5" ry="5.5" ${F}/><path d="M9 18l2 2 2-2M19 19l2-2 2 2M14 10l2 1 2-1"/><path d="M3 28h26"/>`,
+    goat: `<path d="M16 2 23 10v18H9V10z" ${F}/><path d="M9 10h14M12 16c1.5-2 2.5-3 4-3s2.5 1 4 3c-1.5 2-2.5 3-4 3s-2.5-1-4-3z"/><circle cx="16" cy="16" r="1" ${S}/><path d="M6 28h20"/>`,
+    butcher: `<path d="M14 10c-2-3-1-6 2-7 3 1 4 4 2 7z" ${F}/><path d="M13 5 9 2M19 5l4-3M16 10v18M12 14l4 2 4-2M16 20l-6 8M16 20l6 8"/><path d="M14 13 7 10l-2 4 4-1M18 13l7-3 2 4-4-1"/><circle cx="14.5" cy="6.5" r=".8" ${S}/><circle cx="17.5" cy="6.5" r=".8" ${S}/>`,
+    lord: `<path d="M6 12 8 4l4 4 4-5 4 5 4-4 2 8" ${F}/><path d="M6 12h20v8c0 5-4 9-10 9S6 25 6 20z" ${F}/><path d="M16 12l-2 5 3 3-2 5"/><circle cx="11" cy="17" r="1.3" ${S}/><circle cx="21" cy="17" r="1.3" ${S}/>`
+  }
+};
+  if (W && WORLD_ICONS_SRC[WORLD_ID]) for (const [k, v] of Object.entries(WORLD_ICONS_SRC[WORLD_ID])) ICONS[k] = svg(v);
   const ICON_CURSE = svg(`<path d="M16 6c5-1 10 3 9 8-1 6-8 8-11 4-3-3-1-8 3-8 3 0 5 3 3 5"/><circle cx="16" cy="16" r="2" ${S}/><path d="M7 25c4 3 12 3 16 0"/>`);
   const ICON_STONE = svg(`<path d="M16 5l8 5v12l-8 5-8-5V10z" ${F}/><path d="M16 5v22M8 10l16 12M24 10 8 22"/>`);
   const ICON_CHEST = svg(`<path d="M4 14c0-5 5-8 12-8s12 3 12 8z" ${F}/><rect x="4" y="14" width="24" height="12" rx="1.500" ${F}/><path d="M4 14h24M14 14v5h4v-5"/><circle cx="16" cy="20" r="1" ${S}/>`);
@@ -581,7 +637,22 @@
     const store = o => { try { localStorage.setItem(USERS_KEY, JSON.stringify(o)); return true; } catch (e) { return false; } };
     let cur = null; try { cur = localStorage.getItem(CUR_KEY) || null; } catch (e) {}
     if (cur && !all()[cur]) cur = null;
-    const setCur = k => { cur = k; try { k ? localStorage.setItem(CUR_KEY, k) : localStorage.removeItem(CUR_KEY); } catch (e) {} };
+    // sesión compartida entre los dos mundos: solo nombre y credenciales (el progreso de cada mundo va aparte)
+    const SESSION = 'dw:session';
+    const putSession = k => { if (!W) return; try { const u = k && all()[k]; _LS.setItem(SESSION, JSON.stringify(u ? { k, name: u.name, salt: u.salt, hash: u.hash, created: u.created,
+      cloud: u.cloud ? { uid: u.cloud.uid, refresh: u.cloud.refresh } : null } : { k: null })); } catch (e) {} };
+    const setCur = k => { cur = k; try { k ? localStorage.setItem(CUR_KEY, k) : localStorage.removeItem(CUR_KEY); } catch (e) {} putSession(k); };
+    if (W) try {
+      const ss = JSON.parse(_LS.getItem(SESSION) || 'null');
+      if (ss && !ss.k) { if (cur) { cur = null; localStorage.removeItem(CUR_KEY); } }
+      else if (ss && ss.k && ss.k !== cur && ss.salt && ss.hash) {
+        const o = all();
+        if (!o[ss.k]) o[ss.k] = { name: ss.name, salt: ss.salt, hash: ss.hash, created: ss.created || Date.now(), rec: { games: {}, tot: {}, ach: {}, hist: [], heroes: [], runs: {} } };
+        o[ss.k].salt = ss.salt; o[ss.k].hash = ss.hash;
+        if (ss.cloud) o[ss.k].cloud = Object.assign({}, o[ss.k].cloud, ss.cloud, { dirty: true });
+        localStorage.setItem(USERS_KEY, JSON.stringify(o)); cur = ss.k; localStorage.setItem(CUR_KEY, cur);
+      }
+    } catch (e) {}
     async function hash(pw, salt) {
       const data = new TextEncoder().encode(salt + '|' + pw);
       try { const h = await crypto.subtle.digest('SHA-256', data); return [...new Uint8Array(h)].map(b => b.toString(16).padStart(2, '0')).join(''); }

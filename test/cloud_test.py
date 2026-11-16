@@ -40,7 +40,10 @@ async def handler(route):
         uid = unquote(u.path.rsplit('/', 1)[-1]); auth = (req.headers.get('authorization') or '')[7:]
         if tokens.get(auth) != uid: return await err('Missing or insufficient permissions.', 403, 'PERMISSION_DENIED')
         if req.method == 'GET': return await (ok(docs[uid]) if uid in docs else err('not found', 404, 'NOT_FOUND'))
-        if req.method == 'PATCH': docs[uid] = json.loads(body); return await ok(docs[uid])
+        if req.method == 'PATCH':
+            nb = json.loads(body)
+            if 'updateMask' in u.query and uid in docs: nb = {'fields': dict(docs[uid].get('fields', {}), **nb.get('fields', {}))}
+            docs[uid] = nb; return await ok(docs[uid])
         if req.method == 'DELETE': docs.pop(uid, None); return await ok({})
     await route.continue_()
 async def device(b):
