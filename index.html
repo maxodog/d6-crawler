@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060d1a">
-<meta name="build" content="4b64f707f9">
+<meta name="build" content="cc72d90c08">
 <title>Archeodice · Colossus D6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -348,7 +348,8 @@ body.menu .screen {
 .actions .btn.small { padding: 8px 12px; }
 
 /* ---- selector de aventura ---- */
-.adv-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.adv-list { display: grid; grid-template-columns: 1fr; gap: 16px; }
+@media (min-width: 640px) { .adv-list { grid-template-columns: 1fr 1fr; } }
 .adv-card { display: flex; flex-direction: column; align-items: stretch; gap: 4px; text-align: left; padding: 8px 8px 12px; border: 1.5px solid var(--line); border-radius: 12px; background: rgba(127,168,220,.06); }
 .adv-card:active, .adv-card:hover { border-color: var(--torch); background: rgba(255,139,61,.08); }
 .adv-card img { width: 100%; height: auto; aspect-ratio: 440 / 614; border-radius: 6px; display: block; background: var(--card); object-fit: cover; margin-bottom: 4px; }
@@ -496,7 +497,7 @@ body.tight .dice-row.moving { display: none; }
   body:not(.menu) { overflow: hidden; height: 100vh; display: flex; align-items: center; justify-content: center; background: #050912; }  body:not(.menu) .app {
     --u: min(calc(100vw / 3775), calc(100vh / 2127)); --t: calc(184 * var(--u));
     position: relative; display: block; flex: none; width: calc(3775 * var(--u)); height: calc(2127 * var(--u)); max-width: none; min-height: 0; margin: 0; padding: 0;
-    background: #0a1020 url(img/playmat.jpg) center / 100% 100% no-repeat; font-size: calc(48 * var(--u));
+    background: #0a1020; font-size: calc(48 * var(--u));
   }  .top { display: none; }  .card-wrap { display: contents; perspective: none; }  .card,
   .app::before,
   .herobox,
@@ -524,7 +525,7 @@ body.tight .dice-row.moving { display: none; }
 }
 /* pantallas de inicio en escritorio */
 @media (min-width: 1000px) and (min-aspect-ratio: 3/2) {
-  body.menu { background-image: linear-gradient(rgba(4,8,18,.84), rgba(4,8,18,.84)), url(img/playmat.jpg); background-size: cover; background-attachment: fixed; background-position: center; }
+  body.menu { background-image: linear-gradient(rgba(4,8,18,.84), rgba(4,8,18,.84)); background-size: cover; background-attachment: fixed; background-position: center; }
   .splash.wide { max-width: 1180px; }
   .splash.wide .adv-list { grid-template-columns: repeat(5, 1fr); gap: 16px; }
   .splash.wide .hero-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
