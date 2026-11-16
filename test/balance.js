@@ -100,10 +100,38 @@ function measure(levels) {
     return { dead: d / N, dmg: dmg / N, t: t / N, n: lv.spawns.length, key: lv.mon.key };
   });
 }
+// ---- campaña completa: niveles seguidos, con la Vida que quede; cura si queda con poca Vida ----
+function campaign(levels, healAt) {
+  E.GAMES[GAME].levels = levels; E.useGame(GAME);
+  const st = E.newRun('paladin', GAME, []); let turns = 0;
+  for (;;) {
+    turns++; playTurn(st);
+    if (!st.mons.length) {
+      if (st.levelIdx === levels.length - 1) return levels.length + 1;
+      let b = 'heal';
+      if (st.adv.hp > healAt) { let bs = Infinity; for (const s of ['atk', 'def', 'spd', 'rng']) { const v = st.adv[s] / W8[s]; if (v < bs && st.adv[s] < E.SKILL_MAX) { bs = v; b = s; } } }
+      E.applyBreak(st, b); E.nextLevel(st); continue;
+    }
+    E.playMonsters(st);
+    if (st.adv.hp <= 0) return st.levelIdx + 1;
+    st.turn = E.freshTurn(); st.phase = 'energy';
+    if (turns > 600) return st.levelIdx + 1;
+  }
+}
+if (process.env.CAMPAIGN) {
+  const n = +process.env.CAMPAIGN, H = +(process.env.HEAL || 3);
+  for (const [name, lv] of [['original', ORIG], ['propio', OWN]]) {
+    if (process.env.ONLY === 'own' && name === 'original') continue;
+    const reach = new Array(lv.length + 2).fill(0); let sum = 0;
+    for (let k = 0; k < n; k++) { const r = campaign(lv, H); sum += r; for (let i = 1; i <= r; i++) reach[i]++; }
+    console.log(`${name.padEnd(9)} campaña: llega al nivel → ` + reach.slice(1, lv.length + 1).map((v, i) => `${i + 1}:${Math.round(100 * v / n)}%`).join(' ') + ` · gana ${Math.round(100 * reach[lv.length + 1] / n)}% · nivel medio ${(sum / n).toFixed(1)}`);
+  }
+  process.exit(0);
+}
 const only = process.env.LV ? process.env.LV.split(',').map(x => +x - 1) : null;
 const pick = a => only ? a.filter((_, i) => only.includes(i)) : a;
 const t0 = Date.now();
-const A = measure(ORIG), B = measure(OWN);
+const A = process.env.ONLY === 'own' ? OWN.map(() => ({ dead: 0, dmg: 0, t: 0, n: 0, key: '-' })) : measure(ORIG), B = measure(OWN);
 const fmt = r => `${(r.dead * 100).toFixed(0).padStart(3)}% muere · daño ${r.dmg.toFixed(1)} · ${r.t.toFixed(1)} turnos`;
 console.log(`nivel | Archeodice (original)                   | ${W.name} (propio)`);
 A.forEach((a, i) => { if (only && !only.includes(i)) return; const b = B[i]; console.log(`${String(i + 1).padStart(5)} | ${a.n}× ${a.key.padEnd(8)} ${fmt(a)} | ${b.n}× ${b.key.padEnd(8)} ${fmt(b)}${Math.abs(a.dmg - b.dmg) > 0.8 ? '  <-- revisar' : ''}`); });

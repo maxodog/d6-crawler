@@ -420,7 +420,8 @@
     { key: 'harbour', name: 'Harbour Clash' }, { key: 'hell', name: L('La Puerta del Infierno', "Hell's Door") }
   ];
   if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0];
-    for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k]; PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
+    for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k];
+    if (W.rogueNoCap) HEROES.rogue.txt = L('Una vez por nivel, puede sumar 1 a los tres dados de Energía, aunque alguno sea un 6.', 'Once per level, may add 1 to all three Energy dice, even if one is a 6.'); PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
   const heroesOf = pack => HERO_KEYS.filter(k => HEROES[k].pack === pack);
   const ICON_WIND = svg(`<path d="M4 11h13c4 0 5-5 1.5-5.5M4 17h19c4 0 5 5 1.5 5.5M4 23h9c3 0 4 3 1.5 3.5"/>`);
   const ITEM_ICONS = {
@@ -1151,6 +1152,7 @@
   // dado D12 (Ojo de dragón): dodecaedro violeta, distinto de los D6 con puntos
   const D12_SVG = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="o" points="50,3 96,37 79,94 21,94 4,37"/><polygon class="m" points="50,28 74,45 65,73 35,73 26,45"/><path class="l" d="M50 3v25M96 37 74 45M79 94 65 73M21 94 35 73M4 37 26 45"/></svg>';
   function dieHTML(v, extra, d12) {
+    if (v > 6 && !d12) return `<span class="die d12 ${extra || ''}" aria-label="${L('Dado', 'Die')}: ${v}">${D12_SVG}<b>${v}</b><small>+1</small></span>`;
     if (v > 6 || d12) return `<span class="die d12 ${extra || ''}" aria-label="${L('Dado', 'Die')} D12: ${v}">${D12_SVG}<b>${v}</b><small>D12</small></span>`;
     const on = PIPS[v] || [];
     let s = '';
@@ -2051,6 +2053,7 @@
     G = g; useGame(G.game || 'base');
     if (G.totalTurns == null) G.totalTurns = 0;
     if (G.phase === 'monsters') G.phase = 'move';
+    if (!G.mons.length && G.phase !== 'won' && G.phase !== 'dead') G.phase = 'clear';   // se guardó con el nivel ya vencido
     lastHp = G.adv.hp; builtLevel = -1;
     hideScreen(); render();
     if (G.phase === 'clear') nextStep();
@@ -2139,9 +2142,9 @@
       say(G.turn.knight ? L('Habilidad del Caballero: reparte los tres dados y pon <b>dos en la misma habilidad</b>.', "Knight's ability: assign the three dice and put <b>two on the same skill</b>.") : L('Habilidad cancelada: un dado por habilidad.', 'Ability cancelled: one die per skill.'));
     }
     else if (ab.id === 'rogue') {
-      E.useRogue(G);
+      const nc = !!(W && W.rogueNoCap); E.useRogue(G, nc);
       render();
-      say(L('Habilidad del Pícaro: <b>+1</b> a cada dado (máximo 6).', "Rogue's ability: <b>+1</b> to each die (maximum 6)."));
+      say(nc ? L('Habilidad del Pícaro: <b>+1</b> a cada dado, aunque sea un 6.', "Rogue's ability: <b>+1</b> to each die, even a 6.") : L('Habilidad del Pícaro: <b>+1</b> a cada dado (máximo 6).', "Rogue's ability: <b>+1</b> to each die (maximum 6)."));
     }
     else if (ab.id === 'corsair') {
       E.toggleCorsair(G);

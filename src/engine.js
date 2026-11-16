@@ -442,9 +442,9 @@ function toggleKnight(st) {   // Caballero: dos dados a una misma habilidad
   if (!t.knight) { t.knight = true; st.abil = st.abilEver = true; }
   else { t.knight = false; st.abil = false; t.assign2 = NO_SKILLS(); }
 }
-function useRogue(st) {       // Pícaro: +1 a todos los dados
+function useRogue(st, noCap) {       // Pícaro: +1 a todos los dados (en Colossus, también sobre un 6)
   const t = st.turn;
-  t.dice = t.dice.map(v => (v < 6 ? v + 1 : v));
+  t.dice = t.dice.map(v => (noCap || v < 6 ? v + 1 : v));
   st.abil = st.abilEver = true;
 }
 function toggleSherpa(st) {

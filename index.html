@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060d1a">
-<meta name="build" content="b6a12bbff4">
+<meta name="build" content="dddca7418e">
 <title>Archeodice · Colossus D6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1016,22 +1016,22 @@ const WORLDS = {
       'Horda del Averno': 'Erupción|Eruption', 'Cárcel de los condenados': 'Cráter|Crater', 'Tormenta de alas': 'Tormenta ígnea|Firestorm', 'Abismo sin fondo': 'Núcleo del planeta|Planet Core'
     },
     // Juego base propio: mapas, cifras y aparición distintos del original ('#' muro, 'S' entrada, 'U' salida)
-    stats: { spider: { hp: 2, spd: 6, atk: 4, def: 3, rng: 2 }, skeleton: { hp: 3, spd: 3, atk: 6, def: 4, rng: 5 },
-      orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 2 }, demon: { hp: 5, spd: 5, atk: 6, def: 5, rng: 4 } },
+    stats: { spider: { hp: 3, spd: 6, atk: 5, def: 3, rng: 3 }, skeleton: { hp: 3, spd: 4, atk: 5, def: 5, rng: 5 }, orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 3 }, demon: { hp: 3, spd: 5, atk: 7, def: 5, rng: 4 } },
     levels: { base: [
-      { t: 'Barrio infestado|Infested Block',  m: 'spider',   map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[3,0],[4,2]] },
-      { t: 'Puente acorazado|Armored Bridge',  m: 'orc',      map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[3,0]] },
-      { t: 'Avenida ácida|Acid Avenue',        m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[1,0]] },
-      { t: 'Plaza del rugido|Roar Square',     m: 'demon',    map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[0,0]] },
-      { t: 'Estación tomada|Overrun Station',  m: 'spider',   map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[2,0],[4,0],[4,2]] },
-      { t: 'Muelle de carga|Loading Dock',     m: 'orc',      map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[4,0],[0,1]] },
-      { t: 'Torres de vigía|Watchtowers',      m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[2,0],[4,0],[0,2]] },
-      { t: 'Túnel del metro|Subway Tunnel',    m: 'demon',    map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[3,0],[0,2]] },
-      { t: 'Mercado en ruinas|Ruined Market',  m: 'spider',   map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[4,0],[2,1],[4,2]] },
-      { t: 'Central eléctrica|Power Plant',    m: 'orc',      map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[0,0],[4,2]] },
-      { t: 'Azoteas|Rooftops',                 m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[0,0],[2,1],[4,2],[1,3]] },
-      { t: 'Corazón de la ciudad|City Heart',  m: 'demon',    map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[4,0],[2,1]] }
+      { t: 'Avenida ácida|Acid Avenue', m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[0,4]] },
+      { t: 'Barrio infestado|Infested Block', m: 'spider', map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[0,1],[4,2]] },
+      { t: 'Puente acorazado|Armored Bridge', m: 'orc', map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[4,0]] },
+      { t: 'Estación tomada|Overrun Station', m: 'spider', map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[4,3],[4,4]] },
+      { t: 'Plaza del rugido|Roar Square', m: 'demon', map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[3,0]] },
+      { t: 'Torres de vigía|Watchtowers', m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[4,1],[1,2]] },
+      { t: 'Muelle de carga|Loading Dock', m: 'orc', map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[2,0],[0,3],[3,1]] },
+      { t: 'Túnel del metro|Subway Tunnel', m: 'demon', map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[2,0],[1,4]] },
+      { t: 'Mercado en ruinas|Ruined Market', m: 'spider', map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[1,1],[2,2],[4,1],[1,0]] },
+      { t: 'Azoteas|Rooftops', m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[4,0],[2,1],[2,0]] },
+      { t: 'Central eléctrica|Power Plant', m: 'orc', map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[2,2],[3,2],[2,1]] },
+      { t: 'Corazón de la ciudad|City Heart', m: 'demon', map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[3,0],[0,1],[4,2]] }
     ] },
+    rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },
     heroes: { paladin: 'Bastión|Bastion', barbarian: 'Furia|Fury', ranger: 'Francotirador|Sniper', mage: 'Oráculo|Oracle', necromancer: 'Sobrecarga|Overload', cleric: 'Mecánica|Mechanic',
@@ -1510,9 +1510,9 @@ function toggleKnight(st) {   // Caballero: dos dados a una misma habilidad
   if (!t.knight) { t.knight = true; st.abil = st.abilEver = true; }
   else { t.knight = false; st.abil = false; t.assign2 = NO_SKILLS(); }
 }
-function useRogue(st) {       // Pícaro: +1 a todos los dados
+function useRogue(st, noCap) {       // Pícaro: +1 a todos los dados (en Colossus, también sobre un 6)
   const t = st.turn;
-  t.dice = t.dice.map(v => (v < 6 ? v + 1 : v));
+  t.dice = t.dice.map(v => (noCap || v < 6 ? v + 1 : v));
   st.abil = st.abilEver = true;
 }
 function toggleSherpa(st) {
@@ -2593,7 +2593,8 @@ if (typeof module !== 'undefined') {
     { key: 'harbour', name: 'Harbour Clash' }, { key: 'hell', name: L('La Puerta del Infierno', "Hell's Door") }
   ];
   if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0];
-    for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k]; PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
+    for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k];
+    if (W.rogueNoCap) HEROES.rogue.txt = L('Una vez por nivel, puede sumar 1 a los tres dados de Energía, aunque alguno sea un 6.', 'Once per level, may add 1 to all three Energy dice, even if one is a 6.'); PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
   const heroesOf = pack => HERO_KEYS.filter(k => HEROES[k].pack === pack);
   const ICON_WIND = svg(`<path d="M4 11h13c4 0 5-5 1.5-5.5M4 17h19c4 0 5 5 1.5 5.5M4 23h9c3 0 4 3 1.5 3.5"/>`);
   const ITEM_ICONS = {
@@ -3324,6 +3325,7 @@ if (typeof module !== 'undefined') {
   // dado D12 (Ojo de dragón): dodecaedro violeta, distinto de los D6 con puntos
   const D12_SVG = '<svg viewBox="0 0 100 100" aria-hidden="true"><polygon class="o" points="50,3 96,37 79,94 21,94 4,37"/><polygon class="m" points="50,28 74,45 65,73 35,73 26,45"/><path class="l" d="M50 3v25M96 37 74 45M79 94 65 73M21 94 35 73M4 37 26 45"/></svg>';
   function dieHTML(v, extra, d12) {
+    if (v > 6 && !d12) return `<span class="die d12 ${extra || ''}" aria-label="${L('Dado', 'Die')}: ${v}">${D12_SVG}<b>${v}</b><small>+1</small></span>`;
     if (v > 6 || d12) return `<span class="die d12 ${extra || ''}" aria-label="${L('Dado', 'Die')} D12: ${v}">${D12_SVG}<b>${v}</b><small>D12</small></span>`;
     const on = PIPS[v] || [];
     let s = '';
@@ -4224,6 +4226,7 @@ if (typeof module !== 'undefined') {
     G = g; useGame(G.game || 'base');
     if (G.totalTurns == null) G.totalTurns = 0;
     if (G.phase === 'monsters') G.phase = 'move';
+    if (!G.mons.length && G.phase !== 'won' && G.phase !== 'dead') G.phase = 'clear';   // se guardó con el nivel ya vencido
     lastHp = G.adv.hp; builtLevel = -1;
     hideScreen(); render();
     if (G.phase === 'clear') nextStep();
@@ -4312,9 +4315,9 @@ if (typeof module !== 'undefined') {
       say(G.turn.knight ? L('Habilidad del Caballero: reparte los tres dados y pon <b>dos en la misma habilidad</b>.', "Knight's ability: assign the three dice and put <b>two on the same skill</b>.") : L('Habilidad cancelada: un dado por habilidad.', 'Ability cancelled: one die per skill.'));
     }
     else if (ab.id === 'rogue') {
-      E.useRogue(G);
+      const nc = !!(W && W.rogueNoCap); E.useRogue(G, nc);
       render();
-      say(L('Habilidad del Pícaro: <b>+1</b> a cada dado (máximo 6).', "Rogue's ability: <b>+1</b> to each die (maximum 6)."));
+      say(nc ? L('Habilidad del Pícaro: <b>+1</b> a cada dado, aunque sea un 6.', "Rogue's ability: <b>+1</b> to each die, even a 6.") : L('Habilidad del Pícaro: <b>+1</b> a cada dado (máximo 6).', "Rogue's ability: <b>+1</b> to each die (maximum 6)."));
     }
     else if (ab.id === 'corsair') {
       E.toggleCorsair(G);

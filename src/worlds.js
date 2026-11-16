@@ -78,22 +78,22 @@ const WORLDS = {
       'Horda del Averno': 'Erupción|Eruption', 'Cárcel de los condenados': 'Cráter|Crater', 'Tormenta de alas': 'Tormenta ígnea|Firestorm', 'Abismo sin fondo': 'Núcleo del planeta|Planet Core'
     },
     // Juego base propio: mapas, cifras y aparición distintos del original ('#' muro, 'S' entrada, 'U' salida)
-    stats: { spider: { hp: 2, spd: 6, atk: 4, def: 3, rng: 2 }, skeleton: { hp: 3, spd: 3, atk: 6, def: 4, rng: 5 },
-      orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 2 }, demon: { hp: 5, spd: 5, atk: 6, def: 5, rng: 4 } },
+    stats: { spider: { hp: 3, spd: 6, atk: 5, def: 3, rng: 3 }, skeleton: { hp: 3, spd: 4, atk: 5, def: 5, rng: 5 }, orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 3 }, demon: { hp: 3, spd: 5, atk: 7, def: 5, rng: 4 } },
     levels: { base: [
-      { t: 'Barrio infestado|Infested Block',  m: 'spider',   map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[3,0],[4,2]] },
-      { t: 'Puente acorazado|Armored Bridge',  m: 'orc',      map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[3,0]] },
-      { t: 'Avenida ácida|Acid Avenue',        m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[1,0]] },
-      { t: 'Plaza del rugido|Roar Square',     m: 'demon',    map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[0,0]] },
-      { t: 'Estación tomada|Overrun Station',  m: 'spider',   map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[2,0],[4,0],[4,2]] },
-      { t: 'Muelle de carga|Loading Dock',     m: 'orc',      map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[4,0],[0,1]] },
-      { t: 'Torres de vigía|Watchtowers',      m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[2,0],[4,0],[0,2]] },
-      { t: 'Túnel del metro|Subway Tunnel',    m: 'demon',    map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[3,0],[0,2]] },
-      { t: 'Mercado en ruinas|Ruined Market',  m: 'spider',   map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[4,0],[2,1],[4,2]] },
-      { t: 'Central eléctrica|Power Plant',    m: 'orc',      map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[0,0],[4,2]] },
-      { t: 'Azoteas|Rooftops',                 m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[0,0],[2,1],[4,2],[1,3]] },
-      { t: 'Corazón de la ciudad|City Heart',  m: 'demon',    map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[4,0],[2,1]] }
+      { t: 'Avenida ácida|Acid Avenue', m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[0,4]] },
+      { t: 'Barrio infestado|Infested Block', m: 'spider', map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[0,1],[4,2]] },
+      { t: 'Puente acorazado|Armored Bridge', m: 'orc', map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[4,0]] },
+      { t: 'Estación tomada|Overrun Station', m: 'spider', map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[4,3],[4,4]] },
+      { t: 'Plaza del rugido|Roar Square', m: 'demon', map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[3,0]] },
+      { t: 'Torres de vigía|Watchtowers', m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[4,1],[1,2]] },
+      { t: 'Muelle de carga|Loading Dock', m: 'orc', map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[2,0],[0,3],[3,1]] },
+      { t: 'Túnel del metro|Subway Tunnel', m: 'demon', map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[2,0],[1,4]] },
+      { t: 'Mercado en ruinas|Ruined Market', m: 'spider', map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[1,1],[2,2],[4,1],[1,0]] },
+      { t: 'Azoteas|Rooftops', m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[4,0],[2,1],[2,0]] },
+      { t: 'Central eléctrica|Power Plant', m: 'orc', map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[2,2],[3,2],[2,1]] },
+      { t: 'Corazón de la ciudad|City Heart', m: 'demon', map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[3,0],[0,1],[4,2]] }
     ] },
+    rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },
     heroes: { paladin: 'Bastión|Bastion', barbarian: 'Furia|Fury', ranger: 'Francotirador|Sniper', mage: 'Oráculo|Oracle', necromancer: 'Sobrecarga|Overload', cleric: 'Mecánica|Mechanic',
