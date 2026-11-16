@@ -1,0 +1,110 @@
+'use strict';
+/* ===== MUNDOS: Archeodice y Colossus D6: Kaiju Protocol =====
+   Mismas reglas, mapas y cifras; cambian nombres, textos y portadas. Formato de nombres: 'es|en' o, para
+   monstruos, 'singular es|plural es|singular en|plural en' (si no hay plural, se repite el singular). */
+const WORLDS = {
+  arch: {
+    id: 'arch', name: 'Archeodice', logo: ['ARCHEODICE', ''],
+    tagline: ['Un mapa, tres dados y una ruina por explorar.', 'One map, three dice and a ruin to explore.'],
+    games: { base: 'Archeodice|Archeodice', mguf: 'El Laberinto de los Espejos|The Mirror Labyrinth', peak: 'La Fortaleza entre la Bruma|Fortress in the Mist',
+      harbour: 'La Selva de las Mil Raíces|Jungle of a Thousand Roots', hell: 'La Biblioteca Enterrada|The Buried Library' },
+    mon: {
+      spider: 'Escorpión|Escorpiones|Scorpion|Scorpions', skeleton: 'Momia|Momias|Mummy|Mummies', orc: 'Gólem de piedra|Gólems de piedra|Stone Golem|Stone Golems',
+      demon: 'Espíritu jaguar|Espíritus jaguar|Jaguar Spirit|Jaguar Spirits',
+      ogre: 'Minotauro de bronce||Bronze Minotaur|', reaper: 'La Dama del Espejo||The Lady of the Mirror|', drake: 'Serpiente de cristal||Crystal Serpent|', mguf: 'El Doble Oscuro||The Dark Double|',
+      goblin: 'Murciélago de la bruma|Murciélagos de la bruma|Mist Bat|Mist Bats', wolf: 'Puma fantasma|Pumas fantasma|Ghost Puma|Ghost Pumas',
+      yeti: 'Guerrero de jade|Guerreros de jade|Jade Warrior|Jade Warriors', sorcerer: 'El Oráculo Velado||The Veiled Oracle|',
+      crab: 'Rana dardo|Ranas dardo|Dart Frog|Dart Frogs', octopus: 'Lagarto acechador|Lagartos acechadores|Lurking Lizard|Lurking Lizards',
+      zombie: 'Caimán|Caimanes|Caiman|Caimans', kraken: 'Anaconda gigante|Anacondas gigantes|Giant Anaconda|Giant Anacondas',
+      imp: 'Escarabajo devorador|Escarabajos devoradores|Devourer Beetle|Devourer Beetles', chained: 'Escriba maldito|Escribas malditos|Cursed Scribe|Cursed Scribes',
+      fiend: 'Gárgola de arenisca|Gárgolas de arenisca|Sandstone Gargoyle|Sandstone Gargoyles', maw: 'Gusano de arena|Gusanos de arena|Sandworm|Sandworms',
+      cultist: 'El Bibliotecario||The Librarian|', goat: 'La Esfinge||The Sphinx|', butcher: 'Guardián chacal||Jackal Warden|', lord: 'La Reina de las Arenas||The Queen of the Sands|'
+    },
+    titles: {
+      'Telarañas': 'Nido de escorpiones|Scorpion Nest', 'Osario': 'Cámara de las momias|Mummy Chamber', 'Cubil del orco': 'Sala del gólem|Golem Hall', 'Puerta del demonio': 'Altar del jaguar|Jaguar Altar',
+      'Sendero helado': 'Sendero entre la bruma|Misty Path', 'Aullidos en la nieve': 'Huellas en la niebla|Tracks in the Fog', 'Guarida del yeti': 'Salón de jade|Jade Hall',
+      'Campamento goblin': 'Campanario de los murciélagos|Bat Belfry', 'Colmillos de escarcha': 'Garras fantasma|Ghost Claws', 'Ventisquero del yeti': 'Guardia de jade|Jade Guard',
+      'Horda goblin': 'Nube de alas|Cloud of Wings', 'Manada del huargo': 'Cacería en la bruma|Hunt in the Mist', 'Cumbre del yeti': 'Ejército de jade|Jade Army',
+      'Orilla de cangrejos': 'Charca de ranas|Frog Pond', 'Muelle de tentáculos': 'Raíces acechantes|Lurking Roots', 'Marea de piratas': 'Ribera de caimanes|Caiman Bank',
+      'El Kraken despierta': 'La Anaconda despierta|The Anaconda Awakens', 'Plaga de cangrejos': 'Lluvia de ranas|Rain of Frogs', 'Pulpos del rompeolas': 'Lagartos del templo|Temple Lizards',
+      'Tripulación maldita': 'Pantano de los caimanes|Caiman Marsh', 'Furia del Kraken': 'Furia de la Anaconda|Anaconda\'s Fury',
+      'Umbral de brasas': 'Umbral de arena|Sand Threshold', 'Cadenas al rojo': 'Tinta maldita|Cursed Ink', 'Alas de ceniza': 'Alas de piedra|Stone Wings', 'Boca del abismo': 'Boca de la duna|Mouth of the Dune',
+      'Legión de diablillos': 'Plaga de escarabajos|Beetle Plague', 'Penitentes del fuego': 'Copistas eternos|Eternal Copyists', 'Bandada infernal': 'Cornisa de gárgolas|Gargoyle Ledge',
+      'Fauces gemelas': 'Gusanos gemelos|Twin Worms', 'Horda del Averno': 'Enjambre de papiro|Papyrus Swarm', 'Cárcel de los condenados': 'Scriptorium maldito|Cursed Scriptorium',
+      'Tormenta de alas': 'Tormenta de piedra|Stone Storm', 'Abismo sin fondo': 'Mar de arena|Sea of Sand'
+    },
+    heroes: { paladin: 'Arqueóloga|Archaeologist', barbarian: 'Mercenario|Mercenary', ranger: 'Topógrafa|Surveyor', mage: 'Adivino|Fortune-teller', necromancer: 'Chamán|Shaman',
+      cleric: 'Restauradora|Restorer', knight: 'Escolta|Bodyguard', rogue: 'Contrabandista|Smuggler', sherpa: 'Escaladora|Climber', corsair: 'Aviadora|Aviator', demonhunter: 'Encantador de serpientes|Snake Charmer' },
+    items: { cloak: 'Linterna de bruma|Linterna|Mist Lantern|Lantern', axe: 'Látigo de cuero|Látigo|Leather Whip|Whip', herbs: 'Bálsamo de montaña|Bálsamo|Mountain Balm|Balm',
+      wyrm: 'Botas de escalada|Botas|Climbing Boots|Boots', flame: 'Moneda de la suerte|Moneda|Lucky Coin|Coin', hourglass: 'Bengala|Bengala|Flare|Flare', eye: 'Ídolo de oro|Ídolo|Golden Idol|Idol',
+      powder: 'Dinamita|Dinamita|Dynamite|Dynamite', sands: 'Repelente|Repelente|Repellent|Repellent', gorgon: 'Flauta de hueso|Flauta|Bone Flute|Flute', pendant: 'Amuleto ankh|Ankh|Ankh Amulet|Ankh',
+      holy: 'Pergamino protector|Pergamino|Ward Scroll|Scroll', laurel: 'Cetro del escriba|Cetro|Scribe\'s Scepter|Scepter', fist: 'Martillo de roca|Martillo|Rock Hammer|Hammer', mail: 'Escudo de bronce|Escudo|Bronze Shield|Shield' },
+    // reemplazos en los textos (frases completas primero; respetan mayúsculas)
+    terms: {
+      es: [['Cáliz de Brasas', 'Primer hallazgo'], ["Fin de M'Guf-yn", 'Más allá del reflejo'], ['Rey de la cima', 'Señor de la bruma'], ['Lobo de mar', 'Rey de la selva'], ['Portero del Infierno', 'Guardián del saber'], ['la Montaña Eterna', 'La Fortaleza entre la Bruma'], ['tres demonios', 'tres espíritus jaguar'], ['su carta', 'su ficha'], ['Una carta', 'Un mapa'], ['Usar la cota', 'Usar el escudo'], ['la cota', 'el escudo'], ['Piedra de la Perdición', 'Losa del Escriba'], ['casillas malditas', 'casillas de arena maldita'], ['casilla maldita', 'casilla de arena maldita'],
+        ['Casillas malditas', 'Casillas de arena maldita'], ['Casilla maldita', 'Casilla de arena maldita'], ['ventiscas', 'brumas'], ['ventisca', 'bruma'], ['Ventiscas', 'Brumas'], ['Ventisca', 'Bruma'],
+        ['cofres', 'relicarios'], ['cofre', 'relicario'], ['Cofres', 'Relicarios'], ['Cofre', 'Relicario'], ['agua', 'pantano'], ['Agua', 'Pantano'],
+        ['mazmorras', 'ruinas'], ['mazmorra', 'ruina'], ['Mazmorras', 'Ruinas'], ['Mazmorra', 'Ruina']],
+      en: [['Ember Chalice', 'First Find'], ["End of M'Guf-yn", 'Beyond the Reflection'], ['King of the Peak', 'Lord of the Mist'], ['Sea Wolf', 'King of the Jungle'], ['Gatekeeper of Hell', 'Keeper of Lore'], ['three demons', 'three jaguar spirits'], ['their card', 'their sheet'], ['One card', 'One map'], ['Use the mail', 'Use the shield'], ['the mail', 'the shield'], ['Stone of Doom', 'Scribe\'s Slab'], ['cursed tiles', 'cursed sand tiles'], ['cursed tile', 'cursed sand tile'], ['Cursed tiles', 'Cursed sand tiles'],
+        ['Cursed tile', 'Cursed sand tile'], ['blizzards', 'mists'], ['blizzard', 'mist'], ['Blizzards', 'Mists'], ['Blizzard', 'Mist'], ['chests', 'reliquaries'], ['chest', 'reliquary'], ['Chests', 'Reliquaries'],
+        ['Chest', 'Reliquary'], ['water', 'swamp'], ['Water', 'Swamp'], ['dungeons', 'ruins'], ['dungeon', 'ruin'], ['Dungeons', 'Ruins'], ['Dungeon', 'Ruin']]
+    }
+  },
+  kaiju: {
+    id: 'kaiju', name: 'Colossus D6', logo: ['COLOSSUS D6', 'KAIJU PROTOCOL'],
+    tagline: ['Un sector, tres dados y una ciudad por defender.', 'One sector, three dice and a city to defend.'],
+    games: { base: 'Kaiju Protocol|Kaiju Protocol', mguf: 'Alerta Omega|Omega Alert', peak: 'Operación Glaciar|Operation Glacier', harbour: 'Bahía Abisal|Abyssal Bay', hell: 'Fisura Infernal|Infernal Rift' },
+    mon: {
+      spider: 'Mordedor|Mordedores|Biter|Biters', skeleton: 'Escupidor|Escupidores|Spitter|Spitters', orc: 'Acorazado|Acorazados|Armored|Armoreds', demon: 'Rugidor|Rugidores|Roarer|Roarers',
+      ogre: 'Rey Coraza||Shell King|', reaper: 'Rey Polilla||Moth King|', drake: 'Rey Tormenta||Storm King|', mguf: 'Kaiju Omega||Omega Kaiju|',
+      goblin: 'Rastreador de escarcha|Rastreadores de escarcha|Frost Crawler|Frost Crawlers', wolf: 'Sabueso glacial|Sabuesos glaciales|Glacial Hound|Glacial Hounds',
+      yeti: 'Behemot glacial|Behemots glaciales|Glacial Behemoth|Glacial Behemoths', sorcerer: 'El Durmiente del Hielo||The Ice Sleeper|',
+      crab: 'Cangrejo blindado|Cangrejos blindados|Armored Crab|Armored Crabs', octopus: 'Anguila voltaica|Anguilas voltaicas|Volt Eel|Volt Eels',
+      zombie: 'Tortuga acorazada|Tortugas acorazadas|Shell Turtle|Shell Turtles', kraken: 'Calamar abisal|Calamares abisales|Abyssal Squid|Abyssal Squids',
+      imp: 'Larva de magma|Larvas de magma|Magma Larva|Magma Larvae', chained: 'Escupelava|Escupelavas|Lava Spitter|Lava Spitters',
+      fiend: 'Escarabajo de ceniza|Escarabajos de ceniza|Ash Beetle|Ash Beetles', maw: 'Fauce de magma|Fauces de magma|Magma Maw|Magma Maws',
+      cultist: 'La Incubadora||The Incubator|', goat: 'Centinela de obsidiana||Obsidian Sentinel|', butcher: 'Mantis ígnea||Fire Mantis|', lord: 'El Rey de la Fisura||The King of the Rift|'
+    },
+    titles: {
+      'Telarañas': 'Barrio infestado|Infested Block', 'Osario': 'Avenida ácida|Acid Avenue', 'Cubil del orco': 'Puente acorazado|Armored Bridge', 'Puerta del demonio': 'Plaza del rugido|Roar Square',
+      'Sendero helado': 'Pista helada|Frozen Runway', 'Aullidos en la nieve': 'Aullidos en la base|Howls at the Base', 'Guarida del yeti': 'Grieta del behemot|Behemoth Crevasse',
+      'Campamento goblin': 'Hangar infestado|Infested Hangar', 'Colmillos de escarcha': 'Jauría glacial|Glacial Pack', 'Ventisquero del yeti': 'Avalancha|Avalanche',
+      'Horda goblin': 'Enjambre de escarcha|Frost Swarm', 'Manada del huargo': 'Cacería polar|Polar Hunt', 'Cumbre del yeti': 'Muro de hielo|Ice Wall',
+      'Orilla de cangrejos': 'Muelle de cangrejos|Crab Dock', 'Muelle de tentáculos': 'Corriente voltaica|Volt Current', 'Marea de piratas': 'Marea de caparazones|Shell Tide',
+      'El Kraken despierta': 'El Calamar despierta|The Squid Awakens', 'Plaga de cangrejos': 'Invasión de cangrejos|Crab Invasion', 'Pulpos del rompeolas': 'Anguilas del rompeolas|Breakwater Eels',
+      'Tripulación maldita': 'Flota hundida|Sunken Fleet', 'Furia del Kraken': 'Furia abisal|Abyssal Fury',
+      'Umbral de brasas': 'Calle en llamas|Burning Street', 'Cadenas al rojo': 'Lluvia de lava|Lava Rain', 'Alas de ceniza': 'Alas de ceniza|Ash Wings', 'Boca del abismo': 'Boca de la fisura|Mouth of the Rift',
+      'Legión de diablillos': 'Nido de larvas|Larva Nest', 'Penitentes del fuego': 'Río de magma|Magma River', 'Bandada infernal': 'Nube de ceniza|Ash Cloud', 'Fauces gemelas': 'Fauces gemelas|Twin Maws',
+      'Horda del Averno': 'Erupción|Eruption', 'Cárcel de los condenados': 'Cráter|Crater', 'Tormenta de alas': 'Tormenta ígnea|Firestorm', 'Abismo sin fondo': 'Núcleo del planeta|Planet Core'
+    },
+    heroes: { paladin: 'Bastión|Bastion', barbarian: 'Furia|Fury', ranger: 'Francotirador|Sniper', mage: 'Oráculo|Oracle', necromancer: 'Sobrecarga|Overload', cleric: 'Mecánica|Mechanic',
+      knight: 'Ariete|Ram', rogue: 'Hacker|Hacker', sherpa: 'Fantasma|Phantom', corsair: 'Saltador|Jumper', demonhunter: 'Arpón|Harpoon' },
+    items: { cloak: 'Calefactor de núcleo|Calefactor|Core Heater|Heater', axe: 'Espada de plasma|Espada|Plasma Blade|Blade', herbs: 'Nanorreparación|Nanorrep.|Nano-Repair|Repair',
+      wyrm: 'Turbopropulsor|Turbo|Booster|Booster', flame: 'Recalibración|Recalib.|Recalibration|Recal.', hourglass: 'Pulso aturdidor|Pulso|Stun Pulse|Pulse', eye: 'Núcleo experimental|Núcleo|Experimental Core|Core',
+      powder: 'Misiles en racimo|Misiles|Cluster Missiles|Missiles', sands: 'Drenaje hidráulico|Drenaje|Hydraulic Drain|Drain', gorgon: 'Red magnética|Red|Mag-Net|Net',
+      pendant: 'Reactor de respaldo|Reactor|Backup Reactor|Reactor', holy: 'Refrigerante|Refrig.|Coolant|Coolant', laurel: 'Implante de control|Implante|Control Implant|Implant',
+      fist: 'Puño sísmico|Puño|Seismic Fist|Fist', mail: 'Placas de titanio|Placas|Titanium Plating|Plating' },
+    terms: {
+      es: [['Cáliz de Brasas', 'Primera defensa'], ["Fin de M'Guf-yn", 'Alerta desactivada'], ['Rey de la cima', 'Rompehielos'], ['Lobo de mar', 'Guardián de la bahía'], ['Portero del Infierno', 'Sellador de fisuras'], ['tres demonios', 'tres rugidores'], ['su carta', 'su ficha'], ['Una carta', 'Un sector'], ['Usar la cota', 'Usar las placas'], ['la cota', 'las placas'], ['Piedra de la Perdición', 'Roca del Núcleo'], ['casillas malditas', 'grietas de magma'], ['casilla maldita', 'grieta de magma'],
+        ['Casillas malditas', 'Grietas de magma'], ['Casilla maldita', 'Grieta de magma'], ['cofres', 'contenedores'], ['cofre', 'contenedor'], ['Cofres', 'Contenedores'], ['Cofre', 'Contenedor'],
+        ['mazmorras', 'zonas'], ['mazmorra', 'zona'], ['Mazmorras', 'Zonas'], ['Mazmorra', 'Zona']],
+      en: [['Ember Chalice', 'First Defense'], ["End of M'Guf-yn", 'Alert Cleared'], ['King of the Peak', 'Icebreaker'], ['Sea Wolf', 'Bay Guardian'], ['Gatekeeper of Hell', 'Rift Sealer'], ['three demons', 'three roarers'], ['their card', 'their sheet'], ['One card', 'One sector'], ['Use the mail', 'Use the plating'], ['the mail', 'the plating'], ['Stone of Doom', 'Core Rock'], ['cursed tiles', 'magma cracks'], ['cursed tile', 'magma crack'], ['Cursed tiles', 'Magma cracks'],
+        ['Cursed tile', 'Magma crack'], ['chests', 'crates'], ['chest', 'crate'], ['Chests', 'Crates'], ['Chest', 'Crate'], ['dungeons', 'zones'], ['dungeon', 'zone'], ['Dungeons', 'Zones'], ['Dungeon', 'Zone']]
+    }
+  }
+};
+// nombres originales (en el código y en los textos base), para reemplazarlos en los textos visibles
+const ORIG_NAMES = {
+  games: { base: 'One Card Dungeon|One Card Dungeon', mguf: "M'Guf-yn Returns|M'Guf-yn Returns", peak: 'Montaña Eterna|Eternal Peak', harbour: 'Harbour Clash|Harbour Clash', hell: 'La Puerta del Infierno|Hell\'s Door' },
+  mon: { spider: 'Araña|Arañas|Spider|Spiders', skeleton: 'Esqueleto|Esqueletos|Skeleton|Skeletons', orc: 'Orco|Orcos|Orc|Orcs', demon: 'Demonio|Demonios|Demon|Demons',
+    ogre: 'Ogro de las brasas||Ember Ogre|', reaper: 'Heraldo esquelético||Skeletal Herald|', drake: 'Serpiente alada||Winged Serpent|', mguf: "M'Guf-yn||M'Guf-yn|",
+    goblin: 'Goblin|Goblins|Goblin|Goblins', wolf: 'Lobo|Lobos|Wolf|Wolves', yeti: 'Yeti|Yetis|Yeti|Yetis', sorcerer: 'Hechicero Blanco||White Sorcerer|',
+    crab: 'Cangrejo|Cangrejos|Crab|Crabs', octopus: 'Hombre pulpo|Hombres pulpo|Octopus Man|Octopus Men', zombie: 'Pirata zombi|Piratas zombi|Zombie Pirate|Zombie Pirates', kraken: 'Kraken|Krakens|Kraken|Krakens',
+    imp: 'Diablillo|Diablillos|Imp|Imps', chained: 'Condenado|Condenados|Damned|Damned', fiend: 'Murciélago infernal|Murciélagos infernales|Hell Bat|Hell Bats', maw: 'Abisal|Abisales|Abyssal|Abyssals',
+    cultist: 'Sacerdote carmesí||Crimson Priest|', goat: 'Demonio de las llamas||Flame Demon|', butcher: 'Verdugo cornudo||Horned Executioner|', lord: 'Señor del Infierno||Lord of Hell|' },
+  heroes: { paladin: 'Paladín|Paladin', barbarian: 'Bárbaro|Barbarian', ranger: 'Ranger|Ranger', mage: 'Mago|Mage', necromancer: 'Nigromante|Necromancer', cleric: 'Clérigo|Cleric',
+    knight: 'Caballero|Knight', rogue: 'Pícaro|Rogue', sherpa: 'Sherpa|Sherpa', corsair: 'Corsario|Corsair', demonhunter: 'Cazador de demonios|Demon Hunter' },
+  items: { cloak: 'Capa de cuero|Leather Cloak', axe: 'Cuerda y piolet|Rope and Ice Axe', herbs: 'Hierbas curativas|Healing Herbs', wyrm: 'Extracto de Wyrm|Wyrm Extract',
+    flame: 'Llama del destino|Flame of Fate', hourglass: 'Reloj de arena|Hourglass', eye: 'Ojo de dragón|Dragon\'s Eye', powder: 'Pólvora negra|Black Powder', sands: 'Arenas ocultas|Hidden Sands',
+    gorgon: 'Cabeza de Gorgona|Gorgon\'s Head', pendant: 'Colgante de alma|Soul Pendant', holy: 'Agua bendita|Holy Water', laurel: 'Corona de laurel|Laurel Crown', fist: 'Puño de hierro|Iron Fist', mail: 'Cota de malla|Chainmail' }
+};
