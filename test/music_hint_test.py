@@ -2,7 +2,7 @@ import asyncio, threading, http.server, socketserver, functools
 from playwright.async_api import async_playwright
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
-h=functools.partial(Q,directory='/home/claude/dw'); socketserver.TCPServer.allow_reuse_address=True; s=socketserver.TCPServer(('127.0.0.1',0),h); PORT=s.server_address[1]
+h=functools.partial(Q,directory='/home/claude/d6-crawler'); socketserver.TCPServer.allow_reuse_address=True; s=socketserver.TCPServer(('127.0.0.1',0),h); PORT=s.server_address[1]
 threading.Thread(target=s.serve_forever,daemon=True).start()
 async def main():
     async with async_playwright() as p:

@@ -92,7 +92,33 @@ const WORLDS = {
       { t: 'Azoteas|Rooftops', m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[4,0],[2,1],[2,0]] },
       { t: 'Central eléctrica|Power Plant', m: 'orc', map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[2,2],[3,2],[2,1]] },
       { t: 'Corazón de la ciudad|City Heart', m: 'demon', map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[3,0],[0,1],[4,2]] }
+    ], mguf: [
+      { t: 'Brecha en el perímetro|Perimeter Breach', m: 'spider', chest: 1, map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[4,2],[2,2]] },
+      { t: 'Lluvia ácida|Acid Rain', m: 'skeleton', chest: 1, map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[0,1]] },
+      { t: 'Túnel de enjambre|Swarm Tunnel', m: 'spider', chest: 1, map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[3,4],[4,3]] },
+      { boss: 1, t: 'Rey Coraza|Shell King', m: 'ogre', map: ['U....', '.#..#', '.....', '#..#.', '....S'] },
+      { t: 'Paso blindado|Armored Crossing', m: 'orc', chest: 1, map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[1,1]] },
+      { t: 'Rugido en la plaza|Roar in the Plaza', m: 'demon', chest: 1, map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[1,0]] },
+      { t: 'Torres bajo fuego|Towers Under Fire', m: 'skeleton', chest: 1, map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[2,0],[0,3]] },
+      { boss: 2, t: 'Rey Polilla|Moth King', m: 'reaper', map: ['U..#.', '.#...', '.....', '...#.', '.#..S'] },
+      { t: 'Mercado en llamas|Market on Fire', m: 'spider', chest: 1, map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,3],[1,0],[3,1]] },
+      { t: 'Último muelle|Last Dock', m: 'orc', chest: 1, map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[0,4],[2,1],[0,2]] },
+      { t: 'Estación sitiada|Station Under Siege', m: 'demon', chest: 1, map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[1,0],[0,2]] },
+      { boss: 3, t: 'Rey Tormenta|Storm King', m: 'drake', map: ['U.#..', '.....', '.#.#.', '.....', '..#.S'] },
+      { t: 'Corte de energía|Blackout', m: 'orc', chest: 1, map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[4,0],[3,0],[4,1],[2,0]] },
+      { t: 'Techos al alba|Rooftops at Dawn', m: 'skeleton', chest: 1, map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[2,0],[3,3],[4,2],[4,0]] },
+      { t: 'Corazón en alerta|Heart on Alert', m: 'demon', chest: 1, map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[2,1],[1,0],[4,2],[0,2]] },
+      { boss: 4, t: 'Kaiju Omega|Omega Kaiju', m: 'mguf', map: ['U....', '.##..', '.....', '..##.', '....S'] }
     ] },
+    // cifras por aventura (sobreescriben a 'stats'); jefes incluidos
+    gstats: {
+      mguf: {
+        spider: { hp: 4, spd: 7, atk: 4, def: 3, rng: 3 }, skeleton: { hp: 3, spd: 3, atk: 6, def: 4, rng: 6 },
+        orc: { hp: 5, spd: 3, atk: 5, def: 7, rng: 3 }, demon: { hp: 4, spd: 6, atk: 7, def: 4, rng: 5 },
+        ogre: { hp: 5, spd: 4, atk: 7, def: 3, rng: 5 }, reaper: { hp: 5, spd: 8, atk: 8, def: 4, rng: 6 },
+        drake: { hp: 7, spd: 6, atk: 8, def: 6, rng: 6 }, mguf: { hp: 12, spd: 8, atk: 8, def: 8, rng: 8 }
+      }
+    },
     rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },

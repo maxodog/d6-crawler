@@ -1,13 +1,13 @@
 import asyncio, json, subprocess, threading, http.server, socketserver, functools, os
 from playwright.async_api import async_playwright
-ROOT='/home/claude/dw'
+ROOT='/home/claude/d6-crawler'
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 def serve():
     h=functools.partial(Q,directory=ROOT); socketserver.TCPServer.allow_reuse_address=True; s=socketserver.TCPServer(('127.0.0.1',0),h); globals()['PORT']=s.server_address[1]
     threading.Thread(target=s.serve_forever,daemon=True).start(); return s
 def st(game, hero, steps):
-    js="const E=require('%s/engine.js');const st=E.newRun('%s','%s',%s);for(let i=0;i<%d;i++)E.nextLevel(st);console.log(JSON.stringify(st));"%(ROOT,hero,game,json.dumps(['herbs','flame','wyrm'] if game in('peak','harbour','hell') else []),steps)
+    js="const E=require('%s/src/engine.js');const st=E.newRun('%s','%s',%s);for(let i=0;i<%d;i++)E.nextLevel(st);console.log(JSON.stringify(st));"%(ROOT,hero,game,json.dumps(['herbs','flame','wyrm'] if game in('peak','harbour','hell') else []),steps)
     return subprocess.check_output(['node','-e',js]).decode()
 SPY="window.__p=[];const o=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){window.__p.push(this.src.split('/').pop());return o.apply(this,arguments)};"
 async def case(p, game, steps, label):

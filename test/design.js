@@ -12,8 +12,7 @@ const W = ctx.WORLDS[WORLD];
 function ownLevels() {
   const mons = {};
   return W.levels[GAME].map((d, i) => {
-    const mon = mons[d.m] || (mons[d.m] = Object.assign({ key: d.m, name: d.m, plural: d.m }, W.stats[d.m]));
-    return E.buildLevel({ title: d.t.split('|')[0], at: d.at, num: i + 1 }, { mon, map: d.map });
+        return E.buildLevel({ title: d.t.split('|')[0], at: d.at, num: i + 1 }, { mon, map: d.map });
   });
 }
 const ORIG = E.GAMES[GAME].levels;
@@ -70,7 +69,7 @@ function upgrades(st, n) {
 }
 function playLevel(levels, i) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
-  const st = E.newRun('paladin', GAME, []); upgrades(st, i); E.setupLevel(st, i); st.adv.hp = E.START_HP;
+  const st = E.newRun('paladin', GAME, []); upgrades(st, levels.slice(0, i).filter(l => !l.boss).length); E.setupLevel(st, i); st.adv.hp = E.START_HP;
   for (let t = 1; t <= 60; t++) {
     playTurn(st);
     if (!st.mons.length) return { dead: false, dmg: E.START_HP - st.adv.hp, t };
@@ -84,24 +83,27 @@ function playLevel(levels, i) {
 // ---- diseño automático: para cada nivel elige cantidad y posiciones de aparición que den el daño objetivo ----
 const DEF = W.levels[GAME];
 const T0 = +(process.env.T0 || 0.8), T1 = +(process.env.T1 || 3.6), NS = +(process.env.NS || 30), TRIES = +(process.env.TRIES || 10);
-const RANGE = i => i < 3 ? [1, 3] : [1, 5];
-const mons = {};
-function mk(d, at) { const mon = mons[d.m] || (mons[d.m] = Object.assign({ key: d.m, name: d.m, plural: d.m }, W.stats[d.m])); return E.buildLevel({ title: d.t, at, num: 1 }, { mon, map: d.map }); }
+const RANGE = i => i < 3 ? [1, 3] : [1, 5];   // i = orden entre los niveles normales
+const STATS = Object.assign({}, W.stats, (W.gstats || {})[GAME]);
+function mk(d, at) { return E.ownLevels([Object.assign({}, d, { at })], STATS, 0)[0]; }
 function freeTiles(lv, startIdx) {
   const out = [], dist = E.dijkstra(lv, lv.start, null).dist;
   for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.start && dist[t] >= 6) out.push(E.XY(t));
   return out;
 }
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const levels = DEF.map(d => mk(d, d.at));
+const levels = DEF.map(d => mk(d, d.at || [[2, 2]]));
 const result = [];
 const ONLYL = process.env.LVS ? process.env.LVS.split(',').map(x => +x - 1) : null;
+const NREG = DEF.filter(d => !d.boss).length; let reg = -1;
 for (let i = 0; i < DEF.length; i++) {
-  if (ONLYL && !ONLYL.includes(i)) { result.push(DEF[i].at); continue; }
-  const target = T0 + (T1 - T0) * i / (DEF.length - 1), d = DEF[i];
+  if (DEF[i].boss) { let dmg = 0; for (let r = 0; r < NS; r++) dmg += playLevel(levels, i).dmg; console.log(`JEFE ${DEF[i].m}: daño ${(dmg / NS).toFixed(2)}`); result.push(null); continue; }
+  reg++;
+  if (ONLYL && !ONLYL.includes(reg)) { result.push(DEF[i].at); continue; }
+  const target = T0 + (T1 - T0) * reg / (NREG - 1), d = DEF[i];
   const free = freeTiles(levels[i]);
   let best = null;
-  const [c0, c1] = RANGE(i);
+  const [c0, c1] = RANGE(reg);
   for (let c = c0; c <= c1; c++) for (let k = 0; k < TRIES; k++) {
     const pool = free.slice(); const at = [];
     while (at.length < c && pool.length) at.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);

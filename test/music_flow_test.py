@@ -1,9 +1,9 @@
 import asyncio, json, subprocess, threading, http.server, socketserver, functools
 from playwright.async_api import async_playwright
 exec(open('/home/claude/d6-crawler/test/music_test.py').read().split("SPY=")[0].split("def st(")[0])
-ROOT='/home/claude/dw'
+ROOT='/home/claude/d6-crawler'
 def st(game, steps):
-    js="const E=require('%s/engine.js');const st=E.newRun('paladin','%s',%s);for(let i=0;i<%d;i++)E.nextLevel(st);console.log(JSON.stringify(st));"%(ROOT,game,json.dumps([]),steps)
+    js="const E=require('%s/src/engine.js');const st=E.newRun('paladin','%s',%s);for(let i=0;i<%d;i++)E.nextLevel(st);console.log(JSON.stringify(st));"%(ROOT,game,json.dumps([]),steps)
     return subprocess.check_output(['node','-e',js]).decode()
 SPY="""window.__els=[];const o=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){if(!this.src.startsWith('data:'))window.__els.push(this);return o.apply(this,arguments)};
 window.__bs=[];const s0=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(){if(this.buffer&&this.buffer.duration>20)window.__bs.push([+this.buffer.duration.toFixed(1),this.loop]);return s0.apply(this,arguments)};"""

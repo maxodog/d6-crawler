@@ -19,7 +19,8 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 ## Cómo se re-tematiza (worlds.js + ui.js)
 - `WORLDS[mundo]`: `games`, `mon` (nombres), `titles` (títulos de nivel por título original), `heroes`, `items` (nombre y nombre corto), `terms` (frases a reemplazar), `logo`, `tagline`.
 - `L(es, en)` pasa todo texto visible por `wsub()`, que cambia nombres y términos originales por los del mundo (los nombres nuevos se mapean a sí mismos para no reemplazar dos veces).
-- Colossus además define `stats`, `levels.base` (niveles propios), `heroPack` (héroes en otras expansiones) y `rogueNoCap`.
+- Colossus además define `stats` (cifras por defecto), `gstats` (cifras por aventura, jefes incluidos), `levels.<aventura>` (niveles propios), `heroPack` (héroes en otras expansiones) y `rogueNoCap`.
+- `E.ownLevels(defs, stats, i0)` (en `engine.js`) construye los niveles propios de una aventura; lo usan `ui.js`, `balance.js` y `design.js`. Cada nivel: `{ t, m, map, at, chest: 1 }`; los jefes: `{ boss: k, t, m, map }` (aparece en el centro, sin cofre, sin mejora previa).
 - Íconos de monstruos propios por mundo: `WORLD_ICONS_SRC` en `ui.js`. Héroes e ítems todavía usan los íconos comunes.
 
 ## Reglas de diseño que no se cambian sin que Max lo pida
@@ -34,17 +35,19 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 ## Colossus D6: estado del contenido propio
 - **Kaiju Protocol (base)**: hecho. Kaiju: Mordedor 3/6/5/3/3, Escupidor 3/4/5/5/5, Acorazado 5/3/6/6/3, Rugidor 3/5/7/5/4 (vida/vel/atq/def/alc). 12 niveles en `worlds.js` (`levels.base`).
 - Héroes: base = Bastión, Francotirador, Mecánica, Hacker; Alerta Omega = Furia, Oráculo, Ariete, Saltador; Glaciar = Sobrecarga; Bahía = Arpón; Fisura = Fantasma.
-- **Pendiente**: Alerta Omega (reutiliza los 12 mapas del base y suma 4 jefes propios), Operación Glaciar (10 niveles, ventisca), Bahía Abisal (8, agua), Fisura Infernal (12 + 4 jefes, grietas de magma + Roca del Núcleo). Hoy usan los mapas y cifras originales. Hacer efectos de algunos ítems y habilidades distintos al original.
+- **Alerta Omega (mguf)**: hecho. 12 niveles con los 12 mapas de Kaiju Protocol (cada kaiju en sus propios sectores) + 4 jefes con mapas propios tras los niveles 3, 6, 9 y 12. Cifras en `gstats.mguf`: Mordedor 4/7/4/3/3, Escupidor 3/3/6/4/6, Acorazado 5/3/5/7/3, Rugidor 4/6/7/4/5; jefes Rey Coraza 5/4/7/3/5, Rey Polilla 5/8/8/4/6, Rey Tormenta 7/6/8/6/6, Kaiju Omega 12/8/8/8/8.
+- **Pendiente**: Operación Glaciar (10 niveles, ventisca), Bahía Abisal (8, agua), Fisura Infernal (12 + 4 jefes, grietas de magma + Roca del Núcleo). Hoy usan los mapas y cifras originales. Hacer efectos de algunos ítems y habilidades distintos al original (propuesta de Alerta Omega pendiente del visto bueno de Max: Furia pasivo con poca Vida, Saltador cambia de lugar con un kaiju).
 - Objetivo de equilibrio: ganar la aventura igual de difícil que su equivalente de Archeodice, con dificultad que suba de forma pareja y ningún nivel trivial.
 
 ## Herramientas de equilibrio (Node)
 - `node test/balance.js 80` (con `ONLY=own` mide solo Colossus): daño, derrotas y turnos por nivel, empezando cada nivel con Vida 6 y mejoras típicas. Variables: `WORLD`, `GAME`, `LV=1,2`.
-- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. Referencia original base: nivel medio 6,1, gana 1%. Kaiju Protocol actual: 6,7 y 1%.
+- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. Referencia original base: nivel medio 6,1, gana 1%. Kaiju Protocol actual: 6,7 y 1%. Alerta Omega: original 5,5 y 0%; propio 5,8 y 0%.
+- `GSTATS='{"ogre":{"hp":5,...}}' node test/balance.js` prueba cifras sin tocar `worlds.js` (útil para los jefes).
 - `node test/design.js` (`T0`, `T1`, `NS`, `TRIES`, `LVS=2,4`): busca cantidad y posiciones de aparición para acercar cada nivel a una curva de daño objetivo. Imprime `AT=[...]` para pegar en `worlds.js`.
 - El bot es débil (gana poco): sirve para comparar versiones, no como dificultad absoluta. Cada campaña de 200 tarda ~7 min; córrelas en segundo plano.
 
 ## Pruebas y publicación
-- Pruebas en `test/` (Playwright con `/usr/bin/google-chrome`, Node). Tienen rutas absolutas a `/home/claude/d6-crawler/`; si clonas en otra carpeta, ajústalas con `sed`.
+- Pruebas en `test/` (Playwright con `/usr/bin/google-chrome`, Node). Tienen rutas absolutas a `/home/claude/d6-crawler/` (las de Node cargan `../src/engine.js`); si clonas en otra carpeta, ajústalas con `sed`. `mon_detour_test.js` se omite solo si falta el motor del repo antiguo.
 - `src/tools_runall.sh` corre todas y termina con `FAIL=0/1`; tarda ~12 min (córrelo en segundo plano). **Publica solo si FAIL=0.** `ui_test.py` está obsoleta y se omite.
 - `world_text_test.py` revisa que no queden nombres del original en pantalla en ambos mundos e idiomas.
 - Commit con los trailers de atribución que indique la sesión y `git -c push.negotiate=true push origin main`.

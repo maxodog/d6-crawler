@@ -186,6 +186,21 @@ function hellLevels() {
   return out;
 }
 
+/* Niveles propios de un mundo (worlds.js). defs: [{t, m, map, at, s?, chest?}] o jefe {boss:k, t, m, map, s}.
+   stats: cifras por clave de monstruo; 's' de cada nivel las sobreescribe. chest: el cofre va en la escalera de salida. */
+function ownLevels(defs, stats, i0) {
+  const mons = {}, out = []; let num = 0;
+  defs.forEach(d => {
+    const st = Object.assign({}, stats[d.m] || {}, d.s || {}), ck = d.m + JSON.stringify(st) + (d.boss ? 'B' : '');
+    const mon = mons[ck] || (mons[ck] = Object.assign({ key: d.m, name: d.m, plural: d.m }, st, d.boss ? { boss: true } : {}));
+    const title = d.t.split('|')[i0 || 0];
+    const lv = d.boss ? buildLevel({ title, at: [[2, 2]], boss: d.boss }, { mon, map: d.map }, { noChest: true })
+                      : buildLevel({ title, at: d.at, num: ++num }, { mon, map: d.map }, d.chest ? { chestOnExit: true } : {});
+    out.push(Object.assign(lv, { own: true }));
+  });
+  return out;
+}
+
 const GAMES = {
   base: { key: 'base', name: 'One Card Dungeon', chests: false, items: true,
           levels: LEVEL_DEFS.map((d, i) => buildLevel(Object.assign({ num: i + 1 }, d), ORIENTS[d.o])) },
@@ -1091,7 +1106,7 @@ function retryLevel(st) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { buildLevel, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
+  module.exports = { buildLevel, ownLevels, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
     dijkstra, rangeDist, hasLOS, newRun, setupLevel, rollDice, rollTurn, assignComplete, confirmEnergy, setLoot, lvOf, mStat, monBonus,
     HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,

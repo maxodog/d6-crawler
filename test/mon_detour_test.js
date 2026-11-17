@@ -1,6 +1,7 @@
 // Compara el motor anterior (repositorio publicado) con el actual: con el héroe quieto, ¿en cuántos turnos ataca el monstruo?
 const NEW = require(process.env.NEWENG || '/home/claude/d6-crawler/src/engine.js');
-const OLD = require(process.env.OLDENG || '/home/claude/dungeon-in-one-card/src/engine.js');
+const OLDPATH = process.env.OLDENG || '/home/claude/dungeon-in-one-card/src/engine.js';
+let OLD; try { OLD = require(OLDPATH); } catch (e) { console.log('omitido: falta el motor anterior en ' + OLDPATH); process.exit(0); }
 function turnsToAttack(E, game, L, hx, hy, mx, my, chestOpen, key) {
   E.useGame(game);
   const st = E.newRun('knight', game, [], game !== 'base'); E.setupLevel(st, L);

@@ -8,14 +8,9 @@ const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/worlds.js'), 'utf8').replace(/^'use strict';/, '') + ';this.WORLDS=WORLDS;', ctx);
 const WORLD = process.env.WORLD || 'kaiju', GAME = process.env.GAME || 'base', N = +(process.argv[2] || 150);
 const W = ctx.WORLDS[WORLD];
+if (process.env.GSTATS) { const o = JSON.parse(process.env.GSTATS); W.gstats = W.gstats || {}; W.gstats[GAME] = Object.assign({}, W.gstats[GAME], o); }   // prueba rápida de cifras: GSTATS='{"ogre":{...}}'
 
-function ownLevels() {
-  const mons = {};
-  return W.levels[GAME].map((d, i) => {
-    const mon = mons[d.m] || (mons[d.m] = Object.assign({ key: d.m, name: d.m, plural: d.m }, W.stats[d.m]));
-    return E.buildLevel({ title: d.t.split('|')[0], at: d.at, num: i + 1 }, { mon, map: d.map });
-  });
-}
+function ownLevels() { return E.ownLevels(W.levels[GAME], Object.assign({}, W.stats, (W.gstats || {})[GAME]), 0); }
 const ORIG = E.GAMES[GAME].levels, OWN = ownLevels();
 
 // ---- comprobaciones de mapas ----
@@ -83,7 +78,7 @@ function upgrades(st, n) {
 }
 function playLevel(levels, i) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
-  const st = E.newRun('paladin', GAME, []); upgrades(st, i); E.setupLevel(st, i); st.adv.hp = E.START_HP;
+  const st = E.newRun('paladin', GAME, []); upgrades(st, levels.slice(0, i).filter(l => !l.boss).length); E.setupLevel(st, i); st.adv.hp = E.START_HP;
   for (let t = 1; t <= 60; t++) {
     playTurn(st);
     if (!st.mons.length) return { dead: false, dmg: E.START_HP - st.adv.hp, t };
@@ -97,7 +92,7 @@ function measure(levels) {
   return levels.map((lv, i) => {
     let d = 0, dmg = 0, t = 0;
     for (let k = 0; k < N; k++) { const r = playLevel(levels, i); d += r.dead; dmg += r.dmg; t += r.t; }
-    return { dead: d / N, dmg: dmg / N, t: t / N, n: lv.spawns.length, key: lv.mon.key };
+    return { dead: d / N, dmg: dmg / N, t: t / N, n: lv.spawns.length, key: lv.boss ? 'JEFE ' + lv.mon.key : lv.mon.key };
   });
 }
 // ---- campaña completa: niveles seguidos, con la Vida que quede; cura si queda con poca Vida ----
@@ -108,6 +103,7 @@ function campaign(levels, healAt) {
     turns++; playTurn(st);
     if (!st.mons.length) {
       if (st.levelIdx === levels.length - 1) return levels.length + 1;
+      if (E.afterClear(st) === 'boss') { E.nextLevel(st); continue; }   // el jefe no da mejora
       let b = 'heal';
       if (st.adv.hp > healAt) { let bs = Infinity; for (const s of ['atk', 'def', 'spd', 'rng']) { const v = st.adv[s] / W8[s]; if (v < bs && st.adv[s] < E.SKILL_MAX) { bs = v; b = s; } } }
       E.applyBreak(st, b); E.nextLevel(st); continue;
@@ -122,6 +118,7 @@ if (process.env.CAMPAIGN) {
   const n = +process.env.CAMPAIGN, H = +(process.env.HEAL || 3);
   for (const [name, lv] of [['original', ORIG], ['propio', OWN]]) {
     if (process.env.ONLY === 'own' && name === 'original') continue;
+    if (process.env.ONLY === 'orig' && name === 'propio') continue;
     const reach = new Array(lv.length + 2).fill(0); let sum = 0;
     for (let k = 0; k < n; k++) { const r = campaign(lv, H); sum += r; for (let i = 1; i <= r; i++) reach[i]++; }
     console.log(`${name.padEnd(9)} campaña: llega al nivel → ` + reach.slice(1, lv.length + 1).map((v, i) => `${i + 1}:${Math.round(100 * v / n)}%`).join(' ') + ` · gana ${Math.round(100 * reach[lv.length + 1] / n)}% · nivel medio ${(sum / n).toFixed(1)}`);

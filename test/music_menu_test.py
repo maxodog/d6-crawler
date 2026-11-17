@@ -1,12 +1,12 @@
 import asyncio, json, subprocess, threading, http.server, socketserver, functools
 from playwright.async_api import async_playwright
-ROOT='/home/claude/dw'
+ROOT='/home/claude/d6-crawler'
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 def serve():
     h=functools.partial(Q,directory=ROOT); socketserver.TCPServer.allow_reuse_address=True; s=socketserver.TCPServer(('127.0.0.1',0),h); globals()['PORT']=s.server_address[1]
     threading.Thread(target=s.serve_forever,daemon=True).start(); return s
-js="const E=require('%s/engine.js');const st=E.newRun('paladin','base',[]);st.adv.hp=1;E.setupLevel(st,10);st.mons=[{id:1,x:1,y:4,hp:5,maxHp:5,spd:3,atk:7,def:7,rng:2}];st.phase='move';st.turn={dice:[1,1,1],assign:{spd:0,atk:1,def:2},sel:-1,spd:2,atk:2,def:2,spdLeft:0,atkLeft:0};console.log(JSON.stringify(st));"%ROOT
+js="const E=require('%s/src/engine.js');const st=E.newRun('paladin','base',[]);st.adv.hp=1;E.setupLevel(st,10);st.mons=[{id:1,x:1,y:4,hp:5,maxHp:5,spd:3,atk:7,def:7,rng:2}];st.phase='move';st.turn={dice:[1,1,1],assign:{spd:0,atk:1,def:2},sel:-1,spd:2,atk:2,def:2,spdLeft:0,atkLeft:0};console.log(JSON.stringify(st));"%ROOT
 state=subprocess.check_output(['node','-e',js]).decode()
 SPY="window.__p=[];const o=HTMLMediaElement.prototype.play;HTMLMediaElement.prototype.play=function(){window.__p.push(this.src.split('/').pop());return o.apply(this,arguments)};"
 async def played(pg): return await pg.evaluate("window.__p.filter(x=>x.endsWith('.mp3'))")

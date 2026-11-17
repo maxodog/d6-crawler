@@ -4,7 +4,7 @@ from playwright.async_api import async_playwright
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a): pass
 socketserver.TCPServer.allow_reuse_address = True
-srv = socketserver.TCPServer(('127.0.0.1', 0), functools.partial(Q, directory='/home/claude/dw')); PORT = srv.server_address[1]
+srv = socketserver.TCPServer(('127.0.0.1', 0), functools.partial(Q, directory='/home/claude/d6-crawler')); PORT = srv.server_address[1]
 threading.Thread(target=srv.serve_forever, daemon=True).start()
 SPY = """window.__els = new Set(); const P = HTMLMediaElement.prototype.play;
 HTMLMediaElement.prototype.play = function () { if (/musica\\//.test(this.src)) window.__els.add(this); return P.apply(this, arguments); };"""

@@ -1,6 +1,6 @@
 import asyncio, sys, threading, http.server, socketserver, functools
 from playwright.async_api import async_playwright
-ROOT='/home/claude/dw'
+ROOT='/home/claude/d6-crawler'
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self,*a): pass
 def serve():

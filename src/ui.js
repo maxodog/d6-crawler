@@ -53,13 +53,7 @@
     const i0 = LANG === 'en' ? 1 : 0, done = new Set();
     for (const k of Object.keys(GAMES)) GAMES[k].name = W.games[k].split('|')[i0];
     // aventuras con mapas, cifras y aparición propias del mundo
-    for (const g in (W.levels || {})) {
-      const mons = {};
-      GAMES[g].levels = W.levels[g].map((d, i) => {
-        const mon = mons[d.m] || (mons[d.m] = Object.assign({ key: d.m, name: d.m, plural: d.m }, W.stats[d.m]));
-        return Object.assign(buildLevel({ title: d.t.split('|')[i0], at: d.at, num: i + 1 }, { mon, map: d.map }), { own: true });
-      });
-    }
+    for (const g in (W.levels || {})) GAMES[g].levels = ownLevels(W.levels[g], Object.assign({}, W.stats, (W.gstats || {})[g]), i0);
     useGame('base');
     for (const g of Object.keys(GAMES)) for (const lv of GAMES[g].levels) {
       if (!done.has(lv.mon)) { done.add(lv.mon); const n = (W.mon[lv.mon.key] || '').split('|'), j = LANG === 'en' ? 2 : 0; if (n[j]) { lv.mon.name = n[j]; lv.mon.plural = n[j + 1] || n[j]; } }
