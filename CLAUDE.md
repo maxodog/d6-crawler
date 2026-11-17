@@ -25,6 +25,7 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 
 ## Reglas de diseño que no se cambian sin que Max lo pida
 - Mecánicas afinadas: IA de monstruos (`chooseMove`: A) si puede atacar, va a su alcance máximo con línea de visión; B) si no, a la casilla de ataque con menos turnos; C) si no, se acerca), sin diagonal entre dos obstáculos, habilidades del héroe con tope 6 (`SKILL_MAX`).
+- **Fase de los monstruos: secuencia estricta y una sola vuelta** (decisión de Max). Se ordenan por cercanía al aventurero y cada uno decide **solo para sí mismo**, con el tablero tal como está en ese momento: no predice los movimientos de los otros monstruos ni del aventurero, no hay plan de grupo y nadie vuelve a moverse después. Si le da lo mismo, se queda quieto, aunque luego otro monstruo le tape la línea. Si ya está a alcance pero no en su alcance máximo, puede alejarse hasta el máximo mientras no pierda la línea. No volver a agregar la «segunda oportunidad» que existía antes.
 - Logros y desbloqueos usan los ítems con que se **empezó** la aventura (`G.startItems`).
 - Topes: la **vida de los monstruos** y los **atributos del héroe** van hasta 6. Velocidad, ataque, defensa y alcance de los monstruos pueden llegar a 7 u 8.
 - **Pícaro / Contrabandista (Archeodice) mantiene el tope de 6** al sumar +1 a los dados (decisión de Max, aunque el original no lo especifica). El **Hacker de Colossus no tiene tope** (`rogueNoCap`).
@@ -41,7 +42,7 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 
 ## Herramientas de equilibrio (Node)
 - `node test/balance.js 80` (con `ONLY=own` mide solo Colossus): daño, derrotas y turnos por nivel, empezando cada nivel con Vida 6 y mejoras típicas. Variables: `WORLD`, `GAME`, `LV=1,2`.
-- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. Referencia original base: nivel medio 6,1, gana 1%. Kaiju Protocol actual: 6,7 y 1%. Alerta Omega: original 5,5 y 0%; propio 5,8 y 0%.
+- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. Medidas con la fase de monstruos de una sola vuelta (200 campañas, ±0,3 de ruido): base original 5,2 y gana 1%, Kaiju Protocol 6,9 y 1%; Alerta Omega original 5,4 y 0%, propio 6,1 y 0%.
 - `GSTATS='{"ogre":{"hp":5,...}}' node test/balance.js` prueba cifras sin tocar `worlds.js` (útil para los jefes).
 - `node test/design.js` (`T0`, `T1`, `NS`, `TRIES`, `LVS=2,4`): busca cantidad y posiciones de aparición para acercar cada nivel a una curva de daño objetivo. Imprime `AT=[...]` para pegar en `worlds.js`.
 - El bot es débil (gana poco): sirve para comparar versiones, no como dificultad absoluta. Cada campaña de 200 tarda ~7 min; córrelas en segundo plano.
