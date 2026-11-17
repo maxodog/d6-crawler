@@ -21,6 +21,8 @@ OWN.forEach((lv, i) => {
   const d = E.dijkstra(lv, lv.start, null).dist;
   for (let t = 0; t < E.N; t++) if (!lv.walls[t] && d[t] === Infinity) { console.log('casilla aislada', i + 1, E.XY(t)); bad++; }
   lv.spawns.forEach(p => { if (lv.walls[p] || p === lv.start) { console.log('aparición inválida', i + 1, E.XY(p)); bad++; } });
+  if (lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt) && lv.spawns.includes(lv.chestAt)) { console.log('aparición sobre el cofre', i + 1, E.XY(lv.chestAt)); bad++; }
+  if (new Set(lv.spawns).size !== lv.spawns.length) { console.log('dos monstruos en la misma casilla', i + 1); bad++; }
   const same = ORIG.findIndex(o => o.map.join() === lv.map.join());
   if (same >= 0) { console.log('mapa igual al original', i + 1); bad++; }
 });

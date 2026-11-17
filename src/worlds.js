@@ -110,9 +110,9 @@ const WORLDS = {
       { t: 'Corazón en alerta|Heart on Alert', m: 'demon', chest: 1, map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[2,1],[1,0],[4,2],[0,2]] },
       { boss: 4, t: 'Kaiju Omega|Omega Kaiju', m: 'mguf', map: ['U....', '.##..', '.....', '..##.', '....S'] }
     ], peak: [
-      { t: 'Grietas de hielo|Ice Cracks', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,0],[0,4]] },
+      { t: 'Grietas de hielo|Ice Cracks', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[1,3],[4,0]] },
       { t: 'Ecos en la nieve|Echoes in the Snow', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[1,2],[0,0]] },
-      { t: 'Mole en la ladera|Hulk on the Slope', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[4,0]] },
+      { t: 'Mole en la ladera|Hulk on the Slope', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[0,2]] },
       { t: 'Patrulla de escarcha|Frost Patrol', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,1],[4,1],[3,1]] },
       { t: 'Jauría glacial|Glacial Pack', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[0,2],[0,1],[3,0]] },
       { t: 'Garganta del behemot|Behemoth Gorge', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[0,0],[0,4]] },
