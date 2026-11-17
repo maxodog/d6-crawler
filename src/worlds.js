@@ -120,7 +120,7 @@ const WORLDS = {
       }
     },
     // habilidades propias de Colossus (distintas al original)
-    abilVar: { corsair: 'swap' },
+    abilVar: { corsair: 'swap', necromancer: 'burst', paladin: 'free', ranger: 'range1' },
     rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },

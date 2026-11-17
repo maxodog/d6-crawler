@@ -4,7 +4,7 @@
   const NO_SKILLS = () => ({ spd: -1, atk: -1, def: -1, rng: -1 });
   const E = { newRun, rollTurn, assignComplete, confirmEnergy, reachFromAdv, attackInfo, moveAdv, attackMon, popUndo, playMonsters, endTurnCleanup, levelCleared, applyBreak, SKILL_MAX, nextLevel,
     rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleCorsair, abilityInfo, encodePassword, decodePassword, retryLevel,
-    toggleSherpa, setAbil, abilVar, swapInfo, swapMon, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, itemPool,
+    toggleSherpa, setAbil, abilVar, swapInfo, swapMon, heroRng, burstInfo, burstTargets, burstStrike, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, itemPool,
     chestInfo, openChest, setLoot, necroInfo, necroStrike, demonReach, demonMove,
     stoneInfo, breakStone, resolveAttack, laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -444,6 +444,10 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0];
     for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k];
     E.setAbil(W.abilVar || {});
+    const AV = W.abilVar || {};
+    if (AV.necromancer === 'burst') HEROES.necromancer.txt = L('Una vez por nivel, pierde 1 de Vida y hace 1 de daño a todos los kaiju a su Alcance con línea de tiro.', 'Once per level, loses 1 Health and deals 1 damage to every kaiju within Range with a clear line.');
+    if (AV.paladin === 'free') HEROES.paladin.txt = L('Una vez por nivel, antes de tirar, conserva el dado que diste a una habilidad el turno anterior y repártelo donde quieras; solo se tiran los otros dos.', 'Once per level, before rolling, keep the die you gave a skill last turn and assign it wherever you want; only the other two are rolled.');
+    if (AV.ranger === 'range1') HEROES.ranger.txt = L('Pasivo: su Alcance es 1 más alto, siempre.', 'Passive: its Range is 1 higher, always.');
     if ((W.abilVar || {}).corsair === 'swap') HEROES.corsair.txt = L('Una vez por nivel, cambia de lugar con cualquier kaiju del tablero, sin gastar Movimiento.', 'Once per level, swap places with any kaiju on the board, without spending Move.');
     if (W.rogueNoCap) HEROES.rogue.txt = L('Una vez por nivel, puede sumar 1 a los tres dados de Energía, aunque alguno sea un 6.', 'Once per level, may add 1 to all three Energy dice, even if one is a 6.'); PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
   const heroesOf = pack => HERO_KEYS.filter(k => HEROES[k].pack === pack);
@@ -1111,6 +1115,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       else if (mode === 'laurelPick') { for (const m of G.mons) targets.add(idx(m.x, m.y)); }
       else if (mode && mode.demon) demon = E.demonReach(G, mode.demon);
       else if (mode === 'necro') { for (const m of G.mons) if (E.necroInfo(G, m).ok) targets.add(idx(m.x, m.y)); }
+      else if (mode === 'burst') { for (const m of E.burstTargets(G)) targets.add(idx(m.x, m.y)); }
       else if (mode === 'demonPick' || mode === 'swapPick') { for (const m of G.mons) targets.add(idx(m.x, m.y)); }
       else {
         reach = E.reachFromAdv(G);
@@ -1208,7 +1213,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     }
   }
   function toggleClassic() { if (!classicOk()) return; classic = !classic; try { localStorage.setItem('dioc-classic', classic ? '1' : '0'); } catch (e) {} paintClassic(); needFit = true; fit(); }
-  const AB_EN = { 'Cancelar muros': 'Cancel walls', 'Atravesar muros': 'Walk through walls', 'Cancelar abordaje': 'Cancel boarding', 'Abordaje': 'Boarding', 'Sacrificio −1 Vida': 'Sacrifice −1 Health', 'Cambiar de lugar': 'Swap places',
+  const AB_EN = { 'Cancelar muros': 'Cancel walls', 'Atravesar muros': 'Walk through walls', 'Cancelar abordaje': 'Cancel boarding', 'Abordaje': 'Boarding', 'Sacrificio −1 Vida': 'Sacrifice −1 Health', 'Cambiar de lugar': 'Swap places', 'Descarga −1 Vida': 'Discharge −1 Health',
     'Mover monstruo': 'Move monster', 'Conservar dado': 'Keep die', 'Volver a tirar': 'Reroll', 'Dado al Mov': 'Die to Mov', 'Dado al Alcance': 'Die to Range', 'Un dado por habilidad': 'One die per skill', 'Dos dados a una': 'Two dice to one', '+1 a los dados': '+1 to the dice' };
   const abLabel = s => LANG === 'en' ? (AB_EN[s] || s) : s;
   const stageLabel = lv => lv.boss ? L(`Jefe ${lv.boss}`, `Boss ${lv.boss}`) : L(`Nivel ${lv.num}`, `Level ${lv.num}`);
@@ -1279,7 +1284,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
         if (k === 'spd') { val = t.spdLeft; sub = L(`de ${t.spd}`, `of ${t.spd}`); bar = `<span class="bar"><i style="width:${t.spd ? (100 * t.spdLeft / t.spd) : 0}%"></i></span>`; }
         else if (k === 'atk') { val = E.atkAvail(G); sub = pen ? L('ventisca −1', 'blizzard −1') : L(`de ${t.atk}`, `of ${t.atk}`); bar = `<span class="bar"><i style="width:${t.atk ? (100 * t.atkLeft / t.atk) : 0}%"></i></span>`; }
         else if (k === 'def') { val = E.heroDef(G); sub = pen ? L('ventisca −1', 'blizzard −1') : L('este turno', 'this turn'); }
-        else { val = t.rng || a.rng; sub = t.rng !== a.rng ? L('este turno', 'this turn') : L('fijo', 'fixed'); }
+        else { val = E.heroRng(G); sub = val !== a.rng ? L('este turno', 'this turn') : L('fijo', 'fixed'); }
       }
       if (pen0(k)) cls += ' chilled';
       const clickable = slot && t.dice && !rolling && t.lock !== k;
@@ -1319,6 +1324,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     } else if (ph === 'move') {
       step = '2';
       txt = mode === 'necro' ? L('Nigromante: toca el monstruo al que quieres hacer <em>1 de daño</em> (cuesta 1 de tu Vida).', 'Necromancer: tap the monster you want to deal <em>1 damage</em> to (costs 1 of your Health).')
+        : mode === 'burst' ? L(`${HEROES.necromancer.name}: toca cualquier kaiju marcado para <em>descargar</em> sobre todos.`, `${HEROES.necromancer.name}: tap any marked kaiju to <em>discharge</em> on all of them.`)
         : mode === 'swapPick' ? L(`${HEROES.corsair.name}: toca el kaiju con el que <em>cambias de lugar</em>.`, `${HEROES.corsair.name}: tap the kaiju you <em>swap places</em> with.`)
         : mode === 'demonPick' ? L('Cazador: toca el monstruo que quieres <em>mover</em>.', 'Hunter: tap the monster you want to <em>move</em>.')
         : mode && mode.demon ? L('Cazador: toca la casilla marcada a la que lo mueves (hasta 3 de Mov).', 'Hunter: tap the marked tile to move it to (up to 3 Mov).')
@@ -1352,7 +1358,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       if (G.laurel) { box.innerHTML = `<button type="button" class="btn primary" id="btnLaurelEnd" ${busy ? 'disabled' : ''}>${L('Terminar orden', 'End order')}</button>`; return; }
       if (mode === 'laurelPick') { box.innerHTML = `<button type="button" class="btn" id="btnLaurelNo">${L('Cancelar', 'Cancel')}</button>`; return; }
       const ab = E.abilityInfo(G);
-      const cancel = (ab && ((ab.id === 'necro' && mode === 'necro') || (ab.id === 'swap' && mode === 'swapPick') || (ab.id === 'demon' && mode))) ? L('Cancelar', 'Cancel') : null;
+      const cancel = (ab && ((ab.id === 'necro' && mode === 'necro') || (ab.id === 'burst' && mode === 'burst') || (ab.id === 'swap' && mode === 'swapPick') || (ab.id === 'demon' && mode))) ? L('Cancelar', 'Cancel') : null;
       const abBtn = ab ? `<button type="button" class="btn abil tight ${G.sherpaOn || G.corsairOn || cancel ? 'on' : ''}" id="btnAbil" ${busy ? 'disabled' : ''}>${cancel || abLabel(ab.label)}</button>` : '';
       box.innerHTML = `<button type="button" class="btn small" id="btnUndo" ${G.undo.length && !busy ? '' : 'disabled'}>${L('Deshacer', 'Undo')}</button>${abBtn}
         <button type="button" class="btn primary ${nothingLeft() ? 'pulse' : ''}" id="btnEnd" ${busy ? 'disabled' : ''}>${L('Fin de turno', 'End turn')}</button>`;
@@ -2099,14 +2105,14 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   function keepSheet() {
     const ks = ['spd', 'atk', 'def'].filter(k => G.prev && G.prev[k] != null);
     const veil = openSheet(`<h3>${L('Conservar un dado', 'Keep a die')}</h3>
-      <p class="lead">${L('Habilidad del Paladín, una vez por nivel. Elige la habilidad cuyo dado del turno anterior quieres repetir; solo se tiran los otros dos.', "Paladin's ability, once per level. Choose the skill whose die from last turn you want to keep; only the other two are rolled.")}</p>
+      <p class="lead">${L((E.abilVar('paladin') === 'free' ? `Habilidad de ${HEROES.paladin.name}, una vez por nivel. Elige el dado del turno anterior que quieres conservar; solo se tiran los otros dos y lo repartes donde quieras.` : 'Habilidad del Paladín, una vez por nivel. Elige la habilidad cuyo dado del turno anterior quieres repetir; solo se tiran los otros dos.'), "Paladin's ability, once per level. Choose the skill whose die from last turn you want to keep; only the other two are rolled.")}</p>
       <div class="choices">${ks.map(k => `<button type="button" class="choice" data-k="${k}"><b>${LONG[k]}</b><span>${L('dado', 'die')} <em>${G.prev[k]}</em></span></button>`).join('')}</div>
       <button type="button" class="btn" id="no">${L('Cancelar', 'Cancel')}</button>`, [['#no', closeSheet]], true);
     veil.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.k;
       closeSheet();
       E.rollWithKeep(G, k);
-      animateRoll(L(`Conservas el dado de ${LONG[k]} (<b>${G.turn.dice[0]}</b>). Reparte los otros dos.`, `You keep the ${LONG[k]} die (<b>${G.turn.dice[0]}</b>). Assign the other two.`));
+      animateRoll(L(E.abilVar('paladin') === 'free' ? `Conservas el dado de ${LONG[k]} (<b>${G.turn.dice[0]}</b>). Repártelo en la habilidad que quieras junto con los otros dos.` : `Conservas el dado de ${LONG[k]} (<b>${G.turn.dice[0]}</b>). Reparte los otros dos.`, `You keep the ${LONG[k]} die (<b>${G.turn.dice[0]}</b>). Assign the other two.`));
     }));
   }
 
@@ -2181,6 +2187,11 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       render();
       say(mode ? L(`${HEROES.corsair.name}: toca el kaiju con el que quieres cambiar de lugar. Puede estar en cualquier casilla.`, `${HEROES.corsair.name}: tap the kaiju you want to swap places with. It can be anywhere.`) : L('Habilidad cancelada.', 'Ability cancelled.'));
     }
+    else if (ab.id === 'burst') {
+      mode = mode === 'burst' ? null : 'burst';
+      render();
+      say(mode ? L(`${HEROES.necromancer.name}: toca cualquier kaiju marcado. Perderás 1 de Vida y todos los marcados recibirán 1 de daño.`, `${HEROES.necromancer.name}: tap any marked kaiju. You'll lose 1 Health and every marked kaiju takes 1 damage.`) : L('Habilidad cancelada.', 'Ability cancelled.'));
+    }
     else if (ab.id === 'necro') {
       mode = mode === 'necro' ? null : 'necro';
       render();
@@ -2231,7 +2242,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   }
 
   const hitFx = m => { const el = tok.mons.get(m.id); if (el) { el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 500); } };
-  const whyMsg = (info, need, have, what) => info.why === 'range' ? L(`${what} está a distancia <b>${info.rd}</b> y tu Alcance es <b>${G.turn.rng || G.adv.rng}</b>. Acércate o mejora Alcance.`, `${what} is at distance <b>${info.rd}</b> and your Range is <b>${G.turn.rng || G.adv.rng}</b>. Get closer or improve Range.`)
+  const whyMsg = (info, need, have, what) => info.why === 'range' ? L(`${what} está a distancia <b>${info.rd}</b> y tu Alcance es <b>${E.heroRng(G)}</b>. Acércate o mejora Alcance.`, `${what} is at distance <b>${info.rd}</b> and your Range is <b>${E.heroRng(G)}</b>. Get closer or improve Range.`)
     : info.why === 'los' ? L('Sin línea de visión: un muro, el cofre u otro monstruo lo tapa.', 'No line of sight: a wall, the chest or another monster blocks it.')
     : L(`Te faltan puntos: cada golpe cuesta <b>${need}</b> de Atq y te quedan <b>${have}</b>.`, `Not enough points: each hit costs <b>${need}</b> Atk and you have <b>${have}</b> left.`);
 
@@ -2279,6 +2290,24 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       return;
     }
     // Habilidad del Nigromante
+    // Habilidad de Sobrecarga (Colossus): daño a todos los kaiju a Alcance
+    if (mode === 'burst') {
+      if (!m) { say(L('Toca a un kaiju marcado.', 'Tap a marked kaiju.')); return; }
+      const info = E.burstInfo(G);
+      if (!info.ok) { say(L('Ahora no puedes usar la habilidad.', "You can't use the ability right now.")); return; }
+      const alcanzados = E.burstTargets(G);
+      if (!alcanzados.includes(m)) { say(L('Ese kaiju no está a tu Alcance o no tienes línea de tiro.', 'That kaiju is out of Range or you have no clear line.')); return; }
+      const donde = alcanzados.map(o => [o.x, o.y, o.hp <= 1]);
+      mode = null;
+      const r = E.burstStrike(G);
+      sfxStrike(r.dead > 0); sfxHurt();
+      for (const [x, y, cae] of donde) floatText(x, y, cae ? '✕' : '−1', 'good');
+      floatText(G.adv.x, G.adv.y, '−1', 'dmg');
+      render();
+      if (E.levelCleared(G)) { levelClear(); return; }
+      say(L(`<b>Descarga.</b> Pierdes 1 de Vida y ${r.hit === 1 ? 'el kaiju recibe' : `<b>${r.hit}</b> kaiju reciben`} 1 de daño${r.dead ? `; ${r.dead === 1 ? 'uno cae' : `caen <b>${r.dead}</b>`}` : ''}.`, `<b>Discharge.</b> You lose 1 Health and ${r.hit === 1 ? 'the kaiju takes' : `<b>${r.hit}</b> kaiju take`} 1 damage${r.dead ? `; ${r.dead === 1 ? 'one falls' : `<b>${r.dead}</b> fall`}` : ''}.`));
+      return;
+    }
     if (mode === 'necro') {
       if (!m) { say(L('Toca a un monstruo.', 'Tap a monster.')); return; }
       const info = E.necroInfo(G, m);

@@ -445,7 +445,9 @@ function rerollDice(st) {
 function useReroll(st) { st.abilEver = true; if (st.hero === 'mage') st.abil = true; else st.turn.rerolled = true; rerollDice(st); }
 function rollWithKeep(st, k) { // Paladín: conserva el dado que tenía la ranura k el turno anterior
   const t = st.turn;
-  t.dice = rollDice(); t.d12 = [!!(st.prevD12 && st.prevD12[k]), false, false]; t.dice[0] = st.prev[k]; t.assign[k] = 0; t.lock = k; st.abil = st.abilEver = true;
+  t.dice = rollDice(); t.d12 = [!!(st.prevD12 && st.prevD12[k]), false, false]; t.dice[0] = st.prev[k];
+  if (ABIL.paladin !== 'free') { t.assign[k] = 0; t.lock = k; }   // Bastión (Colossus): el dado guardado se reparte libremente
+  st.abil = st.abilEver = true;
 }
 function toggleRanger(st) {
   const t = st.turn;
@@ -483,6 +485,36 @@ function swapMon(st, m) {
   st.abil = st.abilEver = true;
 }
 
+// Alcance del héroe en este turno. Francotirador (Colossus): +1 fijo, como el bono de un objeto (puede pasar de 6).
+function heroRng(st) {
+  const base = (st.turn && st.turn.rng) || st.adv.rng;
+  return base + (ABIL.ranger === 'range1' && st.hero === 'ranger' ? 1 : 0);
+}
+
+// Sobrecarga (Colossus): una vez por nivel pierde 1 de Vida y hace 1 de daño a todos los kaiju a su Alcance con línea
+function burstTargets(st) {
+  const lv = lvOf(st), a = idx(st.adv.x, st.adv.y), R = heroRng(st);
+  return st.mons.filter(m => {
+    const t = idx(m.x, m.y);
+    return rangeDist(lv, a, t) <= R && hasLOS(lv, a, t, st.mons.filter(o => o !== m).map(o => idx(o.x, o.y)));
+  });
+}
+function burstInfo(st) {
+  if (st.hero !== 'necromancer' || ABIL.necromancer !== 'burst') return { ok: false, why: 'unavailable' };
+  if (st.abil || st.adv.hp <= 1) return { ok: false, why: 'unavailable' };
+  return burstTargets(st).length ? { ok: true } : { ok: false, why: 'range' };
+}
+function burstStrike(st) {
+  pushUndo(st);
+  const hit = burstTargets(st);
+  st.adv.hp -= 1;
+  for (const m of hit) m.hp -= 1;
+  const dead = hit.filter(m => m.hp <= 0).length;
+  st.mons = st.mons.filter(m => m.hp > 0);
+  st.abil = st.abilEver = true;
+  return { hit: hit.length, dead };
+}
+
 function toggleCorsair(st) {  // Corsario: a cualquier casilla libre, sin gastar Movimiento
   if (st.corsairOn) { st.corsairOn = false; st.abil = false; } else { st.corsairOn = true; st.abil = st.abilEver = true; }
 }
@@ -492,6 +524,7 @@ function abilityInfo(st) {
     if (h === 'sherpa') return (!st.abil || st.sherpaOn) ? { id: 'sherpa', label: st.sherpaOn ? 'Cancelar muros' : 'Atravesar muros' } : null;
     if (h === 'corsair' && ABIL.corsair === 'swap') return !st.abil && st.mons.length ? { id: 'swap', label: 'Cambiar de lugar' } : null;
     if (h === 'corsair') return (!st.abil || st.corsairOn) ? { id: 'corsair', label: st.corsairOn ? 'Cancelar abordaje' : 'Abordaje' } : null;
+    if (h === 'necromancer' && ABIL.necromancer === 'burst') return !st.abil && st.adv.hp > 1 && st.mons.length ? { id: 'burst', label: 'Descarga −1 Vida' } : null;
     if (h === 'necromancer') return !st.abil && st.adv.hp > 1 && st.mons.length ? { id: 'necro', label: 'Sacrificio −1 Vida' } : null;
     if (h === 'demonhunter') return !st.abil && st.mons.length ? { id: 'demon', label: 'Mover monstruo' } : null;
     return null;
@@ -500,6 +533,7 @@ function abilityInfo(st) {
   if (h === 'paladin') return !t.dice && !st.abil && st.prev && Object.keys(st.prev).length ? { id: 'keep', label: 'Conservar dado' } : null;
   if (h === 'barbarian') return t.dice && !t.rerolled && st.adv.hp === 1 ? { id: 'reroll', label: 'Volver a tirar' } : null;
   if (h === 'mage') return t.dice && !st.abil ? { id: 'reroll', label: 'Volver a tirar' } : null;
+  if (h === 'ranger' && ABIL.ranger === 'range1') return null;   // Francotirador (Colossus): el +1 de Alcance es pasivo
   if (h === 'ranger') return t.dice && (t.ranger || !st.abil) ? { id: 'ranger', label: t.ranger ? 'Dado al Mov' : 'Dado al Alcance' } : null;
   if (h === 'knight') return t.dice && (t.knight || !st.abil) ? { id: 'knight', label: t.knight ? 'Un dado por habilidad' : 'Dos dados a una' } : null;
   if (h === 'rogue') return t.dice && !st.abil ? { id: 'rogue', label: '+1 a los dados' } : null;
@@ -537,7 +571,7 @@ const heroDef = st => Math.max(1, st.turn.def - blizzPen(st));
 function attackInfo(st, m) {
   const lv = lvOf(st), a = idx(st.adv.x, st.adv.y), t = idx(m.x, m.y);
   const rd = rangeDist(lv, a, t);
-  if (rd > (st.turn.rng || st.adv.rng)) return { ok: false, why: 'range', rd };
+  if (rd > heroRng(st)) return { ok: false, why: 'range', rd };
   const others = st.mons.filter(o => o !== m).map(o => idx(o.x, o.y));
   if (!hasLOS(lv, a, t, others)) return { ok: false, why: 'los', rd };
   if (atkAvail(st) < mStat(st, m, 'def')) return { ok: false, why: 'points', rd };
@@ -549,7 +583,7 @@ function chestInfo(st) {
   if (!chestClosed(st)) return { ok: false, why: 'none' };
   const a = idx(st.adv.x, st.adv.y), t = st.chest.at;
   const rd = rangeDist(LEVELS[st.levelIdx], a, t);
-  if (rd > (st.turn.rng || st.adv.rng)) return { ok: false, why: 'range', rd };
+  if (rd > heroRng(st)) return { ok: false, why: 'range', rd };
   if (!hasLOS(lvOf(st), a, t, st.mons.map(o => idx(o.x, o.y)))) return { ok: false, why: 'los', rd };
   if (atkAvail(st) < st.chest.val) return { ok: false, why: 'points', rd };
   return { ok: true, rd };
@@ -568,7 +602,7 @@ function stoneInfo(st) {
   const lv = LEVELS[st.levelIdx], a = idx(st.adv.x, st.adv.y), t = st.stone.at;
   if (!lv.ns) { const w = lv.walls.slice(); w[t] = false; lv.ns = Object.assign({}, lv, { walls: w, rd: {}, lm: {}, ns: null, cv: null }); }
   const rd = rangeDist(lv.ns, a, t);
-  if (rd > (st.turn.rng || st.adv.rng)) return { ok: false, why: 'range', rd };
+  if (rd > heroRng(st)) return { ok: false, why: 'range', rd };
   if (!hasLOS(lvOf(st), a, t, st.mons.map(o => idx(o.x, o.y)))) return { ok: false, why: 'los', rd };
   if (atkAvail(st) < st.stone.val) return { ok: false, why: 'points', rd };
   return { ok: true, rd };
@@ -660,7 +694,7 @@ function necroInfo(st, m) {
   if (st.hero !== 'necromancer' || st.abil || st.adv.hp <= 1) return { ok: false, why: 'unavailable' };
   const lv = lvOf(st), a = idx(st.adv.x, st.adv.y), t = idx(m.x, m.y);
   const rd = rangeDist(lv, a, t);
-  if (rd > (st.turn.rng || st.adv.rng)) return { ok: false, why: 'range', rd };
+  if (rd > heroRng(st)) return { ok: false, why: 'range', rd };
   if (!hasLOS(lv, a, t, st.mons.filter(o => o !== m).map(o => idx(o.x, o.y)))) return { ok: false, why: 'los', rd };
   return { ok: true, rd };
 }
@@ -1110,7 +1144,7 @@ function retryLevel(st) {
 if (typeof module !== 'undefined') {
   module.exports = { buildLevel, ownLevels, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
     dijkstra, rangeDist, hasLOS, newRun, setupLevel, rollDice, rollTurn, assignComplete, confirmEnergy, setLoot, lvOf, mStat, monBonus,
-    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, setAbil, abilVar, swapInfo, swapMon, abilityInfo,
+    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, setAbil, abilVar, swapInfo, swapMon, heroRng, burstInfo, burstTargets, burstStrike, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,
     laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd, ORIENTS_HELL, LEVEL_DEFS_HELL, BOSS_DEFS_HELL,
     itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef,
