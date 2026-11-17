@@ -83,7 +83,9 @@ function playLevel(levels, i) {
 // ---- diseño automático: para cada nivel elige cantidad y posiciones de aparición que den el daño objetivo ----
 const DEF = W.levels[GAME];
 const T0 = +(process.env.T0 || 0.8), T1 = +(process.env.T1 || 3.6), NS = +(process.env.NS || 30), TRIES = +(process.env.TRIES || 10);
-const RANGE = i => i < 3 ? [1, 3] : [1, 5];   // i = orden entre los niveles normales
+// CNT='2,2,1,3,...' fija la cantidad de monstruos de cada nivel normal y busca solo las posiciones
+const CNT = process.env.CNT ? process.env.CNT.split(',').map(Number) : null;
+const RANGE = i => CNT ? [CNT[i], CNT[i]] : (i < 3 ? [1, 3] : [1, 5]);   // i = orden entre los niveles normales
 const STATS = Object.assign({}, W.stats, (W.gstats || {})[GAME]);
 function mk(d, at) { return E.ownLevels([Object.assign({}, d, { at })], STATS, 0)[0]; }
 function freeTiles(lv, startIdx) {

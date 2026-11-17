@@ -109,6 +109,17 @@ const WORLDS = {
       { t: 'Techos al alba|Rooftops at Dawn', m: 'skeleton', chest: 1, map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[2,0],[3,3],[4,2],[4,0]] },
       { t: 'Corazón en alerta|Heart on Alert', m: 'demon', chest: 1, map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[2,1],[1,0],[4,2],[0,2]] },
       { boss: 4, t: 'Kaiju Omega|Omega Kaiju', m: 'mguf', map: ['U....', '.##..', '.....', '..##.', '....S'] }
+    ], peak: [
+      { t: 'Grietas de hielo|Ice Cracks', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,0],[0,4]] },
+      { t: 'Ecos en la nieve|Echoes in the Snow', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[1,2],[0,0]] },
+      { t: 'Mole en la ladera|Hulk on the Slope', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[4,0]] },
+      { t: 'Patrulla de escarcha|Frost Patrol', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,1],[4,1],[3,1]] },
+      { t: 'Jauría glacial|Glacial Pack', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[0,2],[0,1],[3,0]] },
+      { t: 'Garganta del behemot|Behemoth Gorge', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[0,0],[0,4]] },
+      { t: 'Nido de rastreadores|Crawler Nest', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,1],[4,1],[3,1],[2,1],[3,0]] },
+      { t: 'Cacería en la ventisca|Hunt in the Blizzard', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[1,2],[1,4],[0,1],[0,2]] },
+      { t: 'Muralla de hielo|Ice Wall', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[2,2],[1,2],[0,0]] },
+      { t: 'El Durmiente despierta|The Sleeper Awakens', m: 'sorcerer', map: ['U...X', '~~.#.', '.#.~~', '...#.', 'V~..S'], at: [[1,3]] }
     ] },
     // cifras por aventura (sobreescriben a 'stats'); jefes incluidos
     gstats: {
@@ -117,6 +128,10 @@ const WORLDS = {
         orc: { hp: 5, spd: 3, atk: 5, def: 7, rng: 3 }, demon: { hp: 4, spd: 6, atk: 7, def: 4, rng: 5 },
         ogre: { hp: 5, spd: 4, atk: 7, def: 3, rng: 5 }, reaper: { hp: 5, spd: 8, atk: 8, def: 4, rng: 6 },
         drake: { hp: 7, spd: 6, atk: 8, def: 6, rng: 6 }, mguf: { hp: 12, spd: 8, atk: 8, def: 8, rng: 8 }
+      },
+      peak: {
+        goblin: { hp: 2, spd: 6, atk: 4, def: 3, rng: 4 }, wolf: { hp: 2, spd: 7, atk: 5, def: 4, rng: 3 },
+        yeti: { hp: 5, spd: 3, atk: 6, def: 5, rng: 3 }, sorcerer: { hp: 10, spd: 4, atk: 8, def: 6, rng: 6 }
       }
     },
     // habilidades propias de Colossus (distintas al original)
