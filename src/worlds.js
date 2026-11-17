@@ -119,6 +119,8 @@ const WORLDS = {
         drake: { hp: 7, spd: 6, atk: 8, def: 6, rng: 6 }, mguf: { hp: 12, spd: 8, atk: 8, def: 8, rng: 8 }
       }
     },
+    // habilidades propias de Colossus (distintas al original)
+    abilVar: { corsair: 'swap' },
     rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },

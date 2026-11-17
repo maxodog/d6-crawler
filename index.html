@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060d1a">
-<meta name="build" content="b0ba408b94">
+<meta name="build" content="0eb82a5969">
 <title>Archeodice · Colossus D6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1057,6 +1057,8 @@ const WORLDS = {
         drake: { hp: 7, spd: 6, atk: 8, def: 6, rng: 6 }, mguf: { hp: 12, spd: 8, atk: 8, def: 8, rng: 8 }
       }
     },
+    // habilidades propias de Colossus (distintas al original)
+    abilVar: { corsair: 'swap' },
     rogueNoCap: true,   // Hacker: +1 a cada dado aunque sea un 6
     heroPack: { paladin: 'base', ranger: 'base', cleric: 'base', rogue: 'base', barbarian: 'mguf', mage: 'mguf', knight: 'mguf', corsair: 'mguf',
       necromancer: 'peak', demonhunter: 'harbour', sherpa: 'hell' },
@@ -1559,6 +1561,24 @@ function useRogue(st, noCap) {       // Pícaro: +1 a todos los dados (en Coloss
 function toggleSherpa(st) {
   if (st.sherpaOn) { st.sherpaOn = false; st.abil = false; } else { st.sherpaOn = true; st.abil = st.abilEver = true; }
 }
+// Variantes de habilidad propias de un mundo (las pone ui.js desde WORLDS[mundo].abilVar). Vacío = reglas originales.
+let ABIL = {};
+function setAbil(v) { ABIL = v || {}; }
+function abilVar(h) { return ABIL[h] || null; }
+
+// Saltador (Colossus): una vez por nivel cambia de lugar con cualquier kaiju del tablero, sin gastar Movimiento
+function swapInfo(st, m) {
+  if (st.hero !== 'corsair' || ABIL.corsair !== 'swap') return { ok: false, why: 'unavailable' };
+  if (st.abil || !m || !st.mons.includes(m)) return { ok: false, why: 'unavailable' };
+  return { ok: true };
+}
+function swapMon(st, m) {
+  pushUndo(st);
+  const ax = st.adv.x, ay = st.adv.y;
+  st.adv.x = m.x; st.adv.y = m.y; m.x = ax; m.y = ay;
+  st.abil = st.abilEver = true;
+}
+
 function toggleCorsair(st) {  // Corsario: a cualquier casilla libre, sin gastar Movimiento
   if (st.corsairOn) { st.corsairOn = false; st.abil = false; } else { st.corsairOn = true; st.abil = st.abilEver = true; }
 }
@@ -1566,6 +1586,7 @@ function abilityInfo(st) {
   const t = st.turn, h = st.hero;
   if (st.phase === 'move') {
     if (h === 'sherpa') return (!st.abil || st.sherpaOn) ? { id: 'sherpa', label: st.sherpaOn ? 'Cancelar muros' : 'Atravesar muros' } : null;
+    if (h === 'corsair' && ABIL.corsair === 'swap') return !st.abil && st.mons.length ? { id: 'swap', label: 'Cambiar de lugar' } : null;
     if (h === 'corsair') return (!st.abil || st.corsairOn) ? { id: 'corsair', label: st.corsairOn ? 'Cancelar abordaje' : 'Abordaje' } : null;
     if (h === 'necromancer') return !st.abil && st.adv.hp > 1 && st.mons.length ? { id: 'necro', label: 'Sacrificio −1 Vida' } : null;
     if (h === 'demonhunter') return !st.abil && st.mons.length ? { id: 'demon', label: 'Mover monstruo' } : null;
@@ -2185,7 +2206,7 @@ function retryLevel(st) {
 if (typeof module !== 'undefined') {
   module.exports = { buildLevel, ownLevels, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
     dijkstra, rangeDist, hasLOS, newRun, setupLevel, rollDice, rollTurn, assignComplete, confirmEnergy, setLoot, lvOf, mStat, monBonus,
-    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, abilityInfo,
+    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, setAbil, abilVar, swapInfo, swapMon, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,
     laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd, ORIENTS_HELL, LEVEL_DEFS_HELL, BOSS_DEFS_HELL,
     itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef,
@@ -2201,7 +2222,7 @@ if (typeof module !== 'undefined') {
   const NO_SKILLS = () => ({ spd: -1, atk: -1, def: -1, rng: -1 });
   const E = { newRun, rollTurn, assignComplete, confirmEnergy, reachFromAdv, attackInfo, moveAdv, attackMon, popUndo, playMonsters, endTurnCleanup, levelCleared, applyBreak, SKILL_MAX, nextLevel,
     rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleCorsair, abilityInfo, encodePassword, decodePassword, retryLevel,
-    toggleSherpa, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, itemPool,
+    toggleSherpa, setAbil, abilVar, swapInfo, swapMon, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, itemPool,
     chestInfo, openChest, setLoot, necroInfo, necroStrike, demonReach, demonMove,
     stoneInfo, breakStone, resolveAttack, laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -2574,6 +2595,33 @@ if (typeof module !== 'undefined') {
   }
 };
   if (W && WORLD_ICONS_SRC[WORLD_ID]) for (const [k, v] of Object.entries(WORLD_ICONS_SRC[WORLD_ID])) ICONS[k] = svg(v);
+const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los nombres no son los del original)
+  arch: {
+    paladin: `<path d="M10 15c-2-7 1-11 6-11s8 4 6 11z" ${F}/><path d="M3 17c3-2 7-3 13-3s10 1 13 3c-3 3-8 5-13 5S6 20 3 17z" ${F}/><path d="M10 12h12"/>`,
+    barbarian: `<path d="M8 25 21 7c2-3 5-4 6-3 1 2-1 5-3 7L11 28z" ${F}/><path d="M7 22l3 3M4 29l4-2"/>`,
+    ranger: `<rect x="9" y="7" width="13" height="7" rx="1.5" ${F}/><path d="M22 10.5h6M6 10.5h3"/><circle cx="15.5" cy="10.5" r="1.3" ${S}/><path d="M15.500 14v5M8 29l7.500-10L23 29M11 25h9"/>`,
+    mage: `<circle cx="16" cy="13" r="8" ${F}/><path d="M9 23h14l-2 5H11z" ${F}/><path d="M12 11c1-2 3-3 5-3"/><path d="M27 4l1 2.500 2.500 1-2.500 1-1 2.500-1-2.500-2.500-1 2.500-1z" ${S}/>`,
+    necromancer: `<path d="M11 11h10c1 6-1 12-5 17-4-5-6-11-5-17z" ${F}/><circle cx="14" cy="16" r="1.3" ${S}/><circle cx="18" cy="16" r="1.3" ${S}/><path d="M15 21h2"/><path d="M11 11 7 4M21 11l4-7M16 10V3"/>`,
+    cleric: `<path d="M21 3l7 7-9 9-7-7z" ${F}/><path d="M12 12 5 19c-2 2 0 5 2 3l7-7"/><path d="M25 21c2 4 3 5 3 6 0 2-1 3-3 3s-3-1-3-3c0-1 1-2 3-6z" ${F}/>`,
+    knight: `<path d="M16 3 6 7v8c0 7 4 11 10 14 6-3 10-7 10-14V7z" ${F}/><path d="M11 16l4 4 7-8"/>`,
+    rogue: `<path d="M12 12h8c4 3 6 8 5 12-1 4-5 6-9 6s-8-2-9-6c-1-4 1-9 5-12z" ${F}/><path d="M12 12c-1-4 1-6 4-6s5 2 4 6"/><path d="M10 21h12"/>`,
+    corsair: `<path d="M3 13c0-2 2-3 4-3h18c2 0 4 1 4 3v4c0 3-2 5-5 5h-3c-2 0-3-1-5-3-2 2-3 3-5 3H8c-3 0-5-2-5-5z" ${F}/><circle cx="10" cy="15.500" r="3"/><circle cx="22" cy="15.500" r="3"/><path d="M1 11l3 1M31 11l-3 1"/>`,
+    demonhunter: `<path d="M10 29c-4-7-2-13 2-15"/><path d="M12 12c0-4 3-7 7-7s7 3 7 7-3 8-7 8-7-4-7-8z" ${F}/><circle cx="16.500" cy="11" r="1.1" ${S}/><circle cx="21.500" cy="11" r="1.1" ${S}/><path d="M17 16c1 1 3 1 4 0"/><path d="M5 29h14"/>`
+  },
+  kaiju: {
+    paladin: `<path d="M16 3 6 6v9c0 7 4 11 10 14 6-3 10-7 10-14V6z" ${F}/><path d="M6 14h20M16 14v15"/><circle cx="11" cy="9.500" r="1.1" ${S}/><circle cx="21" cy="9.500" r="1.1" ${S}/>`,
+    barbarian: `<path d="M17 2c0 5 7 7 7 14 0 6-4 10-8 10s-8-4-8-10c0-5 4-7 5-11 1 2 2 4 2 6 2-2 2-6 2-9z" ${F}/><path d="M13 20c0 3 1 5 3 5s3-2 3-5"/>`,
+    ranger: `<circle cx="16" cy="16" r="9" ${F}/><path d="M16 2v7M16 23v7M2 16h7M23 16h7M16 13v6M13 16h6"/>`,
+    mage: `<path d="M3 16c4-6 8-9 13-9s9 3 13 9c-4 6-8 9-13 9S7 22 3 16z" ${F}/><circle cx="16" cy="16" r="4"/><circle cx="16" cy="16" r="1.4" ${S}/>`,
+    necromancer: `<rect x="9" y="6" width="14" height="23" rx="2" ${F}/><path d="M13 3h6v3h-6z" ${S}/><path d="M17 10l-4 9h3l-1 7 5-10h-3z" ${S}/>`,
+    cleric: `<path d="M21 3c-5 0-8 4-8 8 0 1 0 2 1 3L5 23c-2 2 1 5 3 3l9-9c1 1 2 1 3 1 5 0 8-4 8-8 0-2-1-4-2-5l-5 5-3-3 5-5c-1-1-2 1-2 1z" ${F}/><circle cx="7" cy="25" r="1.2" ${S}/>`,
+    knight: `<path d="M2 12h14v8H2z" ${F}/><path d="M16 11c4 0 7 2 7 5s-3 5-7 5z" ${F}/><path d="M23 10c1-3 4-4 6-2-2 1-3 2-3 4M23 22c1 3 4 4 6 2-2-1-3-2-3-4"/><path d="M7 12v8M12 12v8"/>`,
+    rogue: `<rect x="3" y="6" width="26" height="16" rx="2" ${F}/><path d="M9 11l3 3-3 3M15 17h7"/><path d="M12 28h8M16 22v6"/>`,
+    sherpa: `<path d="M7 29V15c0-5 4-9 9-9s9 4 9 9v14l-3-2-3 2-3-2-3 2z" ${F}/><circle cx="13" cy="15" r="1.4" ${S}/><circle cx="19" cy="15" r="1.4" ${S}/><path d="M14 20c1 1 3 1 4 0"/>`,
+    corsair: `<path d="M3 26C6 11 26 11 29 26" stroke-dasharray="3 3"/><circle cx="16" cy="11" r="3.500" ${F}/><path d="M2 29h6M24 29h6"/>`,
+    demonhunter: `<path d="M5 27 23 9"/><path d="M23 9l6-6-1 7-7 1z" ${F}/><path d="M18 9l5 5M20 15l4 4"/><path d="M3 30c2-4 5-4 7-2"/>`
+  }
+};
   const ICON_CURSE = svg(`<path d="M16 6c5-1 10 3 9 8-1 6-8 8-11 4-3-3-1-8 3-8 3 0 5 3 3 5"/><circle cx="16" cy="16" r="2" ${S}/><path d="M7 25c4 3 12 3 16 0"/>`);
   const ICON_STONE = svg(`<path d="M16 5l8 5v12l-8 5-8-5V10z" ${F}/><path d="M16 5v22M8 10l16 12M24 10 8 22"/>`);
   const ICON_CHEST = svg(`<path d="M4 14c0-5 5-8 12-8s12 3 12 8z" ${F}/><rect x="4" y="14" width="24" height="12" rx="1.500" ${F}/><path d="M4 14h24M14 14v5h4v-5"/><circle cx="16" cy="20" r="1" ${S}/>`);
@@ -2592,6 +2640,7 @@ if (typeof module !== 'undefined') {
     corsair: svg(`<path d="M3 17c4-1 6-6 13-6s9 5 13 6-1 4-4 3c-3 2-6 1-9 1s-6 1-9-1c-3 1-8-1-4-3z" ${F}/><path d="M12 22c0 3 1 5 4 6 3-1 4-3 4-6"/><circle cx="14.500" cy="19" r="1" ${S}/><circle cx="17.500" cy="19" r="1" ${S}/><path d="M15 25h2"/>`),
     demonhunter: svg(`<path d="M5 17 27 5"/><path d="M8 12l-3 5 5 3M24 8l3-3 1 5"/><path d="M3 9c2-3 6-3 7 0M22 27c0-5 3-8 7-8 0 4-3 8-7 8z" ${F}/><path d="M13 14l7 11"/>`)
   };
+  if (W && WORLD_HERO_ICONS_SRC[WORLD_ID]) for (const [k, v] of Object.entries(WORLD_HERO_ICONS_SRC[WORLD_ID])) HERO_ICONS[k] = svg(v);
   const HEROES = {
     paladin: { name: L('Paladín', 'Paladin'), pack: 'base', txt: L('Una vez por nivel, antes de tirar, conserva el dado que diste a una habilidad el turno anterior y tira solo los otros dos.', 'Once per level, before rolling, keep the die you gave a skill last turn and roll only the other two.') },
     barbarian: { name: L('Bárbaro', 'Barbarian'), pack: 'base', txt: L('Con 1 de Vida, puede volver a tirar los tres dados una vez por turno.', 'At 1 Health, may reroll all three dice once per turn.') },
@@ -2612,6 +2661,8 @@ if (typeof module !== 'undefined') {
   ];
   if (W) { for (const k in W.heroes) if (HEROES[k]) HEROES[k].name = W.heroes[k].split('|')[LANG === 'en' ? 1 : 0];
     for (const k in (W.heroPack || {})) if (HEROES[k]) HEROES[k].pack = W.heroPack[k];
+    E.setAbil(W.abilVar || {});
+    if ((W.abilVar || {}).corsair === 'swap') HEROES.corsair.txt = L('Una vez por nivel, cambia de lugar con cualquier kaiju del tablero, sin gastar Movimiento.', 'Once per level, swap places with any kaiju on the board, without spending Move.');
     if (W.rogueNoCap) HEROES.rogue.txt = L('Una vez por nivel, puede sumar 1 a los tres dados de Energía, aunque alguno sea un 6.', 'Once per level, may add 1 to all three Energy dice, even if one is a 6.'); PACKS.forEach(p => { p.name = GAMES[p.key].name; }); }
   const heroesOf = pack => HERO_KEYS.filter(k => HEROES[k].pack === pack);
   const ICON_WIND = svg(`<path d="M4 11h13c4 0 5-5 1.5-5.5M4 17h19c4 0 5 5 1.5 5.5M4 23h9c3 0 4 3 1.5 3.5"/>`);
@@ -3278,7 +3329,7 @@ if (typeof module !== 'undefined') {
       else if (mode === 'laurelPick') { for (const m of G.mons) targets.add(idx(m.x, m.y)); }
       else if (mode && mode.demon) demon = E.demonReach(G, mode.demon);
       else if (mode === 'necro') { for (const m of G.mons) if (E.necroInfo(G, m).ok) targets.add(idx(m.x, m.y)); }
-      else if (mode === 'demonPick') { for (const m of G.mons) targets.add(idx(m.x, m.y)); }
+      else if (mode === 'demonPick' || mode === 'swapPick') { for (const m of G.mons) targets.add(idx(m.x, m.y)); }
       else {
         reach = E.reachFromAdv(G);
         for (const m of G.mons) if (E.attackInfo(G, m).ok) targets.add(idx(m.x, m.y));
@@ -3375,7 +3426,7 @@ if (typeof module !== 'undefined') {
     }
   }
   function toggleClassic() { if (!classicOk()) return; classic = !classic; try { localStorage.setItem('dioc-classic', classic ? '1' : '0'); } catch (e) {} paintClassic(); needFit = true; fit(); }
-  const AB_EN = { 'Cancelar muros': 'Cancel walls', 'Atravesar muros': 'Walk through walls', 'Cancelar abordaje': 'Cancel boarding', 'Abordaje': 'Boarding', 'Sacrificio −1 Vida': 'Sacrifice −1 Health',
+  const AB_EN = { 'Cancelar muros': 'Cancel walls', 'Atravesar muros': 'Walk through walls', 'Cancelar abordaje': 'Cancel boarding', 'Abordaje': 'Boarding', 'Sacrificio −1 Vida': 'Sacrifice −1 Health', 'Cambiar de lugar': 'Swap places',
     'Mover monstruo': 'Move monster', 'Conservar dado': 'Keep die', 'Volver a tirar': 'Reroll', 'Dado al Mov': 'Die to Mov', 'Dado al Alcance': 'Die to Range', 'Un dado por habilidad': 'One die per skill', 'Dos dados a una': 'Two dice to one', '+1 a los dados': '+1 to the dice' };
   const abLabel = s => LANG === 'en' ? (AB_EN[s] || s) : s;
   const stageLabel = lv => lv.boss ? L(`Jefe ${lv.boss}`, `Boss ${lv.boss}`) : L(`Nivel ${lv.num}`, `Level ${lv.num}`);
@@ -3486,6 +3537,7 @@ if (typeof module !== 'undefined') {
     } else if (ph === 'move') {
       step = '2';
       txt = mode === 'necro' ? L('Nigromante: toca el monstruo al que quieres hacer <em>1 de daño</em> (cuesta 1 de tu Vida).', 'Necromancer: tap the monster you want to deal <em>1 damage</em> to (costs 1 of your Health).')
+        : mode === 'swapPick' ? L(`${HEROES.corsair.name}: toca el kaiju con el que <em>cambias de lugar</em>.`, `${HEROES.corsair.name}: tap the kaiju you <em>swap places</em> with.`)
         : mode === 'demonPick' ? L('Cazador: toca el monstruo que quieres <em>mover</em>.', 'Hunter: tap the monster you want to <em>move</em>.')
         : mode && mode.demon ? L('Cazador: toca la casilla marcada a la que lo mueves (hasta 3 de Mov).', 'Hunter: tap the marked tile to move it to (up to 3 Mov).')
         : mode === 'laurelPick' ? L('Corona de laurel: toca el monstruo al que das la orden.', 'Laurel Crown: tap the monster you give the order to.')
@@ -3518,7 +3570,7 @@ if (typeof module !== 'undefined') {
       if (G.laurel) { box.innerHTML = `<button type="button" class="btn primary" id="btnLaurelEnd" ${busy ? 'disabled' : ''}>${L('Terminar orden', 'End order')}</button>`; return; }
       if (mode === 'laurelPick') { box.innerHTML = `<button type="button" class="btn" id="btnLaurelNo">${L('Cancelar', 'Cancel')}</button>`; return; }
       const ab = E.abilityInfo(G);
-      const cancel = (ab && ((ab.id === 'necro' && mode === 'necro') || (ab.id === 'demon' && mode))) ? L('Cancelar', 'Cancel') : null;
+      const cancel = (ab && ((ab.id === 'necro' && mode === 'necro') || (ab.id === 'swap' && mode === 'swapPick') || (ab.id === 'demon' && mode))) ? L('Cancelar', 'Cancel') : null;
       const abBtn = ab ? `<button type="button" class="btn abil tight ${G.sherpaOn || G.corsairOn || cancel ? 'on' : ''}" id="btnAbil" ${busy ? 'disabled' : ''}>${cancel || abLabel(ab.label)}</button>` : '';
       box.innerHTML = `<button type="button" class="btn small" id="btnUndo" ${G.undo.length && !busy ? '' : 'disabled'}>${L('Deshacer', 'Undo')}</button>${abBtn}
         <button type="button" class="btn primary ${nothingLeft() ? 'pulse' : ''}" id="btnEnd" ${busy ? 'disabled' : ''}>${L('Fin de turno', 'End turn')}</button>`;
@@ -4342,6 +4394,11 @@ if (typeof module !== 'undefined') {
       render();
       say(G.corsairOn ? L('Habilidad del Corsario: toca <b>cualquier casilla libre</b> para abordarla sin gastar Movimiento.', "Corsair's ability: tap <b>any empty tile</b> to board it without spending Move.") : L('Habilidad cancelada.', 'Ability cancelled.'));
     }
+    else if (ab.id === 'swap') {
+      mode = mode === 'swapPick' ? null : 'swapPick';
+      render();
+      say(mode ? L(`${HEROES.corsair.name}: toca el kaiju con el que quieres cambiar de lugar. Puede estar en cualquier casilla.`, `${HEROES.corsair.name}: tap the kaiju you want to swap places with. It can be anywhere.`) : L('Habilidad cancelada.', 'Ability cancelled.'));
+    }
     else if (ab.id === 'necro') {
       mode = mode === 'necro' ? null : 'necro';
       render();
@@ -4452,6 +4509,19 @@ if (typeof module !== 'undefined') {
       render();
       if (E.levelCleared(G)) { levelClear(); return; }
       say(L(`<b>Sacrificio.</b> Pierdes 1 de Vida y ${dead ? 'el monstruo cae' : `le quedan <b>${m.hp}</b> de Vida`}.`, `<b>Sacrifice.</b> You lose 1 Health and ${dead ? 'the monster falls' : `it has <b>${m.hp}</b> Health left`}.`));
+      return;
+    }
+    // Habilidad del Saltador (Colossus): cambia de lugar con cualquier kaiju
+    if (mode === 'swapPick') {
+      if (!m) { say(L('Toca a un kaiju.', 'Tap a kaiju.')); return; }
+      if (!E.swapInfo(G, m).ok) { say(L('Ahora no puedes usar la habilidad.', "You can't use the ability right now.")); return; }
+      const [ax, ay] = [G.adv.x, G.adv.y];
+      mode = null;
+      E.swapMon(G, m);
+      Sfx.play('move');
+      render();
+      floatText(ax, ay, '⇄', 'good'); floatText(G.adv.x, G.adv.y, '⇄', 'good');
+      say(L(`<b>${HEROES.corsair.name}.</b> Cambias de lugar con el kaiju.`, `<b>${HEROES.corsair.name}.</b> You swap places with the kaiju.`));
       return;
     }
     // Habilidad del Cazador de demonios

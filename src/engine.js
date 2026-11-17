@@ -465,6 +465,24 @@ function useRogue(st, noCap) {       // Pícaro: +1 a todos los dados (en Coloss
 function toggleSherpa(st) {
   if (st.sherpaOn) { st.sherpaOn = false; st.abil = false; } else { st.sherpaOn = true; st.abil = st.abilEver = true; }
 }
+// Variantes de habilidad propias de un mundo (las pone ui.js desde WORLDS[mundo].abilVar). Vacío = reglas originales.
+let ABIL = {};
+function setAbil(v) { ABIL = v || {}; }
+function abilVar(h) { return ABIL[h] || null; }
+
+// Saltador (Colossus): una vez por nivel cambia de lugar con cualquier kaiju del tablero, sin gastar Movimiento
+function swapInfo(st, m) {
+  if (st.hero !== 'corsair' || ABIL.corsair !== 'swap') return { ok: false, why: 'unavailable' };
+  if (st.abil || !m || !st.mons.includes(m)) return { ok: false, why: 'unavailable' };
+  return { ok: true };
+}
+function swapMon(st, m) {
+  pushUndo(st);
+  const ax = st.adv.x, ay = st.adv.y;
+  st.adv.x = m.x; st.adv.y = m.y; m.x = ax; m.y = ay;
+  st.abil = st.abilEver = true;
+}
+
 function toggleCorsair(st) {  // Corsario: a cualquier casilla libre, sin gastar Movimiento
   if (st.corsairOn) { st.corsairOn = false; st.abil = false; } else { st.corsairOn = true; st.abil = st.abilEver = true; }
 }
@@ -472,6 +490,7 @@ function abilityInfo(st) {
   const t = st.turn, h = st.hero;
   if (st.phase === 'move') {
     if (h === 'sherpa') return (!st.abil || st.sherpaOn) ? { id: 'sherpa', label: st.sherpaOn ? 'Cancelar muros' : 'Atravesar muros' } : null;
+    if (h === 'corsair' && ABIL.corsair === 'swap') return !st.abil && st.mons.length ? { id: 'swap', label: 'Cambiar de lugar' } : null;
     if (h === 'corsair') return (!st.abil || st.corsairOn) ? { id: 'corsair', label: st.corsairOn ? 'Cancelar abordaje' : 'Abordaje' } : null;
     if (h === 'necromancer') return !st.abil && st.adv.hp > 1 && st.mons.length ? { id: 'necro', label: 'Sacrificio −1 Vida' } : null;
     if (h === 'demonhunter') return !st.abil && st.mons.length ? { id: 'demon', label: 'Mover monstruo' } : null;
@@ -1091,7 +1110,7 @@ function retryLevel(st) {
 if (typeof module !== 'undefined') {
   module.exports = { buildLevel, ownLevels, COLS, ROWS, N, idx, XY, get LEVELS() { return LEVELS; }, LEVEL_DEFS, LEVEL_DEFS_PEAK, LEVEL_DEFS_HARBOUR, BOSS_DEFS, GAMES, useGame, START_HP,
     dijkstra, rangeDist, hasLOS, newRun, setupLevel, rollDice, rollTurn, assignComplete, confirmEnergy, setLoot, lvOf, mStat, monBonus,
-    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, abilityInfo,
+    HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, setAbil, abilVar, swapInfo, swapMon, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,
     laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd, ORIENTS_HELL, LEVEL_DEFS_HELL, BOSS_DEFS_HELL,
     itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef,
