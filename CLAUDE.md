@@ -55,7 +55,13 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 - `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. Medidas con la fase de monstruos de una sola vuelta (200 campañas, ±0,3 de ruido): base original 5,2 y gana 1%, Kaiju Protocol 6,9 y 1%; Alerta Omega original 5,4 y 0%, propio 6,1 y 0%; Glaciar original 7,2 y gana 6%, propio 6,9 y gana 2% (medido ya con el cofre bloqueando).
 - `GSTATS='{"ogre":{"hp":5,...}}' node test/balance.js` prueba cifras sin tocar `worlds.js` (útil para los jefes).
 - `node test/design.js` (`T0`, `T1`, `NS`, `TRIES`, `LVS=2,4`, `CNT=2,2,1,…` para fijar la cantidad por nivel y buscar solo posiciones): busca cantidad y posiciones de aparición para acercar cada nivel a una curva de daño objetivo. Imprime `AT=[...]` para pegar en `worlds.js`.
-- El bot es débil (gana poco): sirve para comparar versiones, no como dificultad absoluta. Cada campaña de 200 tarda ~7 min; córrelas en segundo plano.
+- `SEED=7` fija los dados: la misma semilla da siempre el mismo resultado, así dos variantes se comparan con la misma suerte y hacen falta muchas menos partidas. `design.js` lo usa solo: criba todos los candidatos con pocas partidas y una suerte, y afina los cuatro mejores con todas las partidas y otra suerte distinta (para no premiar al que tuvo suerte en la criba).
+- El bot es débil (gana poco): sirve para comparar versiones, no como dificultad absoluta. Tras las optimizaciones de noviembre de 2026 una campaña de 200 tarda ~20 s (antes ~7 min) y una búsqueda de posiciones unos 4 s por nivel, así que ya se pueden correr en primer plano.
+
+## Rendimiento del motor
+- `adjOf(lv)` guarda la lista de vecinos de cada casilla y `distAdv(lv, src, advI, cb)` las distancias con el aventurero (y el cofre cerrado) como único estorbo: son las que la fase de monstruos repite miles de veces. Ambas cachés **se atan al array `lv.walls`**, así que una variante del nivel con otros muros (`lv.cv` con el cofre cerrado, `lv.ns` con la Piedra rota) las rehace sola. No quitar esa comprobación: con ella se arregló un error que daba caminos imposibles.
+- `test/path_test.js` compara `dijkstra` con el cálculo directo en todos los niveles y variantes; si alguien toca las cachés, salta ahí.
+- El bot de `balance.js` copia solo lo que puede cambiar al probar una jugada (`clone`), no el estado entero.
 
 ## Pruebas y publicación
 - Pruebas en `test/` (Playwright con `/usr/bin/google-chrome`, Node). Tienen rutas absolutas a `/home/claude/d6-crawler/` (las de Node cargan `../src/engine.js`); si clonas en otra carpeta, ajústalas con `sed`. `mon_detour_test.js` se omite solo si falta el motor del repo antiguo.

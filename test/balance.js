@@ -7,6 +7,12 @@ const E = require('../src/engine.js');
 const ctx = {}; vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/worlds.js'), 'utf8').replace(/^'use strict';/, '') + ';this.WORLDS=WORLDS;', ctx);
 const WORLD = process.env.WORLD || 'kaiju', GAME = process.env.GAME || 'base', N = +(process.argv[2] || 150);
+// SEED fija los dados: con la misma semilla dos variantes se comparan con exactamente la misma suerte, así que
+// hacen falta muchas menos partidas para notar la diferencia (y los resultados se pueden repetir).
+if (process.env.SEED) {
+  let x = (+process.env.SEED >>> 0) || 1;
+  Math.random = () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+}
 const W = ctx.WORLDS[WORLD];
 if (process.env.GSTATS) { const o = JSON.parse(process.env.GSTATS); W.gstats = W.gstats || {}; W.gstats[GAME] = Object.assign({}, W.gstats[GAME], o); }   // prueba rápida de cifras: GSTATS='{"ogre":{...}}'
 
@@ -29,7 +35,26 @@ OWN.forEach((lv, i) => {
 console.log('mapas propios ok:', bad === 0);
 
 // ---- bot (mismo criterio que sim.js) ----
-const clone = s => JSON.parse(JSON.stringify(s));
+// Copia solo lo que el bot puede cambiar al probar una jugada (antes se serializaba el estado entero, que era
+// el 20% del tiempo). El historial de deshacer no se copia: el bot nunca deshace.
+const cloneTurn = t => ({ dice: t.dice ? t.dice.slice() : null, d12: t.d12 ? t.d12.slice() : t.d12,
+  assign: Object.assign({}, t.assign), assign2: t.assign2 ? Object.assign({}, t.assign2) : t.assign2,
+  sel: t.sel, lock: t.lock, ranger: t.ranger, knight: t.knight, rerolled: t.rerolled, boosted: t.boosted,
+  loot: t.loot ? Object.assign({}, t.loot) : t.loot,
+  spd: t.spd, atk: t.atk, def: t.def, rng: t.rng, spdLeft: t.spdLeft, atkLeft: t.atkLeft });
+function clone(s) {
+  const c = Object.assign({}, s);
+  c.adv = Object.assign({}, s.adv);
+  c.mons = s.mons.map(m => Object.assign({}, m));
+  c.turn = cloneTurn(s.turn);
+  c.undo = [];
+  if (s.items) c.items = s.items.slice();
+  if (s.chest) c.chest = Object.assign({}, s.chest);
+  if (s.stone) c.stone = Object.assign({}, s.stone);
+  if (s.cp) c.cp = Object.assign({}, s.cp, { items: (s.cp.items || []).slice() });
+  if (s.prev) c.prev = Object.assign({}, s.prev);
+  return c;
+}
 function evalState(st) {
   const c = clone(st), hp0 = c.adv.hp;
   if (!c.mons.length) return -1000;

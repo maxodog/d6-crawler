@@ -216,6 +216,28 @@ let LEVELS = GAMES.base.levels;
 function useGame(key) { GAME = GAMES[key] ? key : 'base'; LEVELS = GAMES[GAME].levels; return LEVELS; }
 
 /* ---------- Caminos y distancias ---------- */
+// Vecinos de cada casilla, calculados una vez por nivel: [destino, coste, contigua horizontal, contigua vertical].
+// Las dos contiguas solo se miran en las diagonales (coste 3), para cerrar el paso entre dos obstáculos.
+// Ojo: las variantes del nivel con otros muros (lv.cv con el cofre cerrado, lv.ns con la Piedra rota) tienen que
+// limpiar `_adj` y `_dc`, como ya hacen con `rd` y `lm`.
+function adjOf(lv) {
+  if (lv._adj && lv._adjFor === lv.walls) return lv._adj;   // atada al array de muros: una variante con otros muros la rehace
+  const adj = new Array(N);
+  for (let i = 0; i < N; i++) {
+    const [x, y] = XY(i), out = [];
+    for (const [dx, dy, c] of DIRS) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue;
+      const j = idx(nx, ny);
+      if (lv.walls[j]) continue;
+      out.push(c === 3 ? [j, c, idx(x + dx, y), idx(x, y + dy)] : [j, c, -1, -1]);
+    }
+    adj[i] = out;
+  }
+  try { lv._adj = adj; lv._adjFor = lv.walls; } catch (e) {}
+  return adj;
+}
+
 function neighbors(lv, i, cut) {
   const [x, y] = XY(i), out = [];
   for (const [dx, dy, c] of DIRS) {
@@ -237,19 +259,24 @@ function neighbors(lv, i, cut) {
 
 function dijkstra(lv, src, blocked, cut) {
   const dist = new Array(N).fill(Infinity), prev = new Array(N).fill(-1), done = new Array(N).fill(false);
+  const adj = adjOf(lv);
   dist[src] = 0;
   for (;;) {
     let u = -1, b = Infinity;
     for (let i = 0; i < N; i++) if (!done[i] && dist[i] < b) { b = dist[i]; u = i; }
     if (u < 0) break;
     done[u] = true;
-    for (const [v, c] of neighbors(lv, u, cut)) {
+    const ns = adj[u];
+    for (let k = 0; k < ns.length; k++) {
+      const v = ns[k][0], c = ns[k][1];
       if (blocked && blocked[v]) continue;
+      if (c === 3) { const h = ns[k][2], w = ns[k][3]; if ((lv.walls[h] || (cut && cut[h])) && (lv.walls[w] || (cut && cut[w]))) continue; }
       if (b + c < dist[v]) { dist[v] = b + c; prev[v] = u; }
     }
   }
   return { dist, prev };
 }
+
 
 // Distancia de Alcance: menor coste de Movimiento entre dos casillas (solo los muros estorban)
 function rangeDist(lv, a, b) {
@@ -388,7 +415,7 @@ const chestClosed = st => !!(st.chest && !st.chest.open);
 function lvOf(st) {
   const lv = LEVELS[st.levelIdx];
   if (!chestClosed(st)) return lv;
-  if (!lv.cv) { const w = lv.walls.slice(); w[lv.chestAt] = true; lv.cv = Object.assign({}, lv, { walls: w, rd: {}, lm: {}, cv: null }); }
+  if (!lv.cv) { const w = lv.walls.slice(); w[lv.chestAt] = true; lv.cv = Object.assign({}, lv, { walls: w, rd: {}, lm: {}, cv: null, _adj: null, _dc: null }); }
   return lv.cv;
 }
 
@@ -555,6 +582,22 @@ function abilityInfo(st) {
 /* ---------- Fase del aventurero ---------- */
 // Casilla del cofre cerrado: cuenta como muro (nadie la pisa ni la ocupa) hasta que se abre. Si el cofre está
 // sobre una escalera no bloquea: si no, no se podría salir del nivel sin abrirlo.
+// Distancias desde 'src' con el aventurero (y el cofre cerrado) como único estorbo. Es el caso de la fase de los
+// monstruos, que se repite miles de veces en las mismas 25 casillas: se calcula una vez por nivel y se reutiliza.
+function distAdv(lv, src, advI, cb) {
+  if (lv._dcFor !== lv.walls) { lv._dc = new Map(); lv._dcFor = lv.walls; }
+  const m = lv._dc, key = advI * 64 + (cb + 1);
+  let tab = m.get(key);
+  if (!tab) { tab = new Array(N); m.set(key, tab); }
+  let r = tab[src];
+  if (!r) {
+    const bl = new Array(N).fill(false);
+    bl[advI] = true; if (cb >= 0) bl[cb] = true;
+    r = tab[src] = dijkstra(lv, src, bl, bl);
+  }
+  return r;
+}
+
 function chestBlock(st) {
   const lv = lvOf(st);
   if (!st.chest || st.chest.open || lv.chestAt < 0 || lv.stairs.includes(lv.chestAt)) return -1;
@@ -621,7 +664,7 @@ function openChest(st) {
 function stoneInfo(st) {
   if (!st.stone || st.stone.broken) return { ok: false, why: 'none' };
   const lv = LEVELS[st.levelIdx], a = idx(st.adv.x, st.adv.y), t = st.stone.at;
-  if (!lv.ns) { const w = lv.walls.slice(); w[t] = false; lv.ns = Object.assign({}, lv, { walls: w, rd: {}, lm: {}, ns: null, cv: null }); }
+  if (!lv.ns) { const w = lv.walls.slice(); w[t] = false; lv.ns = Object.assign({}, lv, { walls: w, rd: {}, lm: {}, ns: null, cv: null, _adj: null, _dc: null }); }
   const rd = rangeDist(lv.ns, a, t);
   if (rd > heroRng(st)) return { ok: false, why: 'range', rd };
   if (!hasLOS(lvOf(st), a, t, st.mons.map(o => idx(o.x, o.y)))) return { ok: false, why: 'los', rd };
@@ -838,7 +881,7 @@ function chooseMove(lv, st, m) {
   const blocked = new Array(N).fill(false);
   blocked[advI] = true;
   const cb = chestBlock(st); if (cb >= 0) blocked[cb] = true;   // el cofre cerrado es un muro más
-  const D = dijkstra(lv, me, blocked, blocked);
+  const D = distAdv(lv, me, advI, cb);
   const spd = Math.max(0, m.spd);
   // casilla donde puede terminar: libre (sin muro, aventurero ni otro monstruo) y con camino; la propia también vale
   const stand = i => i === me || (!lv.walls[i] && i !== cb && i !== advI && !others.includes(i) && D.dist[i] < Infinity);
@@ -858,7 +901,7 @@ function chooseMove(lv, st, m) {
   //    monstruo puede terminar en cualquier casilla libre a la que le alcance la velocidad (con Velocidad 3 un turno
   //    es un solo paso, recto o diagonal; con 5, dos pasos rectos o uno recto y uno diagonal, etc.).
   const fromD = [];
-  const dOf = u => fromD[u] || (fromD[u] = u === me ? D.dist : dijkstra(lv, u, blocked, blocked).dist);
+  const dOf = u => fromD[u] || (fromD[u] = u === me ? D.dist : distAdv(lv, u, advI, cb).dist);
   const turnsFrom = s => {
     const tn = new Array(N).fill(Infinity); tn[s] = 0; let front = [s];
     for (let k = 1; front.length; k++) {
@@ -928,8 +971,7 @@ function playMonsters(st) {
     const from = idx(m.x, m.y), to = chooseMove(lv, st, m);
     if (to !== from) {
       // camino casilla a casilla (el mismo que calcula chooseMove) para animarlo
-      const bl = new Array(N).fill(false); bl[advI] = true;
-      const D = dijkstra(lv, from, bl, bl), path = [];
+      const D = distAdv(lv, from, advI, chestBlock(st)), path = [];
       for (let c = to; c !== -1; c = D.prev[c]) path.push(c);
       path.reverse();
       const [x, y] = XY(to); m.x = x; m.y = y;

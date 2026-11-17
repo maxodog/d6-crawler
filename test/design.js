@@ -95,26 +95,40 @@ function freeTiles(lv, startIdx) {
   return out;
 }
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+// Dados del juego: se reinician antes de medir cada candidato, así todos juegan con la misma suerte y las
+// diferencias entre ellos son reales y no ruido. Con esto bastan muchas menos partidas.
+let dado = 1;
+Math.random = () => { dado ^= dado << 13; dado >>>= 0; dado ^= dado >> 17; dado ^= dado << 5; dado >>>= 0; return dado / 4294967296; };
+const mismaSuerte = k => { dado = ((+process.env.SEED >>> 0) || 20261117) + (k || 0); };
+function medir(levels, i, n, k) { mismaSuerte(k); let dmg = 0; for (let r = 0; r < n; r++) dmg += playLevel(levels, i).dmg; return dmg / n; }
 const levels = DEF.map(d => mk(d, d.at || [[2, 2]]));
 const result = [];
 const ONLYL = process.env.LVS ? process.env.LVS.split(',').map(x => +x - 1) : null;
 const NREG = DEF.filter(d => !d.boss).length; let reg = -1;
 for (let i = 0; i < DEF.length; i++) {
-  if (DEF[i].boss) { let dmg = 0; for (let r = 0; r < NS; r++) dmg += playLevel(levels, i).dmg; console.log(`JEFE ${DEF[i].m}: daño ${(dmg / NS).toFixed(2)}`); result.push(null); continue; }
+  if (DEF[i].boss) { console.log(`JEFE ${DEF[i].m}: daño ${medir(levels, i, NS, 1).toFixed(2)}`); result.push(null); continue; }
   reg++;
   if (ONLYL && !ONLYL.includes(reg)) { result.push(DEF[i].at); continue; }
   const target = T0 + (T1 - T0) * reg / (NREG - 1), d = DEF[i];
   const free = freeTiles(levels[i]);
-  let best = null;
+  // Primera pasada: muchos candidatos con pocas partidas. Segunda: solo los mejores, con todas.
   const [c0, c1] = RANGE(reg);
-  for (let c = c0; c <= c1; c++) for (let k = 0; k < TRIES; k++) {
+  const cribaN = Math.max(6, Math.round(NS / 4)), FINAL = 4;
+  const cand = [];
+  for (let c = c0; c <= c1; c++) for (let k = 0; k < TRIES * 2; k++) {
     const pool = free.slice(); const at = [];
     while (at.length < c && pool.length) at.push(pool.splice(Math.floor(rnd() * pool.length), 1)[0]);
     if (at.length < c) continue;
-    levels[i] = mk(d, at);
-    let dmg = 0; for (let r = 0; r < NS; r++) dmg += playLevel(levels, i).dmg; dmg /= NS;
-    const err = Math.abs(dmg - target);
-    if (!best || err < best.err) best = { err, dmg, at, c };
+    if (cand.some(x => x.c === c && x.at.join() === at.join())) continue;   // sin repetir combinaciones
+    cand.push({ at, c });
+  }
+  for (const x of cand) { levels[i] = mk(d, x.at); x.dmg = medir(levels, i, cribaN, 0); x.err = Math.abs(x.dmg - target); }
+  cand.sort((a, b) => a.err - b.err);
+  let best = null;
+  for (const x of cand.slice(0, FINAL)) {
+    levels[i] = mk(d, x.at);
+    const dmg = medir(levels, i, NS, 1), err = Math.abs(dmg - target);
+    if (!best || err < best.err) best = { err, dmg, at: x.at, c: x.c };
   }
   levels[i] = mk(d, best.at); result.push(best.at);
   console.log(`nivel ${i + 1} ${d.m}: objetivo ${target.toFixed(2)} → ${best.c}× daño ${best.dmg.toFixed(2)} en ${JSON.stringify(best.at)}`);
