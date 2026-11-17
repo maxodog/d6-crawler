@@ -511,7 +511,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       try { localStorage.setItem(saveKey(G.game) + ':t', String(Date.now())); } catch (e) {}
       if (G.phase === 'won' || G.abandoned) { localStorage.removeItem(saveKey(G.game)); return; }
       let sv = G;
-      if (G.phase === 'dead') { sv = E.retryLevel(G); sv.totalTurns = G.totalTurns; sv.runId = G.runId; sv.trackAbil = G.trackAbil; sv.abilEver = G.abilEver; sv.startItems = G.startItems; sv.ups = G.ups; sv.stats = Object.assign({}, G.stats, { deaths: ((G.stats || {}).deaths || 0) + 1 }); }
+      if (G.phase === 'dead') { sv = E.retryLevel(G); sv.totalTurns = G.totalTurns; sv.runId = G.runId; sv.trackAbil = G.trackAbil; sv.abilEver = G.abilEver; sv.itemEver = G.itemEver; sv.startItems = G.startItems; sv.ups = G.ups; sv.stats = Object.assign({}, G.stats, { deaths: ((G.stats || {}).deaths || 0) + 1 }); }
       localStorage.setItem(saveKey(G.game), JSON.stringify(sv));
     } catch (e) {}
   }
@@ -884,16 +884,39 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     { t: 'diamante', g: L('Trayectoria', 'Career'), id: 'medals', name: L('Medallero', 'Medal Collector'), txt: L('Consigue 30 logros.', 'Earn 30 achievements.') }
   ];
   const ITEM_GAMES = ['peak', 'harbour', 'hell'];   // aventuras que se juegan con objetos
+  // Estrellas por aventura: se ganan al completarla y se ven en la tarjeta de la aventura.
+  // 'noitem' solo existe en las aventuras con objetos, así que esas tienen 4 y el resto 3.
+  const STARS = [
+    { id: 'win',    c: 'oro',    name: () => L('Superada', 'Cleared'),                      txt: () => L('Completa la aventura.', 'Complete the adventure.') },
+    { id: 'packs',  c: 'cielo',  name: () => L('Dos expansiones', 'Two expansions'),        txt: () => L('Complétala con dos héroes de expansiones distintas.', 'Complete it with two heroes from different expansions.') },
+    { id: 'noitem', c: 'verde',  name: () => L('Sin objetos', 'No items'),                  txt: () => L('Complétala sin usar ningún objeto.', 'Complete it without using any item.') },
+    { id: 'noabil', c: 'violeta',name: () => L('Sin habilidad', 'No ability'),              txt: () => L('Complétala sin usar la habilidad del héroe en toda la aventura.', 'Complete it without using your hero ability in the whole adventure.') }
+  ];
+  const starsOf = g => STARS.filter(st => st.id !== 'noitem' || ITEM_GAMES.includes(g));
+  const ICON_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-2.9L6.7 19.6l1.1-6L3.4 9.4l6-.8z"/></svg>';
+  // qué estrellas da esta victoria (heroes = héroes con los que ya se completó, este incluido)
+  function wonStars(game, heroes) {
+    const out = ['win'];
+    const packs = new Set((heroes || []).map(h => HEROES[h] && HEROES[h].pack).filter(Boolean));
+    if (packs.size >= 2) out.push('packs');
+    if (ITEM_GAMES.includes(game) && !G.itemEver && !(runItems() || []).length) out.push('noitem');
+    if (G.trackAbil && !G.abilEver && !passiveHero(G.hero)) out.push('noabil');
+    return out;
+  }
+  // héroes cuya habilidad es pasiva: no se puede «no usarla», así que no dan la estrella
+  const passiveHero = h => h === 'cleric' || (h === 'ranger' && E.abilVar('ranger') === 'range1');
   const TIERS = [['diamante', L('Diamante', 'Diamond')], ['oro', L('Oro', 'Gold')], ['plata', L('Plata', 'Silver')], ['bronce', L('Bronce', 'Bronze')]];
   const TIER_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 18M15 3l-3 18"/></svg>';
   const RANK_ORDER = ['Cucaracha inmortal', 'Terco con suerte', 'Héroe de manual', 'Intocable'];
   const TOT_KEYS = ['kills', 'hits', 'dmgIn', 'blocks', 'chests'];
 
+  let freshStars = [];   // estrellas ganadas en la partida que acaba de terminar (para el resumen final)
   // Anota el final de una partida (victoria) o una caída en el historial del usuario. Devuelve los logros nuevos.
   function recordEnd(won, rank, awards) {
     if (!Users.cur || !G) return [];
     if (!G.runId) G.runId = newRunId();
     const s = G.stats || {}, N = LEVELS.length, game = G.game, turns = G.totalTurns || 0, today = Date.now();
+    freshStars = [];
     return Users.update(r => {
       fixRec(r);
       // totales: solo lo nuevo desde la última vez que se anotó esta partida (las caídas y reintentos acumulan)
@@ -910,6 +933,8 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
         gm.wins++; gm.best = N;
         gm.heroes = gm.heroes || []; if (!gm.heroes.includes(G.hero)) gm.heroes.push(G.hero);
         gm.pure = gm.pure || []; if (pureRun(game, runItems()) && !gm.pure.includes(G.hero)) gm.pure.push(G.hero);
+        gm.stars = gm.stars || {};
+        for (const id of wonStars(game, gm.heroes)) if (!gm.stars[id]) { gm.stars[id] = today; freshStars.push(id); }
         if (gm.fastest == null || turns < gm.fastest) gm.fastest = turns;
         if (RANK_ORDER.indexOf(rank) > RANK_ORDER.indexOf(gm.bestRank)) gm.bestRank = rank;
         if (!r.heroes.includes(G.hero)) r.heroes.push(G.hero);
@@ -969,7 +994,13 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     hell: { from: 'harbour', pack: 'harbour', own: true }
   };
   const GUEST_KEY = 'dioc-guest-prog-v1';
-  const unlockAll = () => { try { return localStorage.getItem('dioc-unlock-all') === '1'; } catch (e) { return false; } };   // para pruebas
+  // Pruebas: la clave 'dioc-unlock-all' y el usuario de Max abren todas las aventuras (y con ellas sus héroes y objetos).
+  const DEBUG_USERS = ['max'];
+  const unlockAll = () => {
+    try { if (localStorage.getItem('dioc-unlock-all') === '1') return true; } catch (e) {}
+    const me = Users.get();
+    return !!(me && DEBUG_USERS.includes(String(me.name || '').trim().toLowerCase()));
+  };
   const guestProg = () => { try { return JSON.parse(localStorage.getItem(GUEST_KEY)) || {}; } catch (e) { return {}; } };
   const runItems = () => G.startItems || (G.cp && G.cp.items) || G.items || [];
   const pureRun = (game, items) => !PACK_OF_GAME[game] || (!!items && items.every(i => ITEM_PACK[i] === PACK_OF_GAME[game]));
@@ -980,10 +1011,10 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       const x = (me.rec && me.rec.games && me.rec.games[g]) || {};
       const hs = new Set(x.heroes || []);
       for (const h of (me.rec && me.rec.hist) || []) if (h.won && h.g === g && h.h) hs.add(h.h);   // victorias anteriores a este registro
-      return { heroes: [...hs], pure: x.pure || [], played: !!(x.wins || x.falls) };
+      return { heroes: [...hs], pure: x.pure || [], played: !!(x.wins || x.falls), stars: x.stars || {} };
     }
     const x = guestProg()[g] || {};
-    return { heroes: x.heroes || [], pure: x.pure || [], played: !!x.played };
+    return { heroes: x.heroes || [], pure: x.pure || [], played: !!x.played, stars: x.stars || {} };
   }
   function unlockState(g) {
     if (g === 'base' || !UNLOCK[g] || unlockAll()) return { ok: true, have: [], req: '' };
@@ -998,6 +1029,11 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       + (u.own ? L(`, usando solo objetos de ${GAMES[u.from].name}`, `, using only ${GAMES[u.from].name} items`) : '') + '.';
     return { ok: done || played, req, have: list, fromPack, from: u.from };
   }
+  // fila de estrellas de una aventura: las ganadas en color, las que faltan apagadas
+  function starRow(g) {
+    const got = (progOf(g).stars) || {};
+    return starsOf(g).map(st => `<i class="star ${st.c}${got[st.id] ? ' on' : ''}" title="${st.name()}: ${st.txt()}" aria-label="${st.name()}">${ICON_STAR}</i>`).join('');
+  }
   const heroOpen = k => HEROES[k].pack === 'base' || unlockState(HEROES[k].pack).ok;
   const GAME_OF_PACK = { 'Montaña Eterna': 'peak', 'Harbour Clash': 'harbour', 'Puerta del Infierno': 'hell' };
   const itemOpen = k => !GAME_OF_PACK[ITEM_PACK[k]] || unlockState(GAME_OF_PACK[ITEM_PACK[k]]).ok;
@@ -1007,7 +1043,13 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     if (Users.cur || !G) return;
     const o = guestProg(), x = o[G.game] = Object.assign({ heroes: [], pure: [], played: true }, o[G.game]);
     x.played = true;
-    if (won) { if (!x.heroes.includes(G.hero)) x.heroes.push(G.hero); if (pureRun(G.game, runItems()) && !x.pure.includes(G.hero)) x.pure.push(G.hero); }
+    if (won) {
+      if (!x.heroes.includes(G.hero)) x.heroes.push(G.hero);
+      if (pureRun(G.game, runItems()) && !x.pure.includes(G.hero)) x.pure.push(G.hero);
+      x.stars = x.stars || {};
+      freshStars = [];
+      for (const id of wonStars(G.game, x.heroes)) if (!x.stars[id]) { x.stars[id] = Date.now(); freshStars.push(id); }
+    }
     try { localStorage.setItem(GUEST_KEY, JSON.stringify(o)); } catch (e) {}
   }
 
@@ -1689,6 +1731,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
           <span>${NAMES.spd} <em>${a.spd}</em></span><span>${NAMES.atk} <em>${a.atk}</em></span><span>${NAMES.def} <em>${a.def}</em></span><span>${NAMES.rng} <em>${a.rng}</em></span>${items ? `<span class="end-items">${items}</span>` : ''}</div>
         <div class="end-say"><span class="mico">${ICONS[mon.key] || ''}</span><q>${say}</q></div>
         ${awards.some(x => !fresh.includes(x)) ? `<div class="end-awards"><small>${won ? L('Premios', 'Awards') : L('Premio consuelo', 'Consolation award')}</small>${byTier(awards.filter(x => !fresh.includes(x))).map(x => `<span class="award">${achName(x)}<em>${achTxt(x)}</em></span>`).join('')}</div>` : ''}
+        ${freshStars.length ? `<div class="end-stars"><small>${L(freshStars.length > 1 ? '¡Estrellas nuevas!' : '¡Estrella nueva!', freshStars.length > 1 ? 'New stars!' : 'New star!')}</small>${freshStars.map(id => { const st = STARS.find(x => x.id === id); return `<span class="star-win"><i class="star ${st.c} on">${ICON_STAR}</i><b>${st.name()}</b><em>${st.txt()}</em></span>`; }).join('')}</div>` : ''}
         ${(() => { const nu = ADV_ORDER.filter(g => !openBefore.includes(g) && unlockState(g).ok); return nu.length ? `<div class="end-unlock">${ICON_LOCK_OPEN}<div><small>${L('¡Aventura desbloqueada!', 'Adventure unlocked!')}</small><b>${nu.map(g => GAMES[g].name).join(L(' y ', ' and '))}</b><span>${L('Ya puedes jugarla desde «Nueva partida»', 'You can now play it from "New game"')}${heroesOf(nu[0]).length ? L(`, con ${heroesOf(nu[0]).map(h => HEROES[h].name).join(', ')}`, `, with ${heroesOf(nu[0]).map(h => HEROES[h].name).join(', ')}`) : ''}.</span></div></div>` : ''; })()}
         ${Users.cur ? (fresh.length ? `<div class="end-new"><small>${L(`¡Logro${fresh.length > 1 ? 's' : ''} nuevo${fresh.length > 1 ? 's' : ''} para ${esc(Users.get().name)}!`, `New achievement${fresh.length > 1 ? 's' : ''} for ${esc(Users.get().name)}!`)}</small>${byTier(fresh).map(x => `<span class="${achT(x)}"><i>${TIER_ICON}</i><b>${achName(x)}</b><em>${TIERS.find(t => t[0] === achT(x))[1]} · ${achTxt(x)}</em></span>`).join('')}</div>` : `<p class="fine">${L(`Guardado en el perfil de ${esc(Users.get().name)}.`, `Saved to ${esc(Users.get().name)}'s profile.`)}</p>`)
           : `<p class="fine">${L('Entra con un usuario desde el menú para guardar tus logros y estadísticas.', 'Sign in with a user from the menu to save your achievements and stats.')}</p>`}
@@ -1977,6 +2020,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       <button type="button" class="ghost back" id="back">‹ ${L('Atrás', 'Back')}</button>
       <h2 class="screen-h">${L('Elige la aventura', 'Choose your adventure')}</h2>
       <div class="adv-list">${ADV_ORDER.map(k => `<button type="button" class="adv-card" data-game="${k}">
+        <span class="adv-stars">${starRow(k)}</span>
         <img src="${ADV_INFO[k].img}" alt="${ADV_INFO[k].alt}" width="440" height="614" loading="eager" decoding="async">
         <span class="adv-tag">${ADV_INFO[k].tag}</span>${slots.some(s => s.game === k) ? `<span class="adv-tag run">${L('En curso', 'In progress')}</span>` : ''}${unlockState(k).ok ? '' : `<span class="adv-lock">${ICON_LOCK}</span>`}<b>${GAMES[k].name}</b><p>${unlockState(k).ok ? ADV_INFO[k].txt : '<em class="req">' + L('Bloqueada. ', 'Locked. ') + unlockState(k).req + '</em>'}</p></button>`).join('')}</div>
       <p class="fine">${W ? CREDIT() : L('Portadas © Little Rocket Games. One Card Dungeon es de Barny Skinner.', 'Covers © Little Rocket Games. One Card Dungeon is by Barny Skinner.')}</p></div>`,
@@ -2075,7 +2119,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     hell: L('La Puerta del Infierno: si pisas una casilla maldita, los monstruos se fortalecen. La Piedra de la Perdición se rompe a costa de tu Vida.', "Hell's Door: if you step on a cursed tile, the monsters get stronger. Breaking the Stone of Doom costs you Health.")
   };
   function startGame(hero, game, items) {
-    G = E.newRun(hero, game, items); G.totalTurns = 0; G.runId = newRunId(); G.trackAbil = true; G.abilEver = false; G.startItems = (items || []).slice(); lastHp = START_HP; builtLevel = -1;
+    G = E.newRun(hero, game, items); G.totalTurns = 0; G.runId = newRunId(); G.trackAbil = true; G.abilEver = false; G.itemEver = false; G.startItems = (items || []).slice(); lastHp = START_HP; builtLevel = -1;
     hideScreen(); render();
     say(`<b>${HEROES[hero].name}.</b> ${START_MSG[game]} ${L('Tira los dados para empezar.', 'Roll the dice to begin.')}`);
   }
@@ -2094,8 +2138,8 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   function goMenu() { if (busy) return; closeSheet(); menuScreen(); Users.sync(); }
 
   function retry() {
-    const t = G.totalTurns, stt = G.stats, rid = G.runId, tr = G.trackAbil, ae = G.abilEver, si = G.startItems, ups = G.ups;
-    G = E.retryLevel(G); G.ups = ups; G.totalTurns = t; G.stats = stt; G.runId = rid; G.trackAbil = tr; G.abilEver = ae; G.startItems = si; stat('deaths'); lastHp = G.adv.hp; builtLevel = -1;
+    const t = G.totalTurns, stt = G.stats, rid = G.runId, tr = G.trackAbil, ae = G.abilEver, ie = G.itemEver, si = G.startItems, ups = G.ups;
+    G = E.retryLevel(G); G.ups = ups; G.totalTurns = t; G.stats = stt; G.runId = rid; G.trackAbil = tr; G.abilEver = ae; G.itemEver = ie; G.startItems = si; stat('deaths'); lastHp = G.adv.hp; builtLevel = -1;
     closeSheet(); hideScreen(); render();
     say(L(`Reintentas ${stageLabel(LEVELS[G.levelIdx]).toLowerCase()}: ${LEVELS[G.levelIdx].title}. Tira los dados.`, `You retry ${stageLabel(LEVELS[G.levelIdx]).toLowerCase()}: ${LEVELS[G.levelIdx].title}. Roll the dice.`));
   }

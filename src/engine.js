@@ -619,7 +619,7 @@ function breakStone(st) {
 }
 // Colgante de alma: al caer a 0 de Vida, vuelves con 1 (una sola vez)
 function reviveIfDead(st) {
-  if (st.adv.hp <= 0 && st.items && st.items.includes('pendant')) { st.adv.hp = 1; st.items = st.items.filter(i => i !== 'pendant'); st.revived = true; }
+  if (st.adv.hp <= 0 && st.items && st.items.includes('pendant')) { st.adv.hp = 1; st.itemEver = true; st.items = st.items.filter(i => i !== 'pendant'); st.revived = true; }
   return st.adv.hp > 0;
 }
 
@@ -745,6 +745,7 @@ function itemUsable(st, id) {
 function useItem(st, id) {
   if (!itemUsable(st, id)) return false;
   const t = st.turn;
+  st.itemEver = true;
   st.items = st.items.filter(i => i !== id);
   if (id === 'cloak') st.cloak = true;
   else if (id === 'axe') { t.atk += 2; t.atkLeft += 2; t.rng = (t.rng || st.adv.rng) + 2; st.undo = []; }
@@ -762,6 +763,7 @@ function useFlame(st, picks) {
   if (!itemUsable(st, 'flame')) return false;
   const t = st.turn, list = picks.filter(i => i !== t.lock && i >= 0 && i < 3);
   if (!list.length) return false;
+  st.itemEver = true;
   st.items = st.items.filter(i => i !== 'flame');
   for (const i of list) { t.dice[i] = rollDie(); if (t.d12) t.d12[i] = false; }
   t.sel = -1;
@@ -771,6 +773,7 @@ function useFlame(st, picks) {
 function useEye(st, i, rnd = Math.random) {
   const t = st.turn;
   if (!itemUsable(st, 'eye') || i === t.lock || i < 0 || i > 2) return false;
+  st.itemEver = true;
   st.items = st.items.filter(x => x !== 'eye');
   t.dice[i] = 1 + Math.floor(rnd() * 12);
   t.d12 = t.d12 || [false, false, false]; t.d12[i] = true;
@@ -781,7 +784,7 @@ function useEye(st, i, rnd = Math.random) {
 function resolveDamage(st, useHerbs) {
   let dmg = st.pendingDmg || 0;
   st.pendingDmg = 0;
-  if (useHerbs && st.items.includes('herbs')) { dmg = Math.ceil(dmg / 2); st.items = st.items.filter(i => i !== 'herbs'); }
+  if (useHerbs && st.items.includes('herbs')) { dmg = Math.ceil(dmg / 2); st.itemEver = true; st.items = st.items.filter(i => i !== 'herbs'); }
   st.adv.hp = Math.max(0, st.adv.hp - dmg);
   return dmg;
 }
@@ -926,8 +929,8 @@ function playMonsters(st) {
 function resolveAttack(st, useMail, useHerbs) {
   const pa = st.pendingAtk || { total: 0, def: 1 };
   let dmg = Math.floor(pa.total / (pa.def + (useMail && st.items.includes('mail') ? 3 : 0)));
-  if (useMail && st.items.includes('mail')) st.items = st.items.filter(i => i !== 'mail');
-  if (useHerbs && st.items.includes('herbs') && dmg > 1) { dmg = Math.ceil(dmg / 2); st.items = st.items.filter(i => i !== 'herbs'); }
+  if (useMail && st.items.includes('mail')) { st.itemEver = true; st.items = st.items.filter(i => i !== 'mail'); }
+  if (useHerbs && st.items.includes('herbs') && dmg > 1) { dmg = Math.ceil(dmg / 2); st.itemEver = true; st.items = st.items.filter(i => i !== 'herbs'); }
   st.pendingDmg = 0; st.pendingAtk = null;
   st.adv.hp = Math.max(0, st.adv.hp - dmg);
   return dmg;

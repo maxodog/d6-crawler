@@ -859,3 +859,19 @@ body.tight .dice-row.moving { display: none; }
 .camp-r span { opacity: .75; } .camp-r b { text-align: right; }
 .camp-ups { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 13px; }
 .camp-ups li { display: flex; justify-content: space-between; gap: 6px; } .camp-ups li span { opacity: .75; }
+
+/* ---- estrellas de cada aventura ---- */
+.adv-stars { display: flex; gap: 5px; align-items: center; min-height: 20px; padding: 1px 2px 2px; }
+.star { display: inline-grid; width: 17px; height: 17px; }
+.star svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; opacity: .3; }
+.star.on svg { fill: currentColor; opacity: 1; }
+.star.oro { color: #f2b632; }
+.star.cielo { color: #6cc7ff; }
+.star.verde { color: #6fd38a; }
+.star.violeta { color: #c08bff; }
+.endscr .end-stars { display: grid; gap: 8px; padding: 10px; border: 1.5px solid var(--line); border-radius: 14px; background: rgba(0, 0, 0, .2); }
+.endscr .end-stars small { text-align: center; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--torch); font-weight: 700; }
+.endscr .star-win { display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 2px 8px; }
+.endscr .star-win i { grid-row: span 2; width: 22px; height: 22px; align-self: center; }
+.endscr .star-win b { font-size: 15px; text-align: left; }
+.endscr .star-win em { grid-column: 2; text-align: left; font-style: normal; color: var(--muted); font-size: 13px; line-height: 1.2; }
