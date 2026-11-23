@@ -67,7 +67,7 @@ const ITEM_GAMES = ['peak', 'harbour', 'hell'];   // las únicas aventuras que s
 const DEPTH = +(process.env.DEPTH || 1), USE_CHEST = process.env.CHEST === '1',
       USE_ITEMS = process.env.ITEMS !== '0', USE_ABIL = process.env.ABIL !== '0';
 const W_DMG = +(process.env.W_DMG || 40), W_HP = +(process.env.W_HP || 3);   // pesos de la evaluación
-const W_POT = +(process.env.W_POT || 5), W_DIST = +(process.env.W_DIST || 0.5);   // atacar vs acercarse
+const W_POT = +(process.env.W_POT || 5), W_DIST = +(process.env.W_DIST || 0.5), W_LOS = +(process.env.W_LOS || 0);   // atacar vs acercarse
 const PESO2 = +(process.env.PESO2 || 0.6);   // cuánto pesa el turno siguiente frente al actual
 const LOOT_VAL = +(process.env.LOOT_VAL || 4);   // cuánto vale un punto de botín frente a 3 puntos de vida de kaiju
 // ITEMSTART=2: el bot empieza la aventura con los primeros objetos de la expansión, como un jugador real
@@ -137,7 +137,11 @@ function evalMove(st, i, cost, depth) {
     const t = c2.mons.filter(m => E.attackInfo(c2, m).ok).sort((a, b) => a.hp - b.hp);
     if (!t.length) break; c2.turn.atkLeft -= t[0].def; t[0].hp--; if (t[0].hp <= 0) c2.mons = c2.mons.filter(o => o !== t[0]);
   }
-  return evalState(c2, depth) - potential * W_POT + dmin * W_DIST;
+  let expuesto = 0;
+  if (W_LOS) { const lv2 = E.lvOf(c2), ai = E.idx(c2.adv.x, c2.adv.y), otros = c2.mons.map(o => E.idx(o.x, o.y));
+    for (const m of c2.mons) { const t = E.idx(m.x, m.y);
+      if (E.rangeDist(lv2, ai, t) <= E.mStat(c2, m, 'rng') && E.hasLOS(lv2, t, ai, otros.filter(o => o !== t))) expuesto++; } }
+  return evalState(c2, depth) - potential * W_POT + dmin * W_DIST + expuesto * W_LOS;
 }
 // Fase del aventurero: ataca a lo que pueda, abre el cofre si le sobran puntos y se coloca lo mejor posible.
 function greedy(st, depth) {
@@ -220,13 +224,23 @@ function playTurn(st) {
   }
   Object.assign(st, best);
 }
+// UPG elige qué habilidad subir entre niveles: 'def' (por defecto) prioriza Defensa, que medido es con diferencia
+// lo mejor (64% de victorias contra 23% subiendo la más atrasada, idea de Max); 'par' es la regla vieja, 'atk'
+// prioriza Ataque (1%) y 'defatk' sube Defensa hasta 4 y luego Ataque (igual que 'def' en el juego base, peor en
+// Alerta Omega). Curar: con 'def' y reintentos conviene curar solo con Vida ≤2 (83% contra 64% curando con ≤3).
+const UPG = process.env.UPG || 'def';
 const W8 = { atk: 1, def: 1, spd: 0.7, rng: 0.8 };
+function mejorMejora(st) {
+  const a = st.adv, libre = k => a[k] < E.SKILL_MAX;
+  if (UPG === 'def' && libre('def')) return 'def';
+  if (UPG === 'atk' && libre('atk')) return 'atk';
+  if (UPG === 'defatk') { if (a.def < 4 && libre('def')) return 'def'; if (libre('atk')) return 'atk'; if (libre('def')) return 'def'; }
+  let b = 'atk', bs = Infinity;
+  for (const k of ['atk', 'def', 'spd', 'rng']) { const v = a[k] / W8[k]; if (v < bs && libre(k)) { bs = v; b = k; } }
+  return b;
+}
 function upgrades(st, n) {
-  for (let k = 0; k < n; k++) {
-    let b = null, bs = Infinity;
-    for (const s of ['atk', 'def', 'spd', 'rng']) { const v = st.adv[s] / W8[s]; if (v < bs && st.adv[s] < E.SKILL_MAX) { bs = v; b = s; } }
-    E.applyBreak(st, b);
-  }
+  for (let k = 0; k < n; k++) E.applyBreak(st, mejorMejora(st));
 }
 function playLevel(levels, i) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
@@ -248,32 +262,40 @@ function measure(levels) {
   });
 }
 // ---- campaña completa: niveles seguidos, con la Vida que quede; cura si queda con poca Vida ----
+// Como en el juego real, al morir se puede reintentar el nivel tal como se empezó (misma Vida, objetos y mejoras).
+// RETRY=n es cuántos intentos se le dan a cada nivel antes de dar la campaña por perdida (0 = como antes).
+const RETRY = +(process.env.RETRY != null ? process.env.RETRY : 3);
 function campaign(levels, healAt) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
-  const st = E.newRun('paladin', GAME, objetosIniciales()); let turns = 0;
+  let st = E.newRun('paladin', GAME, objetosIniciales()), turns = 0, intentos = 0, reintentos = 0;
   for (;;) {
     turns++; playTurn(st);
     if (!st.mons.length) {
-      if (st.levelIdx === levels.length - 1) return levels.length + 1;
+      if (st.levelIdx === levels.length - 1) return { nivel: levels.length + 1, reintentos };
+      intentos = 0;
       if (E.afterClear(st) === 'boss') { E.nextLevel(st); continue; }   // el jefe no da mejora
       let b = 'heal';
-      if (st.adv.hp > healAt) { let bs = Infinity; for (const s of ['atk', 'def', 'spd', 'rng']) { const v = st.adv[s] / W8[s]; if (v < bs && st.adv[s] < E.SKILL_MAX) { bs = v; b = s; } } }
+      if (st.adv.hp > healAt) b = mejorMejora(st);
       E.applyBreak(st, b); E.nextLevel(st); continue;
     }
     E.playMonsters(st); resolvePending(st);
-    if (st.adv.hp <= 0) return st.levelIdx + 1;
+    if (st.adv.hp <= 0) {
+      if (intentos < RETRY) { intentos++; reintentos++; st = E.retryLevel(st); turns++; continue; }
+      return { nivel: st.levelIdx + 1, reintentos };
+    }
     st.turn = E.freshTurn(); st.phase = 'energy';
-    if (turns > 600) return st.levelIdx + 1;
+    if (turns > 600 + RETRY * 200) return { nivel: st.levelIdx + 1, reintentos };
   }
 }
 if (process.env.CAMPAIGN) {
-  const n = +process.env.CAMPAIGN, H = +(process.env.HEAL || 3);
+  const n = +process.env.CAMPAIGN, H = +(process.env.HEAL || 2);
   for (const [name, lv] of [['original', ORIG], ['propio', OWN]]) {
     if (process.env.ONLY === 'own' && name === 'original') continue;
     if (process.env.ONLY === 'orig' && name === 'propio') continue;
     const reach = new Array(lv.length + 2).fill(0); let sum = 0;
-    for (let k = 0; k < n; k++) { const r = campaign(lv, H); sum += r; for (let i = 1; i <= r; i++) reach[i]++; }
-    console.log(`${name.padEnd(9)} campaña: llega al nivel → ` + reach.slice(1, lv.length + 1).map((v, i) => `${i + 1}:${Math.round(100 * v / n)}%`).join(' ') + ` · gana ${Math.round(100 * reach[lv.length + 1] / n)}% · nivel medio ${(sum / n).toFixed(1)}`);
+    let rt = 0;
+    for (let k = 0; k < n; k++) { const r = campaign(lv, H); sum += r.nivel; rt += r.reintentos; for (let i = 1; i <= r.nivel; i++) reach[i]++; }
+    console.log(`${name.padEnd(9)} campaña: llega al nivel → ` + reach.slice(1, lv.length + 1).map((v, i) => `${i + 1}:${Math.round(100 * v / n)}%`).join(' ') + ` · gana ${Math.round(100 * reach[lv.length + 1] / n)}% · nivel medio ${(sum / n).toFixed(1)} · reintentos ${(rt / n).toFixed(1)}`);
   }
   process.exit(0);
 }

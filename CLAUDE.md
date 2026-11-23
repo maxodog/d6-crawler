@@ -52,10 +52,23 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 
 ## Herramientas de equilibrio (Node)
 - `node test/balance.js 80` (con `ONLY=own` mide solo Colossus): daño, derrotas y turnos por nivel, empezando cada nivel con Vida 6 y mejoras típicas. Variables: `WORLD`, `GAME`, `LV=1,2`.
-- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. Medidas con el bot que usa habilidad y objetos (300 campañas, ±0,2 de ruido): base original 5,5 y gana 0%, **Kaiju Protocol 7,0** y 1%; M'Guf-yn 5,6 y 0%, **Alerta Omega 6,4** y 0%; Montaña Eterna 7,8 y gana 12%, **Glaciar 7,2** y gana 3%. O sea: las dos primeras propias quedaron más fáciles que su equivalente y Glaciar más difícil. Pendiente de decidir con Max si se reajustan.
+- `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. **Ahora la campaña reintenta el nivel al morir, como el juego real** (`RETRY=3` intentos por nivel), así que el número que importa ya no es solo el nivel medio sino el **% que termina la aventura** y los **reintentos que necesita**. Medido con el bot bueno (200 campañas, dos semillas):
+
+| Aventura | Original | Propia |
+|---|---|---|
+| Kaiju Protocol | gana 59-62%, 3,0 reintentos | gana 73-80%, 2,1-2,5 |
+| Alerta Omega | gana 57-65%, 3,9-4,0 | gana 51-54%, 3,9-4,4 |
+| Operación Glaciar | gana 96-98%, 0,6 | gana 88-94%, 1,0-1,1 |
+
+O sea: Kaiju Protocol quedó más fácil que el juego base original; Alerta Omega y Glaciar, un poco más difíciles que su equivalente. Pendiente de decidir con Max si se reajustan.
 - `GSTATS='{"ogre":{"hp":5,...}}' node test/balance.js` prueba cifras sin tocar `worlds.js` (útil para los jefes).
 - `node test/design.js` (`T0`, `T1`, `NS`, `TRIES`, `LVS=2,4`, `CNT=2,2,1,…` para fijar la cantidad por nivel y buscar solo posiciones): busca cantidad y posiciones de aparición para acercar cada nivel a una curva de daño objetivo. Imprime `AT=[...]` para pegar en `worlds.js`.
-- **El bot usa la habilidad del héroe y, en las aventuras con objetos, empieza con tres**, como un jugador real (noviembre 2026). Eso sube el nivel medio de Glaciar de 7,0 a 7,5 (tres semillas × 400 campañas). Lo que se probó y **no** sirvió, con medidas: mirar el turno siguiente al repartir los dados (`DEPTH=2`, igual o peor y 5× más lento), buscar el turno completo en vez de avanzar paso a paso (`BOT=full`, 7,0 contra 7,2), abrir el cofre (`CHEST=1`, cuesta medio nivel porque el bot aprovecha mal el botín), subir el peso de la vida de los monstruos en la evaluación (sin efecto hasta volverse temerario) y cambiar el término que lo acerca a los monstruos (de 7,2 a 5,9). Los pesos actuales (daño ×40, vida ×3, acercarse ×0,5, curar con Vida ≤3) ya están en su mejor punto: no tocarlos sin volver a medir con varias semillas.
+- **Qué hace bueno al bot** (todo medido en noviembre de 2026, con varias semillas):
+  1. **Reintentar el nivel al morir** (`RETRY=3`), como permite el juego real: es lo que más cambia el resultado. Sin esto el bot ganaba 0% y parecía que ninguna aventura se podía terminar.
+  2. **Subir siempre Defensa** entre niveles (`UPG=def`, idea de Max): 64% de victorias contra 23% subiendo la habilidad más atrasada. Subir Ataque primero es lo peor (1%).
+  3. **Curar solo con Vida ≤2** (`HEAL=2`): 83% contra 64% curando con ≤3. Con reintentos y Defensa alta conviene gastar las pausas en mejoras.
+  4. Usar la **habilidad del héroe** y, en las aventuras con objetos, **empezar con tres**, como un jugador.
+- Lo que se probó y **no** sirvió: mirar el turno siguiente al repartir los dados (`DEPTH=2`, igual o peor y 5× más lento), buscar el turno completo en vez de avanzar paso a paso (`BOT=full`), abrir el cofre (`CHEST=1`, cuesta medio nivel porque aprovecha mal el botín), buscar casillas cubiertas donde menos kaiju le vean (`W_LOS`, de 83% a 46%: se vuelve pasivo y la pelea se alarga), subir el peso de la vida de los monstruos y cambiar el término que lo acerca a los monstruos (de 7,2 a 5,9). Los pesos de la evaluación (daño ×40, vida ×3, acercarse ×0,5) están en su mejor punto: no tocarlos sin volver a medir.
 - `SEED=7` fija los dados: la misma semilla da siempre el mismo resultado, así dos variantes se comparan con la misma suerte y hacen falta muchas menos partidas. `design.js` lo usa solo: criba todos los candidatos con pocas partidas y una suerte, y afina los cuatro mejores con todas las partidas y otra suerte distinta (para no premiar al que tuvo suerte en la criba).
 - El bot es débil (gana poco): sirve para comparar versiones, no como dificultad absoluta. Tras las optimizaciones de noviembre de 2026 una campaña de 200 tarda ~20 s (antes ~7 min) y una búsqueda de posiciones unos 4 s por nivel, así que ya se pueden correr en primer plano.
 
