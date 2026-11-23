@@ -90,7 +90,7 @@ const STATS = Object.assign({}, W.stats, (W.gstats || {})[GAME]);
 function mk(d, at) { return E.ownLevels([Object.assign({}, d, { at })], STATS, 0)[0]; }
 function freeTiles(lv, startIdx) {
   const out = [], dist = E.dijkstra(lv, lv.start, null).dist;
-  const cofre = lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt) ? lv.chestAt : -1;   // el cofre cerrado es un muro
+  const cofre = lv.chestAt;   // el cofre cerrado es un muro
   for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.start && t !== cofre && dist[t] >= 6) out.push(E.XY(t));
   return out;
 }

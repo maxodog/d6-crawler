@@ -1,5 +1,5 @@
 // El cofre cerrado cuenta como muro: nadie lo pisa ni aparece encima. Al abrirlo, la casilla queda libre.
-// Si el cofre está sobre una escalera no bloquea (si no, no se podría salir del nivel sin abrirlo).
+// Bloquea siempre, también sobre una escalera: el nivel termina al matar a todos los monstruos, no al llegar a la escalera.
 const E = require('../src/engine.js');
 const fallos = [];
 const ok = (c, m) => { if (!c) fallos.push(m); };
@@ -8,13 +8,13 @@ function nivelConCofre(game) {
   E.useGame(game);
   for (let i = 0; i < E.LEVELS.length; i++) {
     const lv = E.LEVELS[i];
-    if (lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt)) return i;
+    if (lv.chestAt >= 0) return i;
   }
   return -1;
 }
 
 const game = 'peak', li = nivelConCofre(game);
-ok(li >= 0, 'no se encontró un nivel con cofre fuera de la escalera');
+ok(li >= 0, 'no se encontró un nivel con cofre');
 if (li >= 0) {
   const st = E.newRun('paladin', game, []); E.setupLevel(st, li);
   const lv = E.LEVELS[li], cofre = lv.chestAt;
@@ -44,8 +44,8 @@ if (li >= 0) {
 for (const g of Object.keys(E.GAMES)) {
   E.useGame(g);
   E.LEVELS.forEach((lv, i) => {
-    if (lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt) && lv.spawns.includes(lv.chestAt))
-      fallos.push(`${g} nivel ${i + 1}: aparición sobre el cofre`);
+    if (lv.chestAt >= 0 && (lv.spawns.includes(lv.chestAt) || lv.chestAt === lv.start))
+      fallos.push(`${g} nivel ${i + 1}: el cofre comparte casilla con una aparición o con el inicio`);
   });
 }
 

@@ -53,6 +53,7 @@ function buildLevel(def, O, opts) {
       else if (c === 'Z') { chestAt = i; water[i] = true; }       // cofre sobre una casilla de agua
       else if (c === 'S') { start = i; stairs.push(i); }
       else if (c === 'U') stairs.push(i);
+      else if (c === 'H') start = i;                             // inicio del aventurero, sin escalera (mapas propios)
     }
   });
   if (opts.chestOnExit) chestAt = stairs.find(i => i !== start);  // M'Guf-yn: en la escalera opuesta a la de entrada
@@ -194,8 +195,9 @@ function ownLevels(defs, stats, i0) {
     const st = Object.assign({}, stats[d.m] || {}, d.s || {}), ck = d.m + JSON.stringify(st) + (d.boss ? 'B' : '');
     const mon = mons[ck] || (mons[ck] = Object.assign({ key: d.m, name: d.m, plural: d.m }, st, d.boss ? { boss: true } : {}));
     const title = d.t.split('|')[i0 || 0];
+    // Los mapas propios no tienen escaleras: marcan el inicio con 'H' y el cofre con 'X'
     const lv = d.boss ? buildLevel({ title, at: [[2, 2]], boss: d.boss }, { mon, map: d.map }, { noChest: true })
-                      : buildLevel({ title, at: d.at, num: ++num }, { mon, map: d.map }, d.chest ? { chestOnExit: true } : {});
+                      : buildLevel({ title, at: d.at, num: ++num }, { mon, map: d.map }, {});
     out.push(Object.assign(lv, { own: true }));
   });
   return out;
@@ -365,7 +367,7 @@ function setupLevel(st, i, keep) {
   const [x, y] = XY(lv.start);
   st.adv.x = x; st.adv.y = y;
   // Red de seguridad: si una aparición cae sobre la casilla del cofre (que cuenta como muro), se corre a la más cercana libre
-  const blocka = lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt) ? lv.chestAt : -1;
+  const blocka = lv.chestAt;
   const usadas = new Set();
   st.mons = lv.spawns.map((s, n) => {
     let p = s;
@@ -600,7 +602,7 @@ function distAdv(lv, src, advI, cb) {
 
 function chestBlock(st) {
   const lv = lvOf(st);
-  if (!st.chest || st.chest.open || lv.chestAt < 0 || lv.stairs.includes(lv.chestAt)) return -1;
+  if (!st.chest || st.chest.open || lv.chestAt < 0) return -1;
   return lv.chestAt;
 }
 

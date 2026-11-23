@@ -23,11 +23,13 @@ const ORIG = E.GAMES[GAME].levels, OWN = ownLevels();
 let bad = 0;
 OWN.forEach((lv, i) => {
   if (lv.map.length !== 5 || lv.map.some(r => r.length !== 5)) { console.log('mapa mal formado', i + 1); bad++; }
-  if (lv.start < 0 || lv.stairs.length !== 2) { console.log('escaleras', i + 1); bad++; }
-  const d = E.dijkstra(lv, lv.start, null).dist;
-  for (let t = 0; t < E.N; t++) if (!lv.walls[t] && d[t] === Infinity) { console.log('casilla aislada', i + 1, E.XY(t)); bad++; }
+  if (lv.start < 0 || lv.stairs.length) { console.log('inicio o escaleras', i + 1); bad++; }
+  // el cofre cerrado cuenta como muro: la conexión del mapa se mide con él puesto
+  const cut = lv.chestAt >= 0 ? (() => { const c = new Array(E.N).fill(false); c[lv.chestAt] = true; return c; })() : null;
+  const d = E.dijkstra(lv, lv.start, cut).dist;
+  for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.chestAt && d[t] === Infinity) { console.log('casilla aislada', i + 1, E.XY(t)); bad++; }
   lv.spawns.forEach(p => { if (lv.walls[p] || p === lv.start) { console.log('aparición inválida', i + 1, E.XY(p)); bad++; } });
-  if (lv.chestAt >= 0 && !lv.stairs.includes(lv.chestAt) && lv.spawns.includes(lv.chestAt)) { console.log('aparición sobre el cofre', i + 1, E.XY(lv.chestAt)); bad++; }
+  if (lv.chestAt >= 0 && (lv.spawns.includes(lv.chestAt) || lv.chestAt === lv.start)) { console.log('cofre ocupado', i + 1, E.XY(lv.chestAt)); bad++; }
   if (new Set(lv.spawns).size !== lv.spawns.length) { console.log('dos monstruos en la misma casilla', i + 1); bad++; }
   const same = ORIG.findIndex(o => o.map.join() === lv.map.join());
   if (same >= 0) { console.log('mapa igual al original', i + 1); bad++; }

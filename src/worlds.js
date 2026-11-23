@@ -77,49 +77,49 @@ const WORLDS = {
       'Legión de diablillos': 'Nido de larvas|Larva Nest', 'Penitentes del fuego': 'Río de magma|Magma River', 'Bandada infernal': 'Nube de ceniza|Ash Cloud', 'Fauces gemelas': 'Fauces gemelas|Twin Maws',
       'Horda del Averno': 'Erupción|Eruption', 'Cárcel de los condenados': 'Cráter|Crater', 'Tormenta de alas': 'Tormenta ígnea|Firestorm', 'Abismo sin fondo': 'Núcleo del planeta|Planet Core'
     },
-    // Juego base propio: mapas, cifras y aparición distintos del original ('#' muro, 'S' entrada, 'U' salida)
+    // Mapas propios: sin escaleras ('#' muro, 'H' inicio del aventurero, 'X' cofre, '~' ventisca, 'V' hueco)
     stats: { spider: { hp: 3, spd: 6, atk: 5, def: 3, rng: 3 }, skeleton: { hp: 3, spd: 4, atk: 5, def: 5, rng: 5 }, orc: { hp: 5, spd: 3, atk: 6, def: 6, rng: 3 }, demon: { hp: 3, spd: 5, atk: 7, def: 5, rng: 4 } },
     levels: { base: [
-      { t: 'Avenida ácida|Acid Avenue', m: 'skeleton', map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[0,4]] },
-      { t: 'Barrio infestado|Infested Block', m: 'spider', map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[0,1],[4,2]] },
-      { t: 'Puente acorazado|Armored Bridge', m: 'orc', map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[4,0]] },
-      { t: 'Estación tomada|Overrun Station', m: 'spider', map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[4,3],[4,4]] },
-      { t: 'Plaza del rugido|Roar Square', m: 'demon', map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[3,0]] },
-      { t: 'Torres de vigía|Watchtowers', m: 'skeleton', map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[4,1],[1,2]] },
-      { t: 'Muelle de carga|Loading Dock', m: 'orc', map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[2,0],[0,3],[3,1]] },
-      { t: 'Túnel del metro|Subway Tunnel', m: 'demon', map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[2,0],[1,4]] },
-      { t: 'Mercado en ruinas|Ruined Market', m: 'spider', map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,0],[1,1],[2,2],[4,1],[1,0]] },
-      { t: 'Azoteas|Rooftops', m: 'skeleton', map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[4,0],[2,1],[2,0]] },
-      { t: 'Central eléctrica|Power Plant', m: 'orc', map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[2,2],[3,2],[2,1]] },
-      { t: 'Corazón de la ciudad|City Heart', m: 'demon', map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[0,0],[3,0],[0,1],[4,2]] }
+      { t: 'Avenida ácida|Acid Avenue', m: 'skeleton', map: ['.....', '..#..', '.....', '.#.#.', '....H'], at: [[0,4]] },
+      { t: 'Barrio infestado|Infested Block', m: 'spider', map: ['.....', '.#...', '...#.', '.....', 'H....'], at: [[0,1],[4,2]] },
+      { t: 'Puente acorazado|Armored Bridge', m: 'orc', map: ['.....', '.....', '##.#.', '.....', '..H..'], at: [[4,0]] },
+      { t: 'Estación tomada|Overrun Station', m: 'spider', map: ['.....', '...#.', '.#...', '...#.', 'H....'], at: [[4,3],[4,4]] },
+      { t: 'Plaza del rugido|Roar Square', m: 'demon', map: ['.....', '.#...', '...#.', '.#...', '....H'], at: [[3,0]] },
+      { t: 'Torres de vigía|Watchtowers', m: 'skeleton', map: ['.....', '..##.', '.....', '.#...', '...H.'], at: [[4,1],[1,2]] },
+      { t: 'Muelle de carga|Loading Dock', m: 'orc', map: ['.....', '.....', '.##..', '....#', '...H.'], at: [[2,0],[0,3],[3,1]] },
+      { t: 'Túnel del metro|Subway Tunnel', m: 'demon', map: ['....#', '.....', '.#.#.', '.....', '#...H'], at: [[2,0],[1,4]] },
+      { t: 'Mercado en ruinas|Ruined Market', m: 'spider', map: ['.....', '#....', '...#.', '.#...', '....H'], at: [[0,0],[1,1],[2,2],[4,1],[1,0]] },
+      { t: 'Azoteas|Rooftops', m: 'skeleton', map: ['.....', '.#...', '...#.', '.....', 'H.#..'], at: [[4,0],[2,1],[2,0]] },
+      { t: 'Central eléctrica|Power Plant', m: 'orc', map: ['.....', '.#.#.', '.....', '..#..', 'H....'], at: [[2,2],[3,2],[2,1]] },
+      { t: 'Corazón de la ciudad|City Heart', m: 'demon', map: ['.....', '.#.#.', '.....', '.#.#.', '..H..'], at: [[0,0],[3,0],[0,1],[4,2]] }
     ], mguf: [
-      { t: 'Brecha en el perímetro|Perimeter Breach', m: 'spider', chest: 1, map: ['..U..', '.#...', '...#.', '.....', 'S....'], at: [[4,2],[2,2]] },
-      { t: 'Lluvia ácida|Acid Rain', m: 'skeleton', chest: 1, map: ['U....', '..#..', '.....', '.#.#.', '....S'], at: [[0,1]] },
-      { t: 'Túnel de enjambre|Swarm Tunnel', m: 'spider', chest: 1, map: ['U....', '...#.', '.#...', '...#.', 'S....'], at: [[3,4],[4,3]] },
-      { boss: 1, t: 'Rey Coraza|Shell King', m: 'ogre', map: ['U....', '.#..#', '.....', '#..#.', '....S'] },
-      { t: 'Paso blindado|Armored Crossing', m: 'orc', chest: 1, map: ['....U', '.....', '##.#.', '.....', '..S..'], at: [[1,1]] },
-      { t: 'Rugido en la plaza|Roar in the Plaza', m: 'demon', chest: 1, map: ['...U.', '.#...', '...#.', '.#...', '....S'], at: [[1,0]] },
-      { t: 'Torres bajo fuego|Towers Under Fire', m: 'skeleton', chest: 1, map: ['U....', '..##.', '.....', '.#...', '...S.'], at: [[2,0],[0,3]] },
-      { boss: 2, t: 'Rey Polilla|Moth King', m: 'reaper', map: ['U..#.', '.#...', '.....', '...#.', '.#..S'] },
-      { t: 'Mercado en llamas|Market on Fire', m: 'spider', chest: 1, map: ['..U..', '#....', '...#.', '.#...', '....S'], at: [[0,3],[1,0],[3,1]] },
-      { t: 'Último muelle|Last Dock', m: 'orc', chest: 1, map: ['.U...', '.....', '.##..', '....#', '...S.'], at: [[0,4],[2,1],[0,2]] },
-      { t: 'Estación sitiada|Station Under Siege', m: 'demon', chest: 1, map: ['U...#', '.....', '.#.#.', '.....', '#...S'], at: [[1,0],[0,2]] },
-      { boss: 3, t: 'Rey Tormenta|Storm King', m: 'drake', map: ['U.#..', '.....', '.#.#.', '.....', '..#.S'] },
-      { t: 'Corte de energía|Blackout', m: 'orc', chest: 1, map: ['....U', '.#.#.', '.....', '..#..', 'S....'], at: [[4,0],[3,0],[4,1],[2,0]] },
-      { t: 'Techos al alba|Rooftops at Dawn', m: 'skeleton', chest: 1, map: ['....U', '.#...', '...#.', '.....', 'S.#..'], at: [[2,0],[3,3],[4,2],[4,0]] },
-      { t: 'Corazón en alerta|Heart on Alert', m: 'demon', chest: 1, map: ['..U..', '.#.#.', '.....', '.#.#.', '..S..'], at: [[2,1],[1,0],[4,2],[0,2]] },
-      { boss: 4, t: 'Kaiju Omega|Omega Kaiju', m: 'mguf', map: ['U....', '.##..', '.....', '..##.', '....S'] }
+      { t: 'Brecha en el perímetro|Perimeter Breach', m: 'spider', chest: 1, map: ['..X..', '.#...', '...#.', '.....', 'H....'], at: [[4,2],[2,2]] },
+      { t: 'Lluvia ácida|Acid Rain', m: 'skeleton', chest: 1, map: ['X....', '..#..', '.....', '.#.#.', '....H'], at: [[0,1]] },
+      { t: 'Túnel de enjambre|Swarm Tunnel', m: 'spider', chest: 1, map: ['X....', '...#.', '.#...', '...#.', 'H....'], at: [[3,4],[4,3]] },
+      { boss: 1, t: 'Rey Coraza|Shell King', m: 'ogre', map: ['.....', '.#..#', '.....', '#..#.', '....H'] },
+      { t: 'Paso blindado|Armored Crossing', m: 'orc', chest: 1, map: ['....X', '.....', '##.#.', '.....', '..H..'], at: [[1,1]] },
+      { t: 'Rugido en la plaza|Roar in the Plaza', m: 'demon', chest: 1, map: ['...X.', '.#...', '...#.', '.#...', '....H'], at: [[1,0]] },
+      { t: 'Torres bajo fuego|Towers Under Fire', m: 'skeleton', chest: 1, map: ['X....', '..##.', '.....', '.#...', '...H.'], at: [[2,0],[0,3]] },
+      { boss: 2, t: 'Rey Polilla|Moth King', m: 'reaper', map: ['...#.', '.#...', '.....', '...#.', '.#..H'] },
+      { t: 'Mercado en llamas|Market on Fire', m: 'spider', chest: 1, map: ['..X..', '#....', '...#.', '.#...', '....H'], at: [[0,3],[1,0],[3,1]] },
+      { t: 'Último muelle|Last Dock', m: 'orc', chest: 1, map: ['.X...', '.....', '.##..', '....#', '...H.'], at: [[0,4],[2,1],[0,2]] },
+      { t: 'Estación sitiada|Station Under Siege', m: 'demon', chest: 1, map: ['X...#', '.....', '.#.#.', '.....', '#...H'], at: [[1,0],[0,2]] },
+      { boss: 3, t: 'Rey Tormenta|Storm King', m: 'drake', map: ['..#..', '.....', '.#.#.', '.....', '..#.H'] },
+      { t: 'Corte de energía|Blackout', m: 'orc', chest: 1, map: ['.....', '.#.#.', '....X', '..#..', 'H....'], at: [[4,0],[3,0],[4,1],[2,0]] },
+      { t: 'Techos al alba|Rooftops at Dawn', m: 'skeleton', chest: 1, map: ['.....', '.#..X', '...#.', '.....', 'H.#..'], at: [[2,0],[3,3],[4,2],[4,0]] },
+      { t: 'Corazón en alerta|Heart on Alert', m: 'demon', chest: 1, map: ['..X..', '.#.#.', '.....', '.#.#.', '..H..'], at: [[2,1],[1,0],[4,2],[0,2]] },
+      { boss: 4, t: 'Kaiju Omega|Omega Kaiju', m: 'mguf', map: ['.....', '.##..', '.....', '..##.', '....H'] }
     ], peak: [
-      { t: 'Grietas de hielo|Ice Cracks', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[1,3],[4,0]] },
-      { t: 'Ecos en la nieve|Echoes in the Snow', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[1,2],[0,0]] },
-      { t: 'Mole en la ladera|Hulk on the Slope', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[0,2]] },
-      { t: 'Patrulla de escarcha|Frost Patrol', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,1],[4,1],[3,1]] },
-      { t: 'Jauría glacial|Glacial Pack', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[0,2],[0,1],[3,0]] },
-      { t: 'Garganta del behemot|Behemoth Gorge', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[0,0],[0,4]] },
-      { t: 'Nido de rastreadores|Crawler Nest', m: 'goblin', map: ['U.#..', '..~~.', '.#..~', '~~.#.', 'X...S'], at: [[0,1],[4,1],[3,1],[2,1],[3,0]] },
-      { t: 'Cacería en la ventisca|Hunt in the Blizzard', m: 'wolf', map: ['U..~V', '.#...', '~~.#.', '.#.~~', 'X...S'], at: [[1,2],[1,4],[0,1],[0,2]] },
-      { t: 'Muralla de hielo|Ice Wall', m: 'yeti', map: ['U...X', '.#.~~', '~..#.', '.~~..', '..#.S'], at: [[2,2],[1,2],[0,0]] },
-      { t: 'El Durmiente despierta|The Sleeper Awakens', m: 'sorcerer', map: ['U...X', '~~.#.', '.#.~~', '...#.', 'V~..S'], at: [[1,3]] }
+      { t: 'Grietas de hielo|Ice Cracks', m: 'goblin', map: ['..#..', '..~~.', '.#..~', '~~.#.', 'X...H'], at: [[4,1],[4,0]] },
+      { t: 'Ecos en la nieve|Echoes in the Snow', m: 'wolf', map: ['...~V', '.#...', '~~.#.', '.#.~~', 'X...H'], at: [[1,0]] },
+      { t: 'Mole en la ladera|Hulk on the Slope', m: 'yeti', map: ['....X', '.#.~~', '~..#.', '.~~..', '..#.H'], at: [[3,0]] },
+      { t: 'Patrulla de escarcha|Frost Patrol', m: 'goblin', map: ['..#..', '..~~.', '.#..~', '~~.#.', 'X...H'], at: [[1,3],[3,1]] },
+      { t: 'Jauría glacial|Glacial Pack', m: 'wolf', map: ['...~V', '.#...', '~~.#.', '.#.~~', 'X...H'], at: [[2,2],[4,1]] },
+      { t: 'Garganta del behemot|Behemoth Gorge', m: 'yeti', map: ['....X', '.#.~~', '~..#.', '.~~..', '..#.H'], at: [[0,1],[2,2]] },
+      { t: 'Nido de rastreadores|Crawler Nest', m: 'goblin', map: ['..#..', '..~~.', '.#..~', '~~.#.', 'X...H'], at: [[1,0],[1,1],[0,3],[3,0]] },
+      { t: 'Cacería en la ventisca|Hunt in the Blizzard', m: 'wolf', map: ['...~V', '.#...', '~~.#.', '.#.~~', 'X...H'], at: [[0,3],[2,0],[3,0]] },
+      { t: 'Muralla de hielo|Ice Wall', m: 'yeti', map: ['....X', '.#.~~', '~..#.', '.~~..', '..#.H'], at: [[1,0],[0,3],[4,1]] },
+      { t: 'El Durmiente despierta|The Sleeper Awakens', m: 'sorcerer', map: ['....X', '~~.#.', '.#.~~', '...#.', 'V~..H'], at: [[2,2]] }
     ] },
     // cifras por aventura (sobreescriben a 'stats'); jefes incluidos
     gstats: {
@@ -130,8 +130,8 @@ const WORLDS = {
         drake: { hp: 7, spd: 6, atk: 8, def: 6, rng: 6 }, mguf: { hp: 12, spd: 8, atk: 8, def: 8, rng: 8 }
       },
       peak: {
-        goblin: { hp: 2, spd: 6, atk: 4, def: 3, rng: 4 }, wolf: { hp: 2, spd: 7, atk: 5, def: 4, rng: 3 },
-        yeti: { hp: 5, spd: 3, atk: 6, def: 5, rng: 3 }, sorcerer: { hp: 10, spd: 4, atk: 8, def: 6, rng: 6 }
+        goblin: { hp: 3, spd: 6, atk: 4, def: 3, rng: 4 }, wolf: { hp: 4, spd: 7, atk: 5, def: 4, rng: 3 },
+        yeti: { hp: 5, spd: 3, atk: 6, def: 5, rng: 3 }, sorcerer: { hp: 10, spd: 4, atk: 8, def: 7, rng: 6 }
       }
     },
     // habilidades propias de Colossus (distintas al original)
