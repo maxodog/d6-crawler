@@ -55,13 +55,79 @@ function clone(s) {
   if (s.prev) c.prev = Object.assign({}, s.prev);
   return c;
 }
-function evalState(st) {
+// ---- política del bot ----
+// El bot usa la habilidad del héroe (Bastión: conserva el dado alto del turno anterior) y, en las aventuras que
+// llevan objetos, empieza con tres, como un jugador. Medido en tres semillas × 400 campañas, eso sube el nivel
+// medio de 7,0 a 7,5 en Glaciar. Lo que **no** funcionó (todo medido, no cambiar sin volver a medir):
+//   DEPTH=2    mirar el turno siguiente al repartir los dados: igual o peor, y cinco veces más lento
+//   BOT=full   probar todas las casillas del turno en vez de avanzar paso a paso: 7,0 contra 7,2
+//   CHEST=1    abrir el cofre: cuesta medio nivel, porque el bot aprovecha mal los puntos de botín
+//   ABIL=0 / ITEMS=0 / ITEMSTART=n ajustan o apagan lo anterior.
+const ITEM_GAMES = ['peak', 'harbour', 'hell'];   // las únicas aventuras que se juegan con objetos
+const DEPTH = +(process.env.DEPTH || 1), USE_CHEST = process.env.CHEST === '1',
+      USE_ITEMS = process.env.ITEMS !== '0', USE_ABIL = process.env.ABIL !== '0';
+const W_DMG = +(process.env.W_DMG || 40), W_HP = +(process.env.W_HP || 3);   // pesos de la evaluación
+const W_POT = +(process.env.W_POT || 5), W_DIST = +(process.env.W_DIST || 0.5);   // atacar vs acercarse
+const PESO2 = +(process.env.PESO2 || 0.6);   // cuánto pesa el turno siguiente frente al actual
+const LOOT_VAL = +(process.env.LOOT_VAL || 4);   // cuánto vale un punto de botín frente a 3 puntos de vida de kaiju
+// ITEMSTART=2: el bot empieza la aventura con los primeros objetos de la expansión, como un jugador real
+const ITEMSTART = process.env.ITEMSTART != null ? +process.env.ITEMSTART : (ITEM_GAMES.includes(GAME) ? 3 : 0);
+const objetosIniciales = () => E.itemPool(GAME).slice(0, ITEMSTART);
+const DADOS_FIJOS = [5, 4, 3];   // tirada representativa para el segundo turno: no gasta azar y no añade ruido
+
+// Tras la fase de monstruos: si quedó daño pendiente, decide Cota de malla y Hierbas y lo aplica.
+function resolvePending(st) {
+  if (!st.pendingDmg) return;
+  const pa = st.pendingAtk || { total: 0, def: 1 }, tiene = k => st.items && st.items.includes(k);
+  const conMalla = tiene('mail') ? Math.floor(pa.total / (pa.def + 3)) : st.pendingDmg;
+  const malla = tiene('mail') && conMalla < st.pendingDmg && (st.pendingDmg >= 2 || st.adv.hp <= 2);
+  const queda = malla ? conMalla : st.pendingDmg;
+  const hierbas = tiene('herbs') && queda > 1 && (queda >= 3 || st.adv.hp <= 3);
+  E.resolveAttack(st, malla, hierbas);
+}
+
+// Objetos que convienen antes de pelear: los que duran todo el nivel y los que suman al turno cuando hace falta.
+function useItems(st, fase) {
+  if (!USE_ITEMS || !st.items || !st.items.length) return;
+  for (const id of ['cloak', 'sands', 'holy']) if (E.itemUsable(st, id)) E.useItem(st, id);   // anulan el terreno todo el nivel
+  if (fase !== 'move') return;
+  const puedeAtacar = () => st.mons.some(m => E.attackInfo(st, m).ok);
+  if (!puedeAtacar() && E.itemUsable(st, 'axe')) E.useItem(st, 'axe');     // +2 Ataque y +2 Alcance: abre el disparo
+  if (!puedeAtacar() && st.turn.spdLeft < 2 && E.itemUsable(st, 'wyrm')) E.useItem(st, 'wyrm');
+}
+
+// Botín del cofre: puntos para sumar a una habilidad este turno. Al Ataque si hay a quién pegarle, si no al Movimiento.
+function spendLoot(st) {
+  if (!st.loot || process.env.LOOT === '0') return;
+  const lv = E.LEVELS[st.levelIdx], a = E.idx(st.adv.x, st.adv.y);
+  const cerca = st.mons.some(m => E.rangeDist(lv, a, E.idx(m.x, m.y)) <= E.heroRng(st) + 1);
+  E.setLoot(st, cerca ? 'atk' : 'spd', Math.min(st.loot, 2));
+}
+
+function evalState(st, depth) {
   const c = clone(st), hp0 = c.adv.hp;
   if (!c.mons.length) return -1000;
   E.playMonsters(c);
-  return (hp0 - c.adv.hp) * 40 + c.mons.reduce((s, m) => s + m.hp, 0) * 3;
+  resolvePending(c);
+  let sc = (hp0 - c.adv.hp) * W_DMG + c.mons.reduce((s, m) => s + m.hp, 0) * W_HP - (c.loot || 0) * LOOT_VAL;
+  if ((depth || 1) > 1 && c.mons.length && c.adv.hp > 0) sc += PESO2 * nextTurn(c);
+  return sc;
 }
-function evalMove(st, i, cost) {
+// Segundo turno con una tirada fija: prueba dos repartos (todo al ataque y todo a la defensa) y se queda con el mejor.
+function nextTurn(st) {
+  st.turn = E.freshTurn(); st.phase = 'energy';
+  let best = Infinity;
+  for (const p of [[2, 0, 1], [1, 2, 0]]) {
+    const c = clone(st);
+    c.turn.dice = DADOS_FIJOS.slice();
+    c.turn.assign = { spd: p[0], atk: p[1], def: p[2] };
+    E.confirmEnergy(c); if (FULL) fullTurn(c, 1); else greedy(c, 1);
+    const sc = evalState(c, 1);
+    if (sc < best) best = sc;
+  }
+  return best;
+}
+function evalMove(st, i, cost, depth) {
   const c = clone(st); const [x, y] = E.XY(i); c.adv.x = x; c.adv.y = y; c.turn.spdLeft -= cost;
   const potential = c.mons.some(m => E.attackInfo(c, m).ok) ? 1 : 0;
   const lv = E.LEVELS[c.levelIdx];
@@ -71,27 +137,86 @@ function evalMove(st, i, cost) {
     const t = c2.mons.filter(m => E.attackInfo(c2, m).ok).sort((a, b) => a.hp - b.hp);
     if (!t.length) break; c2.turn.atkLeft -= t[0].def; t[0].hp--; if (t[0].hp <= 0) c2.mons = c2.mons.filter(o => o !== t[0]);
   }
-  return evalState(c2) - potential * 5 + dmin * 0.5;
+  return evalState(c2, depth) - potential * W_POT + dmin * W_DIST;
 }
-function greedy(st) {
+// Fase del aventurero: ataca a lo que pueda, abre el cofre si le sobran puntos y se coloca lo mejor posible.
+function greedy(st, depth) {
+  useItems(st, 'move');
   for (let g = 0; g < 30; g++) {
     const tg = st.mons.filter(m => E.attackInfo(st, m).ok).sort((a, b) => a.hp - b.hp || a.def - b.def);
     if (tg.length) { E.attackMon(st, tg[0]); if (!st.mons.length) return; continue; }
     const R = E.reachFromAdv(st), here = E.idx(st.adv.x, st.adv.y);
-    let best = { i: here, score: evalMove(st, here, 0), cost: 0 };
+    let best = { i: here, score: evalMove(st, here, 0, depth), cost: 0 };
     for (let i = 0; i < E.N; i++) if (R.dist[i] > 0 && R.dist[i] <= st.turn.spdLeft) {
-      const s = evalMove(st, i, R.dist[i]); if (s < best.score - 1e-9) best = { i, score: s, cost: R.dist[i] };
+      const s = evalMove(st, i, R.dist[i], depth); if (s < best.score - 1e-9) best = { i, score: s, cost: R.dist[i] };
     }
-    if (best.cost > 0) E.moveAdv(st, best.i, best.cost); else break;
+    if (best.cost > 0) { E.moveAdv(st, best.i, best.cost); continue; }
+    // el cofre al final: con los puntos de ataque que sobran, cuando ya no hay a quién pegarle ni dónde moverse
+    if (USE_CHEST && st.chest && !st.chest.open && E.chestInfo(st).ok) { E.openChest(st); continue; }
+    break;
   }
 }
-const PERMS = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
-function playTurn(st) {
-  st.turn.dice = E.rollDice();
+// BOT=full: en vez de avanzar casilla a casilla eligiendo el mejor paso (que se queda en el primer sitio bueno),
+// prueba TODAS las casillas a las que llega este turno y, en cada una, atacar antes o después de moverse. Es la
+// misma cuenta de simulaciones que el paso a paso, pero no se le escapa una jugada que necesita dos pasos.
+const FULL = process.env.BOT === 'full';
+function atacarTodo(st) {
+  for (let g = 0; g < 30; g++) {
+    const tg = st.mons.filter(m => E.attackInfo(st, m).ok).sort((a, b) => a.hp - b.hp || a.def - b.def);
+    if (!tg.length) return;
+    E.attackMon(st, tg[0]);
+    if (!st.mons.length) return;
+  }
+}
+function fullTurn(st, depth) {
+  useItems(st, 'move');
+  const R = E.reachFromAdv(st), here = E.idx(st.adv.x, st.adv.y);
   let best = null, bs = Infinity;
-  for (const p of PERMS) {
-    const c = clone(st); c.turn.assign = { spd: p[0], atk: p[1], def: p[2] }; E.confirmEnergy(c); greedy(c);
-    const sc = evalState(c); if (sc < bs) { bs = sc; best = c; }
+  for (let i = 0; i < E.N; i++) {
+    if (i !== here && !(R.dist[i] > 0 && R.dist[i] <= st.turn.spdLeft)) continue;
+    for (const atacarPrimero of (i === here ? [true] : [true, false])) {
+      const c = clone(st);
+      if (atacarPrimero) { atacarTodo(c); if (c.mons.length && i !== here) { const R2 = E.reachFromAdv(c); if (R2.dist[i] > 0 && R2.dist[i] <= c.turn.spdLeft) E.moveAdv(c, i, R2.dist[i]); else continue; } }
+      else { E.moveAdv(c, i, R.dist[i]); atacarTodo(c); }
+      if (atacarPrimero && c.mons.length) atacarTodo(c);
+      if (USE_CHEST && c.chest && !c.chest.open && E.chestInfo(c).ok) E.openChest(c);
+      // mismos términos de posición que el paso a paso: poder atacar desde ahí y no quedarse lejos
+      const pot = c.mons.some(m => E.attackInfo(c, m).ok) ? 1 : 0;
+      const lv = E.LEVELS[c.levelIdx], fin = E.idx(c.adv.x, c.adv.y);
+      let dmin = Infinity; for (const m of c.mons) dmin = Math.min(dmin, E.rangeDist(lv, fin, E.idx(m.x, m.y)));
+      if (!c.mons.length) dmin = 0;
+      const sc = evalState(c, depth) - pot * W_POT + dmin * W_DIST;
+      if (sc < bs) { bs = sc; best = c; }
+    }
+  }
+  if (best) Object.assign(st, best);
+}
+const PERMS = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+// Habilidad del héroe en la fase de energía. Hoy el bot juega con Bastión: conserva el dado alto del turno anterior.
+function rollPhase(st) {
+  if (USE_ABIL && st.hero === 'paladin' && !st.abil && st.prev) {
+    let k = null, v = 0;
+    for (const s of ['atk', 'def', 'spd', 'rng']) if ((st.prev[s] || 0) > v) { v = st.prev[s]; k = s; }
+    const libre = E.abilVar('paladin') === 'free';   // en Colossus el dado se reparte donde se quiera
+    if (k && v >= (libre ? 5 : 6)) { E.rollWithKeep(st, k); return; }
+  }
+  st.turn.dice = E.rollDice();
+}
+function playTurn(st) {
+  useItems(st, 'energy');
+  rollPhase(st);
+  spendLoot(st);
+  // repartos posibles: con el dado conservado fijo a una habilidad (Bastión del original) solo quedan dos
+  const lk = st.turn.lock, libres = ['spd', 'atk', 'def'].filter(k => k !== lk);
+  const opciones = (lk && lk !== -1)
+    ? [{ [lk]: 0, [libres[0]]: 1, [libres[1]]: 2 }, { [lk]: 0, [libres[0]]: 2, [libres[1]]: 1 }]
+    : PERMS.map(p => ({ spd: p[0], atk: p[1], def: p[2] }));
+  let best = null, bs = Infinity;
+  for (const a of opciones) {
+    const c = clone(st);
+    c.turn.assign = Object.assign({}, c.turn.assign, a);
+    E.confirmEnergy(c); if (FULL) fullTurn(c, 1); else greedy(c, 1);
+    const sc = evalState(c, DEPTH); if (sc < bs) { bs = sc; best = c; }
   }
   Object.assign(st, best);
 }
@@ -105,11 +230,11 @@ function upgrades(st, n) {
 }
 function playLevel(levels, i) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
-  const st = E.newRun('paladin', GAME, []); upgrades(st, levels.slice(0, i).filter(l => !l.boss).length); E.setupLevel(st, i); st.adv.hp = E.START_HP;
+  const st = E.newRun('paladin', GAME, objetosIniciales()); upgrades(st, levels.slice(0, i).filter(l => !l.boss).length); E.setupLevel(st, i); st.adv.hp = E.START_HP;
   for (let t = 1; t <= 60; t++) {
     playTurn(st);
     if (!st.mons.length) return { dead: false, dmg: E.START_HP - st.adv.hp, t };
-    E.playMonsters(st);
+    E.playMonsters(st); resolvePending(st);
     if (st.adv.hp <= 0) return { dead: true, dmg: E.START_HP, t };
     st.turn = E.freshTurn(); st.phase = 'energy';
   }
@@ -125,7 +250,7 @@ function measure(levels) {
 // ---- campaña completa: niveles seguidos, con la Vida que quede; cura si queda con poca Vida ----
 function campaign(levels, healAt) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);
-  const st = E.newRun('paladin', GAME, []); let turns = 0;
+  const st = E.newRun('paladin', GAME, objetosIniciales()); let turns = 0;
   for (;;) {
     turns++; playTurn(st);
     if (!st.mons.length) {
@@ -135,7 +260,7 @@ function campaign(levels, healAt) {
       if (st.adv.hp > healAt) { let bs = Infinity; for (const s of ['atk', 'def', 'spd', 'rng']) { const v = st.adv[s] / W8[s]; if (v < bs && st.adv[s] < E.SKILL_MAX) { bs = v; b = s; } } }
       E.applyBreak(st, b); E.nextLevel(st); continue;
     }
-    E.playMonsters(st);
+    E.playMonsters(st); resolvePending(st);
     if (st.adv.hp <= 0) return st.levelIdx + 1;
     st.turn = E.freshTurn(); st.phase = 'energy';
     if (turns > 600) return st.levelIdx + 1;
