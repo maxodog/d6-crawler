@@ -37,6 +37,7 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 - Logros y desbloqueos usan los ítems con que se **empezó** la aventura (`G.startItems`).
 - **Estrellas por aventura** (`STARS` en `ui.js`, se guardan en `rec.games[aventura].stars` y en el progreso de invitado): Superada (oro), Dos expansiones (celeste, ganada con héroes de dos expansiones distintas), Sin objetos (verde, sin gastar ningún objeto: lo marca `st.itemEver` en el motor) y Sin habilidad (violeta, sin usar la habilidad; los héroes con habilidad pasiva —Mecánica y el Francotirador de Colossus— no la pueden ganar). Las aventuras sin objetos muestran 3 y las de objetos 4. Se ven arriba de la portada en la tarjeta de la aventura y se avisan en el resumen final. Lo cubre `test/stars_test.py`.
 - **Las estrellas sobreviven a la sincronización**: `mergeRec` las une con `mergeStars` (fecha más antigua). Antes las descartaba y solo los invitados las conservaban (error visto con Max). `progOf` recupera «Superada» y «Dos expansiones» de las victorias y héroes ya anotados. Lo cubre `test/stars_sync_test.py` (en modo local `window.__dioc.mergeRec` queda expuesto solo para pruebas).
+- **El botón para cambiar de mundo del menú es una tarjeta destacada** (`.world-switch`): portada, nombre y colores del otro mundo, con «⇄».
 - **Pantalla de inicio distinta por mundo** (`.menu-s.w-arch` / `.w-kaiju` en `style.css`): Archeodice con tierra y dorado, banner de la ruina y logo centrado; Colossus con panel táctico cian/naranja, banner del kaiju, esquinas cortadas y líneas de escaneo. El selector de juego colorea cada tarjeta igual. Solo afecta al menú.
 - `DEBUG_USERS` en `ui.js`: el usuario **Max** tiene todas las aventuras abiertas (y con ellas héroes y objetos) para probar; el resto las desbloquea jugando.
 - **Un solo tipo de monstruo por mapa y orientación** (como el original): un mapa en una orientación concreta siempre lleva el mismo kaiju; lo que cambia por nivel es la cantidad y las posiciones. Los mapas de jefe no tienen esta restricción.
@@ -58,13 +59,19 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 - `node test/balance.js 80` (con `ONLY=own` mide solo Colossus): daño, derrotas y turnos por nivel, empezando cada nivel con Vida 6 y mejoras típicas. Variables: `WORLD`, `GAME`, `LV=1,2`.
 - `CAMPAIGN=200 node test/balance.js`: campañas completas (original vs propio); reporta % que llega a cada nivel, % de victorias y nivel medio. `ONLY=own` u `ONLY=orig` miden solo uno. **Ahora la campaña reintenta el nivel al morir, como el juego real** (`RETRY=3` intentos por nivel), así que el número que importa ya no es solo el nivel medio sino el **% que termina la aventura** y los **reintentos que necesita**. Medido con el bot bueno (200 campañas, dos semillas):
 
-| Aventura | Original | Propia |
+| Aventura | Original (Archeodice) | Propia (Colossus) |
 |---|---|---|
-| Kaiju Protocol | gana 59-62%, 3,0 reintentos | gana 73-80%, 2,1-2,5 |
-| Alerta Omega | gana 57-65%, 3,9-4,0 | gana 51-54%, 3,9-4,4 |
-| Operación Glaciar | gana 96-98%, 0,6 | gana 88-94%, 1,0-1,1 |
+| Kaiju Protocol | gana 61% (def) · 65-71% (planseq) | gana 82-83% (def) · 82-86% (planseq) |
+| Alerta Omega | gana 64-65% (def) · 63-68% (planseq) | gana 46-48% (def) · 56-60% (planseq) |
+| Operación Glaciar | gana 97-99% (def) · 94-99% (planseq) | gana 70-75% (def) · 69% (planseq) — objetivo de Max: ~70% |
+| Bahía Abisal / Fisura Infernal | 95-96% / 68% (def) · 95% / 71-76% (planseq) | aún sin contenido propio |
 
-O sea: Kaiju Protocol quedó más fácil que el juego base original; Alerta Omega y Glaciar, un poco más difíciles que su equivalente. Pendiente de decidir con Max si se reajustan.
+(24-nov-2026, 200 campañas, semillas 7 y 11, tras quitar escaleras y hacer que el cofre bloquee siempre.) Kaiju Protocol propio es más fácil que el base original; Alerta Omega algo más difícil (el cofre ahora bloquea); Glaciar mucho más difícil a propósito.
+- **Estrategias de mejora del bot** (`UPG`, medidas en noviembre de 2026; `PLAN=def:6,atk:3,spd:3,rng:2` son los valores finales deseados, el Alcance parte en 2 y no baja):
+  - `def` (por defecto): toda la Defensa y luego lo más atrasado.
+  - `planseq`: completa el perfil en orden Defensa → Ataque → Velocidad → Alcance (perfil de Max 6/3/3/2). Algo mejor que `def` en Alerta Omega propio (58% contra 47%) y en el original de Fisura; igual en lo demás. `plan`: sube lo que más falta, sin orden fijo (igual o peor).
+  - `sim`/`simfree`: simulan el siguiente nivel con sus kaiju reales (`SIMK` veces, mismos dados para cada opción) y eligen lo que menos daño recibe. **Peores**: 53% contra 75% en Glaciar y 71% contra 82% en Kaiju Protocol; sin perfil (`simfree`) mucho peores. Buscan el beneficio inmediato y se pierden la ventaja acumulada de la Defensa; además son ~60× más lentas.
+  - Perfil final, ganar % propio (planseq): 6/3/3/2 → base 80, Omega 61, Glaciar 74 · 6/4/2/2 → 84, 54, 81 · 6/2/4/2 → 81, 41, 71 · 6/3/2/3 → 80, 63, 73 · 6/6/1/2 → 80, 51, 82 · **5/4/3/2 → 86, 16, 86**. Conclusiones: Defensa 6 es imprescindible en Alerta Omega (sus jefes pegan 7-8; con Defensa 5 casi nadie termina); el Ataque rinde más que la Velocidad (Velocidad 4 es lo peor); en aventuras largas conviene Alcance 3.
 - `GSTATS='{"ogre":{"hp":5,...}}' node test/balance.js` prueba cifras sin tocar `worlds.js` (útil para los jefes).
 - `node test/design.js` (`T0`, `T1`, `NS`, `TRIES`, `LVS=2,4`, `CNT=2,2,1,…` para fijar la cantidad por nivel y buscar solo posiciones): busca cantidad y posiciones de aparición para acercar cada nivel a una curva de daño objetivo. Imprime `AT=[...]` para pegar en `worlds.js`.
 - **Qué hace bueno al bot** (todo medido en noviembre de 2026, con varias semillas):

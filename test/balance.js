@@ -9,15 +9,16 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/worlds.js'), 'utf8'
 const WORLD = process.env.WORLD || 'kaiju', GAME = process.env.GAME || 'base', N = +(process.argv[2] || 150);
 // SEED fija los dados: con la misma semilla dos variantes se comparan con exactamente la misma suerte, así que
 // hacen falta muchas menos partidas para notar la diferencia (y los resultados se pueden repetir).
-if (process.env.SEED) {
-  let x = (+process.env.SEED >>> 0) || 1;
-  Math.random = () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; };
+let rngX = 1;   // estado del generador: la estrategia 'sim' lo guarda y lo restaura para probar mejoras con la misma suerte
+if (process.env.SEED || /^sim/.test(process.env.UPG || '')) {
+  rngX = (+process.env.SEED >>> 0) || 7;
+  Math.random = () => { rngX ^= rngX << 13; rngX >>>= 0; rngX ^= rngX >> 17; rngX ^= rngX << 5; rngX >>>= 0; return rngX / 4294967296; };
 }
 const W = ctx.WORLDS[WORLD];
 if (process.env.GSTATS) { const o = JSON.parse(process.env.GSTATS); W.gstats = W.gstats || {}; W.gstats[GAME] = Object.assign({}, W.gstats[GAME], o); }   // prueba rápida de cifras: GSTATS='{"ogre":{...}}'
 
 function ownLevels() { return E.ownLevels(W.levels[GAME], Object.assign({}, W.stats, (W.gstats || {})[GAME]), 0); }
-const ORIG = E.GAMES[GAME].levels, OWN = ownLevels();
+const ORIG = E.GAMES[GAME].levels, OWN = (W.levels || {})[GAME] ? ownLevels() : [];   // Bahía y Fisura aún no tienen niveles propios
 
 // ---- comprobaciones de mapas ----
 let bad = 0;
@@ -232,8 +233,48 @@ function playTurn(st) {
 // Alerta Omega). Curar: con 'def' y reintentos conviene curar solo con Vida ≤2 (83% contra 64% curando con ≤3).
 const UPG = process.env.UPG || 'def';
 const W8 = { atk: 1, def: 1, spd: 0.7, rng: 0.8 };
-function mejorMejora(st) {
+// Estrategias con perfil objetivo (PLAN = valores finales que se quieren al terminar, p. ej. atk:3,def:6,spd:3,rng:2;
+// el Alcance parte en 2 y no baja):
+//   plan     sube la habilidad con más déficit respecto al perfil (empate: Defensa, Ataque, Velocidad, Alcance)
+//   planseq  completa el perfil en orden: primero toda la Defensa, luego el Ataque, la Velocidad y el Alcance
+//   sim      entre las habilidades que aún no llegan al perfil, simula el siguiente nivel (con sus kaiju reales)
+//            SIMK veces por opción, con los mismos dados para todas, y elige la que menos daño recibe
+//   simfree  igual que sim pero sin perfil: cualquier habilidad es candidata
+function parsePlan(t) { const o = {}; for (const q of (t || '').split(',')) { const [k, v] = q.split(':'); if (k && v) o[k.trim()] = +v; } return o; }
+const PLAN = Object.assign({ atk: 3, def: 6, spd: 3, rng: 2 }, parsePlan(process.env.PLAN));
+const SIMK = +(process.env.SIMK || 6), PRI = ['def', 'atk', 'spd', 'rng'];
+function costNext(st, choice) {
+  const guardado = rngX; let tot = 0, n = 0;
+  for (let r = 0; r < SIMK; r++) {
+    rngX = (Math.imul(r + 1, 2654435761) ^ 0x9e3779b9) >>> 0 || 1;   // la misma suerte para todas las opciones
+    const c = clone(st); E.applyBreak(c, choice);
+    if (!E.nextLevel(c)) continue;
+    let dead = false, t = 0;
+    for (; t < 40; t++) {
+      playTurn(c);
+      if (!c.mons.length) break;
+      E.playMonsters(c); resolvePending(c);
+      if (c.adv.hp <= 0) { dead = true; break; }
+      c.turn = E.freshTurn(); c.phase = 'energy';
+    }
+    tot += dead || t >= 40 ? 9 : E.START_HP - c.adv.hp; n++;
+  }
+  rngX = guardado;
+  return n ? tot / n : 0;
+}
+function mejorMejora(st, sinNivel) {
   const a = st.adv, libre = k => a[k] < E.SKILL_MAX;
+  if (UPG === 'plan' || UPG === 'planseq' || UPG === 'sim' || UPG === 'simfree') {
+    const falta = k => Math.max(0, PLAN[k] - a[k]);
+    let cand = PRI.filter(k => libre(k) && (UPG === 'simfree' || falta(k) > 0));
+    if (!cand.length) cand = PRI.filter(libre);                       // perfil completo: lo que quede, Defensa primero
+    if (!cand.length) return 'def';
+    if (UPG === 'planseq') return cand[0];
+    if (UPG === 'plan' || sinNivel || cand.length === 1) return cand.slice().sort((x, y) => falta(y) - falta(x) || PRI.indexOf(x) - PRI.indexOf(y))[0];
+    let b = cand[0], bs = Infinity;
+    for (const k of cand) { const v = costNext(st, k) - 0.01 * falta(k); if (v < bs) { bs = v; b = k; } }
+    return b;
+  }
   if (UPG === 'def' && libre('def')) return 'def';
   if (UPG === 'atk' && libre('atk')) return 'atk';
   if (UPG === 'defatk') { if (a.def < 4 && libre('def')) return 'def'; if (libre('atk')) return 'atk'; if (libre('def')) return 'def'; }
@@ -242,7 +283,7 @@ function mejorMejora(st) {
   return b;
 }
 function upgrades(st, n) {
-  for (let k = 0; k < n; k++) E.applyBreak(st, mejorMejora(st));
+  for (let k = 0; k < n; k++) E.applyBreak(st, mejorMejora(st, true));
 }
 function playLevel(levels, i) {
   E.GAMES[GAME].levels = levels; E.useGame(GAME);

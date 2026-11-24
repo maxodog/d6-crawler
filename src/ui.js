@@ -1802,7 +1802,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       <div class="menu-btns">
         <button type="button" class="btn ${slots.length ? '' : 'primary'} menu-main" id="mNew"><span>${L('Nueva partida', 'New game')}</span></button>
         <button type="button" class="ghost" id="mRules">${L('Cómo se juega', 'How to play')}</button>
-        ${W ? `<button type="button" class="ghost" id="mWorld">${L('Cambiar a ', 'Switch to ')}${WORLDS[OTHER_WORLD].name}</button>` : ''}
+        ${W ? `<button type="button" class="world-switch ws-${OTHER_WORLD}" id="mWorld"><img src="img/${OTHER_WORLD}/base.jpg" alt=""><span class="ws-txt"><small>${L('Otro mundo', 'Other world')}</small><b>${L('Cambiar a ', 'Switch to ')}${WORLDS[OTHER_WORLD].name}</b></span><span class="ws-arrow">⇄</span></button>` : ''}
       </div>
       <div class="lang-sw" role="group" aria-label="${L('Idioma', 'Language')}"><button type="button" data-lang="es" class="${LANG === 'es' ? 'on' : ''}">Español</button><button type="button" data-lang="en" class="${LANG === 'en' ? 'on' : ''}">English</button></div>
       <p class="fine">${W ? CREDIT() : L('Versión no oficial de One Card Dungeon, de Barny Skinner.', 'Unofficial version of One Card Dungeon, by Barny Skinner.')} · ${L('versión', 'version')} ${(document.querySelector('meta[name=build]') || {}).content || '?'}</p></div>`,

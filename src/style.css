@@ -928,3 +928,18 @@ body:has(.menu-s.w-kaiju) {
 .world-card[data-w=arch] b { color: #efcf8e; font-family: var(--display); font-weight: 400; font-size: 22px; }
 .world-card[data-w=kaiju] { border-color: #4fc3e8; background: #0b1822; border-radius: 4px; }
 .world-card[data-w=kaiju] b { color: #e4f6ff; text-transform: uppercase; letter-spacing: .08em; }
+
+/* botón para cambiar de mundo: tarjeta con la portada y los colores del otro mundo */
+.world-switch { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 6px; padding: 8px 14px 8px 8px; text-align: left; cursor: pointer; font: inherit; border: 2px solid; border-radius: 12px; }
+.world-switch img { width: 48px; height: 66px; object-fit: cover; object-position: 50% 30%; border-radius: 6px; flex: none; image-rendering: pixelated; }
+.world-switch .ws-txt { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.world-switch small { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.world-switch b { font-size: 19px; line-height: 1.15; }
+.world-switch .ws-arrow { font-size: 28px; font-weight: 700; flex: none; }
+.world-switch.ws-kaiju { background: linear-gradient(90deg, #0b1822, #10303f); border-color: #4fc3e8; color: #e4f6ff; box-shadow: 0 0 14px rgba(79,195,232,.35); }
+.world-switch.ws-kaiju small, .world-switch.ws-kaiju .ws-arrow { color: #ff7a2e; }
+.world-switch.ws-kaiju b { text-transform: uppercase; letter-spacing: .06em; font-size: 17px; }
+.world-switch.ws-arch { background: linear-gradient(90deg, #2a1d10, #4a3015); border-color: #e0b263; color: #f6e9cf; box-shadow: 0 0 14px rgba(224,178,99,.35); }
+.world-switch.ws-arch small, .world-switch.ws-arch .ws-arrow { color: #f2b84a; }
+.world-switch.ws-arch b { font-family: var(--display); font-weight: 400; font-size: 22px; }
+.world-switch:active { transform: translateY(1px); }
