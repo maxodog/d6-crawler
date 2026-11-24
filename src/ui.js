@@ -639,6 +639,12 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
 
   // logros que una versión anterior otorgó por error (sin objetos en una aventura donde son opcionales)
   function fixRec(r) { for (const k of ['naked', 'purist']) if (r.ach && r.ach[k] && (!['peak', 'harbour', 'hell'].includes(r.ach[k].g) || r.ach[k].d < 1794777359144)) delete r.ach[k]; return r; }
+  // estrellas de una aventura: se conservan las de ambos lados, con la fecha más antigua
+  function mergeStars(a, b) {
+    const r = {};
+    for (const k of new Set([...Object.keys(a || {}), ...Object.keys(b || {})])) { const p = (a || {})[k], q = (b || {})[k]; r[k] = !p ? q : !q ? p : Math.min(p, q); }
+    return r;
+  }
   // Une dos historiales (el de este dispositivo y el de la nube) sin perder logros ni récords
   function mergeRec(a, b) {
     a = a || {}; b = b || {};
@@ -648,7 +654,8 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       const fast = [x.fastest, y.fastest].filter(v => v != null);
       r.games[g] = { wins: Math.max(x.wins || 0, y.wins || 0), falls: Math.max(x.falls || 0, y.falls || 0), best: Math.max(x.best || 0, y.best || 0),
         bestRank: RANK_ORDER.indexOf(x.bestRank) >= RANK_ORDER.indexOf(y.bestRank) ? (x.bestRank || null) : y.bestRank, fastest: fast.length ? Math.min(...fast) : null,
-        heroes: [...new Set([...(x.heroes || []), ...(y.heroes || [])])], pure: [...new Set([...(x.pure || []), ...(y.pure || [])])] };
+        heroes: [...new Set([...(x.heroes || []), ...(y.heroes || [])])], pure: [...new Set([...(x.pure || []), ...(y.pure || [])])],
+        stars: mergeStars(x.stars, y.stars) };
     }
     for (const k of new Set([...Object.keys(a.tot || {}), ...Object.keys(b.tot || {})])) r.tot[k] = Math.max((a.tot || {})[k] || 0, (b.tot || {})[k] || 0);
     for (const k of new Set([...Object.keys(a.ach || {}), ...Object.keys(b.ach || {})])) { const x = (a.ach || {})[k], y = (b.ach || {})[k]; r.ach[k] = !x ? y : !y ? x : (x.d <= y.d ? x : y); }
@@ -993,6 +1000,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     harbour: { from: 'peak', pack: 'peak', own: true },
     hell: { from: 'harbour', pack: 'harbour', own: true }
   };
+  if (DEV) window.__dioc = { mergeRec };   // solo para las pruebas locales
   const GUEST_KEY = 'dioc-guest-prog-v1';
   // Pruebas: la clave 'dioc-unlock-all' y el usuario de Max abren todas las aventuras (y con ellas sus héroes y objetos).
   const DEBUG_USERS = ['max'];
@@ -1011,7 +1019,10 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       const x = (me.rec && me.rec.games && me.rec.games[g]) || {};
       const hs = new Set(x.heroes || []);
       for (const h of (me.rec && me.rec.hist) || []) if (h.won && h.g === g && h.h) hs.add(h.h);   // victorias anteriores a este registro
-      return { heroes: [...hs], pure: x.pure || [], played: !!(x.wins || x.falls), stars: x.stars || {} };
+      const stars = Object.assign({}, x.stars);
+      if (hs.size && !stars.win) stars.win = Date.now();   // estrellas que una versión anterior perdió al sincronizar
+      if (!stars.packs && new Set([...hs].map(h => HEROES[h] && HEROES[h].pack).filter(Boolean)).size >= 2) stars.packs = Date.now();
+      return { heroes: [...hs], pure: x.pure || [], played: !!(x.wins || x.falls), stars };
     }
     const x = guestProg()[g] || {};
     return { heroes: x.heroes || [], pure: x.pure || [], played: !!x.played, stars: x.stars || {} };
@@ -1784,7 +1795,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       return `<div class="rslot"><span class="ico">${HERO_ICONS[sv.hero] || ICON_ADV}</span><div class="rslot-t"><b>${GAMES[sv.game].name}</b><small>${HEROES[sv.hero].name} · ${stageLabel(lv).toLowerCase()} ${L('de', 'of')} ${GAMES[sv.game].levels.length} · ${L('Vida', 'Health')} ${sv.adv.hp}</small></div>
         <div class="rslot-b"><button type="button" class="btn primary mini" data-res="${sv.game}"${i === 0 ? ' id="mContinue"' : ''}>${L('Retomar', 'Resume')}</button><button type="button" class="btn mini danger" data-ab="${sv.game}">${L('Abandonar', 'Abandon')}</button></div></div>`;
     }).join('')}</div>` : '';
-    const sc = showScreen(`<div class="splash">${LOGO}
+    const sc = showScreen(`<div class="splash menu-s${W ? ' w-' + WORLD_ID : ''}">${W ? `<div class="menu-hero"><img src="img/${WORLD_ID}/base.jpg" alt=""></div>` : ''}${LOGO}
       <p class="tagline">${W ? W.tagline[LANG === 'en' ? 1 : 0] : L('Una carta, tres dados y una aventura por elegir.', 'One card, three dice and an adventure to choose.')}</p>
       <button type="button" class="userbar ${me ? 'in' : ''}" id="mUser">${ICON_USER}<span>${me ? `<b>${esc(me.name)}</b><small>${L('Ver perfil, logros y estadísticas', 'View profile, achievements and stats')}</small>` : `<b>${L('Entrar o crear usuario', 'Sign in or create user')}</b><small>${L('Para guardar tus logros y estadísticas', 'To save your achievements and stats')}</small>`}</span><i aria-hidden="true">›</i></button>
       ${slotHTML}

@@ -875,3 +875,56 @@ body.tight .dice-row.moving { display: none; }
 .endscr .star-win i { grid-row: span 2; width: 22px; height: 22px; align-self: center; }
 .endscr .star-win b { font-size: 15px; text-align: left; }
 .endscr .star-win em { grid-column: 2; text-align: left; font-style: normal; color: var(--muted); font-size: 13px; line-height: 1.2; }
+
+/* ---- identidad de cada mundo en la pantalla de inicio ---- */
+.menu-hero { position: relative; height: 176px; margin: -4px -2px 0; border-radius: 14px; overflow: hidden; border: 1.5px solid var(--line); }
+.menu-hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 46%; display: block; image-rendering: pixelated; transform: scale(1.2); transform-origin: 50% 46%; }
+.menu-hero::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.menu-s.w-arch .menu-hero { margin-bottom: -6px; }
+.menu-s.w-kaiju .menu-hero { margin-bottom: -6px; }
+
+/* Archeodice: pergamino y tierra, dorado y ocre */
+:root:has(.menu-s.w-arch) { --bg: #130d07; }
+body:has(.menu-s.w-arch) {
+  background-image:
+    linear-gradient(rgba(226,184,112,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(226,184,112,.07) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(214,150,60,.22), transparent 62%);
+  background-size: 52px 34px, 52px 34px, 100% 100%;
+}
+.menu-s.w-arch { --card: #2a1d10; --line: #c99a52; --line-dim: rgba(201,154,82,.3); --chalk: #f6e9cf; --muted: #c4aa80; --torch: #f2b84a; }
+.menu-s.w-arch .menu-hero { border-radius: 6px; border: 2px solid #c99a52; box-shadow: 0 0 0 3px #3a2815, 0 8px 22px rgba(0,0,0,.5); }
+.menu-s.w-arch .menu-hero::after { background: linear-gradient(180deg, rgba(19,13,7,0) 55%, rgba(19,13,7,.75)); }
+.menu-s.w-arch .logo { align-items: center; text-align: center; }
+.menu-s.w-arch .logo .mark { font-size: clamp(32px, 11vw, 52px); white-space: nowrap; letter-spacing: .03em; color: #efcf8e; text-shadow: 0 3px 0 #5a3418, 0 0 18px rgba(240,170,70,.35); }
+.menu-s.w-arch .tagline { text-align: center; font-style: italic; color: #d8bd8c; }
+.menu-s.w-arch .btn.primary { background: linear-gradient(180deg, #f6c660, #d39a34); border-color: #f2d089; color: #2b1705; border-radius: 6px; box-shadow: 0 3px 0 #7b4c13; }
+.menu-s.w-arch .btn, .menu-s.w-arch .userbar { border-radius: 6px; }
+.menu-s.w-arch .ghost { color: #d8bd8c; }
+
+/* Colossus D6: panel táctico de acero, cian y alerta naranja */
+:root:has(.menu-s.w-kaiju) { --bg: #04080d; }
+body:has(.menu-s.w-kaiju) {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(120,230,255,.05) 0 1px, transparent 1px 4px),
+    linear-gradient(90deg, rgba(90,210,255,.06) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(80,200,120,.20), transparent 60%);
+  background-size: 100% 4px, 40px 40px, 100% 100%;
+}
+.menu-s.w-kaiju { --card: #0b1822; --line: #4fc3e8; --line-dim: rgba(79,195,232,.28); --chalk: #e4f6ff; --muted: #8fb4c6; --torch: #ff7a2e; }
+.menu-s.w-kaiju .menu-hero { border-radius: 0; border: 1.5px solid #4fc3e8; clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); box-shadow: none; }
+.menu-s.w-kaiju .menu-hero::after { background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px), linear-gradient(180deg, rgba(4,8,13,0) 60%, rgba(4,8,13,.8)); }
+.menu-s.w-kaiju .logo .mark { font-family: var(--body); font-weight: 700; font-size: clamp(30px, 9.5vw, 46px); white-space: nowrap; letter-spacing: .07em; color: #e4f6ff; text-shadow: 0 0 14px rgba(79,195,232,.55); }
+.menu-s.w-kaiju .logo .sub { color: #ff7a2e; letter-spacing: .5em; font-weight: 700; }
+.menu-s.w-kaiju .logo { position: relative; padding-left: 14px; border-left: 4px solid #ff7a2e; }
+.menu-s.w-kaiju .tagline { text-transform: uppercase; letter-spacing: .12em; font-size: 15px; color: #8fd8f2; }
+.menu-s.w-kaiju .userbar { border-radius: 0; }
+.menu-s.w-kaiju .btn { border-radius: 0; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); }
+.menu-s.w-kaiju .btn.primary { background: #ff7a2e; border-color: #ff7a2e; color: #1a0a02; text-transform: uppercase; letter-spacing: .12em; font-weight: 700; }
+.menu-s.w-kaiju .ghost { color: #8fd8f2; text-transform: uppercase; letter-spacing: .1em; font-size: 15px; }
+
+/* selector de juego: cada tarjeta con su color */
+.world-card[data-w=arch] { border-color: #c99a52; background: #2a1d10; }
+.world-card[data-w=arch] b { color: #efcf8e; font-family: var(--display); font-weight: 400; font-size: 22px; }
+.world-card[data-w=kaiju] { border-color: #4fc3e8; background: #0b1822; border-radius: 4px; }
+.world-card[data-w=kaiju] b { color: #e4f6ff; text-transform: uppercase; letter-spacing: .08em; }
