@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#060d1a">
-<meta name="build" content="509f35c8ef">
+<meta name="build" content="f2bdc9ff42">
 <title>Archeodice · Colossus D6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -5248,7 +5248,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   function worldPicker() {
     const sc = showScreen(`<div class="splash worlds"><h2 class="wp-h">${LANG === 'en' ? 'Choose a game' : 'Elige un juego'}</h2><div class="world-list">
       ${Object.keys(WORLDS).map(w => `<button type="button" class="world-card" data-w="${w}"><img src="img/${w}/base.jpg" alt="${WORLDS[w].name}"><b>${WORLDS[w].name}${WORLDS[w].logo[1] ? ': Kaiju Protocol' : ''}</b><small>${WORLDS[w].tagline[LANG === 'en' ? 1 : 0]}</small></button>`).join('')}
-        <a class="world-card" href="garden/index.html" style="text-decoration:none"><div style="width:100%;aspect-ratio:10/14;border-radius:8px;display:grid;place-items:center;font-size:64px;background:linear-gradient(160deg,#6a9a3f,#2f5a2a)">🪲</div><b>Garden Crawler</b><small>${LANG === 'en' ? 'Insect heroes, mixed dice and a 6x6 garden. New.' : 'Héroes insecto, dados mixtos y un jardín de 6x6. Nuevo.'}</small></a>
+        <a class="world-card" href="garden/index.html" style="text-decoration:none"><div style="width:100%;aspect-ratio:10/14;border-radius:8px;display:grid;place-items:center;font-size:64px;background:linear-gradient(160deg,#6a9a3f,#2f5a2a)">🪲</div><b>Garden Crawler</b><small>${LANG === 'en' ? 'Insect heroes, mixed dice and a 6x6 garden. Two trials.' : 'Héroes insecto, dados mixtos y un jardín de 6x6. Dos pruebas.'}</small></a>
       </div><p class="fine">${LANG === 'en' ? 'Same rules, two worlds. Your progress is kept separately in each one; you can switch from the menu.' : 'Mismas reglas, dos mundos. Tu progreso se guarda por separado en cada uno; puedes cambiar desde el menú.'}</p>
       <div class="lang-sw" role="group" aria-label="Idioma"><button type="button" data-lang="es" class="${LANG === 'es' ? 'on' : ''}">Español</button><button type="button" data-lang="en" class="${LANG === 'en' ? 'on' : ''}">English</button></div></div>`);
     sc.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => setWorld(b.dataset.w)));

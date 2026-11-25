@@ -7,7 +7,7 @@ for (const h of heroes) for (const q of equips) {
   E.setRng(mulberry(seed * 1000 + h.length * 7 + q.length));
   let w = 0, ret = 0, reach = 0; const dm = new Array(12).fill(0), cn = new Array(12).fill(0);
   for (let r = 0; r < runs; r++) {
-    const c = B.campaign(h, q);
+    const c = B.campaign(h, q, { mode: process.env.MODE, policy: process.env.POLICY });
     if (c.won) w++; ret += c.retries; reach += c.reached;
     c.levels.forEach((l, i) => { dm[i] += l.dmg; cn[i]++; });
   }

@@ -7,6 +7,15 @@ function typicalAdv(L) { // L = nivel 1..12
   for (let i = 0; i < ups; i++) { for (const k of order) { const lim = k === 'rng' ? 3 : 6; if (a[k] < lim) { a[k]++; break; } } }
   return a;
 }
+function typical(hero, L, mode) { // héroe típico al empezar el nivel L (1..12): { adv, kit }
+  if (mode !== 'muda') return { adv: typicalAdv(L), kit: null };
+  const a = { spd: 1, atk: 1, def: 1, rng: 2 }, kit = E.MUDA_KITS[hero].slice(), ups = Math.round((L - 1) * 0.85);
+  const order = ['def', 'rng', 'atk', 'spd'];
+  const skill = () => { for (const k of order) { const lim = k === 'rng' ? 3 : 6; if (a[k] < lim) { a[k]++; return true; } } return false; };
+  const die = () => { let bi = -1; kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s < kit[bi])) bi = i; }); if (bi < 0) return false; kit[bi] = E.nextDie(kit[bi]); return true; };
+  for (let i = 0; i < ups; i++) { if (i % 2 === 0) { if (!die()) skill(); } else { if (!skill()) die(); } }
+  return { adv: a, kit };
+}
 function candidates(mapKey, minStart) {
   minStart = minStart || 8;
   const lv = E.LEVELS.find(l => l.mapKey === mapKey), R = E.dijkstra(lv, lv.start, null, null).dist, out = [];
@@ -27,18 +36,18 @@ function sample(mapKey, count, r, mind, minStart) {
   return null;
 }
 // evalúa un nivel (definición) con héroes/equipos mezclados
-function evalLevel(def, L, trials, hp = 6) {
-  const defs = E.LEVEL_DEFS.slice(); defs[L - 1] = def; E.loadLevels(defs);
+function evalLevel(def, L, trials, hp = 6, mode) {
+  const defs = E.DEFS[mode || 'kits'].slice(); defs[L - 1] = def; E.loadLevels(defs);
   let dmg = 0, deaths = 0, n = 0, turns = 0;
   const combos = [['beetle','thorn'],['beetle','shield'],['beetle','helm'],['mantis','thorn'],['mantis','shield'],['mantis','helm']];
   for (let t = 0; t < trials; t++) for (const [h, q] of combos) {
-    const st = E.newRun(h, q); E.setupLevel(st, L - 1); st.adv = Object.assign({ x: st.adv.x, y: st.adv.y, hp }, typicalAdv(L));
+    const ty = typical(h, L, mode), st = E.newRun(h, q, mode); if (ty.kit) st.kit = ty.kit; E.setupLevel(st, L - 1); st.adv = Object.assign({ x: st.adv.x, y: st.adv.y, hp }, ty.adv);
     const r = B.playLevel(st);
     n++; if (!r.won) deaths++; dmg += r.dmg; turns += r.turns;
   }
   return { dmg: dmg / n, death: deaths / n, turns: turns / n };
 }
-module.exports = { typicalAdv, sample, candidates, evalLevel, rng, mulberry };
+module.exports = { typical, typicalAdv, sample, candidates, evalLevel, rng, mulberry };
 if (require.main === module) {
   const probes = [ ['A','tij',2],['A','tij',3],['A','tij',4],['A','tij',5],['A','tij',6],['A','tij',7],
     ['B','coc',1],['B','coc',2],['B','coc',3],['B','coc',4],

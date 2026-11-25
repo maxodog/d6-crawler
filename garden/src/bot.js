@@ -97,9 +97,20 @@ function playLevel(st, maxTurns = 40) {
   }
   return { won: false, turns, dmg: hp0 };
 }
+function pickDie(st) {
+  let bi = -1;
+  st.kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s < st.kit[bi])) bi = i; });
+  return bi < 0 ? null : 'dice' + bi;
+}
 function pickBreak(st, opts) {
   const a = st.adv;
   if (a.hp <= (opts.heal == null ? 2 : opts.heal)) return 'heal';
+  if (st.mode === 'muda') {
+    const pol = opts.policy || 'alt', n = st.breakNo = (st.breakNo || 0) + 1, d = pickDie(st);
+    const skill = () => { for (const k of opts.order || ['def', 'rng', 'atk', 'spd']) { const lim = k === 'rng' ? 3 : E.SKILL_MAX; if (a[k] < lim) return k; } return null; };
+    const seq = pol === 'dice' ? [d, skill()] : pol === 'def' ? [skill(), d] : (n % 2 ? [d, skill()] : [skill(), d]);
+    return seq.find(Boolean) || 'heal';
+  }
   for (const k of opts.order || ['def', 'rng', 'atk', 'spd']) {
     const lim = k === 'rng' ? 3 : E.SKILL_MAX;
     if (a[k] < lim) return k;
@@ -108,7 +119,8 @@ function pickBreak(st, opts) {
   return 'heal';
 }
 function campaign(hero, equip, opts = {}) {
-  const st = E.newRun(hero, equip), RETRY = opts.retry == null ? 3 : opts.retry;
+  E.loadLevels(E.DEFS[opts.mode || 'kits']);
+  const st = E.newRun(hero, equip, opts.mode), RETRY = opts.retry == null ? 3 : opts.retry;
   const levels = [];
   let retries = 0, reached = 0;
   for (let i = 0; i < E.LEVELS.length; i++) {

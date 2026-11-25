@@ -18,6 +18,10 @@ const HEROES = {
   mantis: { key: 'mantis', name: 'Mantis religiosa', emoji: '🦗', kit: [12, 4, 4],
     abil: 'Emboscada', txt: 'Pasiva: si todavía no te has movido en el turno, tu primer ataque hace 2 de daño.' }
 };
+/* Prueba 2 «Muda»: kits iniciales más pequeños; en cada pausa un dado puede mudar al siguiente tamaño. */
+const MUDA_KITS = { beetle: [6, 6, 4], mantis: [8, 4, 4] };
+const DIE_STEPS = [4, 6, 8, 12];
+const nextDie = s => DIE_STEPS[DIE_STEPS.indexOf(s) + 1] || 0;
 const EQUIPS = {
   thorn: { key: 'thorn', name: 'Espina de rosa', emoji: '🌹', type: 'Arma', txt: 'Tus ataques cuestan 1 punto de Ataque menos (mínimo 1).' },
   shield: { key: 'shield', name: 'Escudo de pétalo', emoji: '🌸', type: 'Armadura', txt: 'Tu Defensa es 1 punto más alta en cada turno.' },
@@ -51,6 +55,12 @@ const LEVEL_DEFS = [
   { t: 'El muro de piedra', map: 'A2', m: 'bom', at: [[3,1],[5,4],[1,1],[3,3],[2,1],[0,4],[4,3]] },
   { t: 'El panal',        map: 'B2', m: 'avi', at: [[0,5],[5,3],[5,2],[5,4],[1,5],[1,4],[3,1],[5,1]] }
 ];
+
+/* Prueba 2 «Muda»: mismos mapas y monstruos, otras cantidades y posiciones (se afinan con design.js). */
+const LEVEL_DEFS_MUDA = LEVEL_DEFS.map(d => Object.assign({}, d));
+const MUDA_AT = [[[3,2],[4,4],[5,1]],[[1,5]],[[0,1],[2,4]],[[3,4]],[[5,5],[3,0],[4,4],[0,2],[5,4],[3,5]],[[2,1],[0,2],[0,0]],[[2,3],[2,4],[0,3],[1,3]],[[0,4],[5,1],[2,0],[1,5],[4,4]],[[4,0],[0,0],[5,1],[3,0],[1,3],[3,4],[5,2],[2,0],[5,3]],[[0,0],[1,3],[5,1],[0,1]],[[4,5],[0,0],[0,3],[3,3],[1,5],[4,3]],[[3,2],[5,5],[0,4],[5,0],[2,5],[0,3]]];
+LEVEL_DEFS_MUDA.forEach((d, i) => { d.at = MUDA_AT[i]; });
+const DEFS = { kits: LEVEL_DEFS, muda: LEVEL_DEFS_MUDA };
 
 let LEVELS = [];
 function buildLevel(def, num) {
@@ -167,7 +177,7 @@ function hasLOS(lv, a, b, blockers) {
 /* ---------- Estado ---------- */
 const lvOf = st => LEVELS[st.levelIdx];
 function freshTurn(st) {
-  return { dice: null, sides: HEROES[st.hero].kit.slice(), assign: { spd: -1, atk: -1, def: -1 }, rerolled: false, moved: false, attacks: 0,
+  return { dice: null, sides: st.kit.slice(), assign: { spd: -1, atk: -1, def: -1 }, rerolled: false, moved: false, attacks: 0,
            spd: 0, atk: 0, def: 0, rng: 0, spdLeft: 0, atkLeft: 0 };
 }
 function rollTurn(st) { st.turn.dice = st.turn.sides.map(roll); }
@@ -186,16 +196,18 @@ function setupLevel(st, i) {
   rollTurn(st);
   st.undo = [];
   st.turnNo = 1;
-  st.cp = { hp: st.adv.hp, adv: Object.assign({}, st.adv) };
+  st.cp = { hp: st.adv.hp, adv: Object.assign({}, st.adv), kit: st.kit.slice() };
   return st;
 }
-function newRun(hero, equip) {
-  const st = { hero, equip, levelIdx: 0, adv: { x: 0, y: 0, hp: START_HP, spd: 1, atk: 1, def: 1, rng: 2 }, mons: [], phase: 'energy', turn: null, undo: [], turnNo: 1, abil: false, cp: null };
+function newRun(hero, equip, mode) {
+  mode = mode || 'kits';
+  const st = { hero, equip, mode, kit: (mode === 'muda' ? MUDA_KITS : { beetle: HEROES.beetle.kit, mantis: HEROES.mantis.kit })[hero].slice(), levelIdx: 0, adv: { x: 0, y: 0, hp: START_HP, spd: 1, atk: 1, def: 1, rng: 2 }, mons: [], phase: 'energy', turn: null, undo: [], turnNo: 1, abil: false, cp: null };
   return setupLevel(st, 0);
 }
 function retryLevel(st) {
   const cp = st.cp;
   st.adv = Object.assign({}, cp.adv);
+  st.kit = cp.kit.slice();
   return setupLevel(st, st.levelIdx);
 }
 
@@ -395,6 +407,12 @@ function endTurn(st) {
 const levelCleared = st => st.mons.length === 0;
 function applyBreak(st, choice) {
   if (choice === 'heal') { st.adv.hp = START_HP; return true; }
+  if (/^dice[012]$/.test(choice)) {
+    if (st.mode !== 'muda') return false;
+    const i = +choice[4], n = nextDie(st.kit[i]);
+    if (!n) return false;
+    st.kit[i] = n; return true;
+  }
   if (!['spd', 'atk', 'def', 'rng'].includes(choice) || st.adv[choice] >= SKILL_MAX) return false;
   st.adv[choice] += 1; return true;
 }
@@ -404,7 +422,7 @@ function nextLevel(st) {
   return true;
 }
 
-const API = { COLS, ROWS, N, idx, XY, START_HP, SKILL_MAX, HEROES, EQUIPS, MONS, MAPS, LEVEL_DEFS, get LEVELS() { return LEVELS; }, loadLevels, setRng, roll,
+const API = { LEVEL_DEFS_MUDA, DEFS, MUDA_KITS, DIE_STEPS, nextDie, COLS, ROWS, N, idx, XY, START_HP, SKILL_MAX, HEROES, EQUIPS, MONS, MAPS, LEVEL_DEFS, get LEVELS() { return LEVELS; }, loadLevels, setRng, roll,
   dijkstra, rangeDist, hasLOS, adjOf, lvOf, newRun, retryLevel, setupLevel, assignDie, unassign, assignComplete, canReroll, useHelm, confirmEnergy,
   pushUndo, popUndo, reachFromAdv, moveAdv, atkCost, ambushReady, attackInfo, attackMon, cornadaInfo, cornada, chooseMove, attackers, playMonsters, endTurn,
   levelCleared, applyBreak, nextLevel, freshTurn, rollTurn };
