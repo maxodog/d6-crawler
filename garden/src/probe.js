@@ -12,7 +12,7 @@ function typical(hero, L, mode) { // héroe típico al empezar el nivel L (1..12
   const a = { spd: 1, atk: 1, def: 1, rng: 2 }, kit = E.MUDA_KITS[hero].slice(), ups = Math.round((L - 1) * 0.85);
   const order = ['def', 'rng', 'atk', 'spd'];
   const skill = () => { for (const k of order) { const lim = k === 'rng' ? 3 : 6; if (a[k] < lim) { a[k]++; return true; } } return false; };
-  const die = () => { let bi = -1; kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s < kit[bi])) bi = i; }); if (bi < 0) return false; kit[bi] = E.nextDie(kit[bi]); return true; };
+  const die = () => { let bi = -1; kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s > kit[bi])) bi = i; }); if (bi < 0) return false; kit[bi] = E.nextDie(kit[bi]); return true; };
   for (let i = 0; i < ups; i++) { if (i % 2 === 0) { if (!die()) skill(); } else { if (!skill()) die(); } }
   return { adv: a, kit };
 }

@@ -80,72 +80,87 @@ h3{font-family:var(--display);font-size:24px;line-height:1.1}
 .chips{display:flex;gap:6px;margin:3px 0 4px;flex-wrap:wrap}
 .chip{border:1px solid var(--torch);color:var(--torch);border-radius:5px;padding:0 7px;font-size:15px;font-weight:700;letter-spacing:.05em}
 .sect{font-family:var(--display);font-size:22px;letter-spacing:.06em;text-transform:uppercase;color:var(--torch);border-bottom:1px solid var(--line-dim);padding-bottom:3px;margin:2px 0}
-/* estado */
-.hud{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px}
-.hud .sub{grid-column:1/-1}
-.hud .lv{font-family:var(--display);font-size:24px;line-height:1.05}
-.hearts{font-size:18px;letter-spacing:1px;white-space:nowrap}
-/* tablero */
-#board{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;background:var(--soil);padding:5px;border-radius:12px;width:100%;aspect-ratio:1/1;touch-action:manipulation;border:1.5px solid var(--line-dim)}
-.cell{position:relative;border-radius:6px;background:var(--tile);display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;border:0;padding:0;overflow:hidden;color:inherit}
-.cell.alt{background:var(--tile2)}
-.cell.wall{background:var(--wall);background-image:radial-gradient(circle at 25% 30%,#4c9a52 0 22%,transparent 24%),radial-gradient(circle at 70% 65%,#3c8444 0 26%,transparent 28%),radial-gradient(circle at 55% 20%,#5aa862 0 16%,transparent 18%)}
-.cell.reach{background:#254a2f;box-shadow:inset 0 0 0 2px var(--line);cursor:pointer}
-.cell.reach .cost{position:absolute;right:4px;bottom:2px;font-size:15px;font-weight:700;color:var(--line)}
-.cell .em{font-size:clamp(20px,8.4vw,40px);line-height:1;filter:drop-shadow(0 1px 0 rgba(0,0,0,.4))}
-.cell.hero{box-shadow:inset 0 0 0 3px var(--sel);background:#1f3b5a}
-.cell.hero .em{font-size:clamp(22px,9vw,42px)}
-.cell.mon{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.12)}
-.cell.atk{box-shadow:inset 0 0 0 3px var(--foe);animation:pulse 1.2s infinite}
-@keyframes pulse{50%{box-shadow:inset 0 0 0 3px var(--foe),0 0 9px 1px rgba(255,106,92,.6)}}
-.pips{position:absolute;left:0;right:0;bottom:2px;display:flex;justify-content:center;gap:2px}
-.pip{width:6px;height:6px;border-radius:50%;background:var(--foe);border:1px solid #1a0b09}
-.pip.lost{background:#46564a}
-.badge{position:absolute;top:1px;left:2px;font-size:15px;font-weight:700;background:#0b1a10;border:1px solid var(--foe);border-radius:5px;padding:0 4px;color:var(--foe);line-height:1.15}
-.badge.ok{color:var(--torch);border-color:var(--torch)}
-.fx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:26px;color:#fff;text-shadow:0 0 4px #000,0 0 4px #000;pointer-events:none;animation:rise .9s forwards}
-@keyframes rise{0%{transform:translateY(8px);opacity:0}20%{opacity:1}100%{transform:translateY(-14px);opacity:0}}
+/* partida (misma estructura que Archeodice y Colossus) */
+.top.game{align-items:center}
+.top.game .brand .mark{font-size:25px;white-space:nowrap}
+.hp{display:flex;align-items:center;gap:7px;margin-left:auto}
+.pipsd{display:flex;gap:5px}
+.pipsd i{width:10px;height:10px;transform:rotate(45deg);border:1.5px solid var(--torch)}
+.pipsd i.on{background:var(--torch)}
+.hpnum{font-size:15px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ghost.icon{min-width:36px;min-height:36px;padding:0;font-size:18px;letter-spacing:0}
+.card-head{display:flex;flex-direction:column;gap:3px;padding:2px 6px 0}
+.card-head .kind{font-size:13px;letter-spacing:.26em;text-transform:uppercase;color:var(--torch);font-weight:700}
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.lvl-name{margin:0;font-family:var(--display);font-weight:400;font-size:27px;line-height:1}
+.lvl-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.lvl-num{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:600;white-space:nowrap}
+.lvl-num b{color:var(--torch);font-size:16px;letter-spacing:.1em}
+.dots{display:flex;gap:4px}
+.dots i{width:6px;height:6px;border:1px solid var(--line);transform:rotate(45deg)}
+.dots i.done{background:var(--line)}
+.dots i.now{background:var(--torch);border-color:var(--torch)}
+.board{position:relative;width:100%;aspect-ratio:1/1;border:1.5px solid var(--line);background:rgba(143,207,122,.04)}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr))}
+.tile{position:relative;min-width:0;min-height:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:inset 0 0 0 .5px var(--line-dim);color:var(--chalk);overflow:hidden;display:block}
+.tile.wall{background-color:#1d4d2b;background-image:repeating-linear-gradient(135deg,rgba(143,207,122,.55) 0 1.5px,transparent 1.5px 7px);box-shadow:inset 0 0 0 1.5px var(--line)}
+.tile.reach{background:rgba(255,177,59,.10);box-shadow:inset 0 0 0 1px rgba(255,177,59,.7);cursor:pointer}
+.tile.reach::before{content:'';position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:var(--torch);transform:rotate(45deg);opacity:.8}
+.tile.reach::after{content:attr(data-cost);position:absolute;right:3px;bottom:1px;font-size:13px;font-weight:700;color:var(--torch)}
+.tile.target{box-shadow:inset 0 0 0 2px var(--foe);background:rgba(255,106,92,.14);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 2px rgba(255,106,92,.35)}}
+.tok{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(24px,8.2vw,38px);line-height:1;filter:drop-shadow(0 1px 0 rgba(0,0,0,.4))}
+.tile.hero .spot{position:absolute;left:10%;top:10%;width:80%;height:80%;border-radius:50%;display:grid;place-items:center;background:rgba(8,20,10,.6);box-shadow:0 0 8px 1px rgba(255,177,59,.55),inset 0 0 0 1.5px rgba(255,177,59,.45);font-size:clamp(20px,6.6vw,31px);line-height:1}
+.tile .badge{position:absolute;right:2px;bottom:2px;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:var(--card);border:1.5px solid var(--foe);font-size:13px;font-weight:700;line-height:14px;text-align:center;color:var(--chalk)}
+.tile .cost{position:absolute;left:2px;top:1px;font-size:13px;font-weight:700;color:var(--foe);line-height:1}
+.tile .amb{position:absolute;left:2px;top:1px;font-size:13px;font-weight:700;color:var(--torch);line-height:1.1}
+.fx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:24px;color:var(--chalk);text-shadow:0 1px 0 var(--card),0 0 6px var(--card);pointer-events:none;animation:rise .9s forwards;z-index:3}
+@keyframes rise{0%{transform:translateY(8px);opacity:0}20%{opacity:1}100%{transform:translateY(-16px);opacity:0}}
 .shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-/* paneles */
-.dice{display:flex;gap:10px;justify-content:center}
-.die{width:76px;height:76px;border-radius:12px;background:#0b1a10;border:1.5px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
-.die b{font-family:var(--display);font-weight:400;font-size:38px;line-height:.95}
-.die small{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.08em}
-.die.sel{border-color:var(--sel);box-shadow:0 0 0 3px rgba(108,196,255,.3)}
-.die.used{opacity:.4}
-.die.rr{border-color:var(--torch);box-shadow:0 0 0 3px rgba(255,177,59,.3)}
-.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.slot{background:transparent;border:1.5px dashed var(--line-dim);border-radius:10px;padding:8px 4px;text-align:center;min-height:78px}
-.slot.on{border-style:solid;border-color:var(--line);background:rgba(143,207,122,.07)}
-.slot.tgt{border-color:var(--sel);background:rgba(108,196,255,.08)}
-.slot .k{font-size:14px;color:var(--muted);font-weight:600;letter-spacing:.14em;text-transform:uppercase}
-.slot .v{font-family:var(--display);font-size:30px;line-height:1.1}
-.slot .f{font-size:14px;color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.stat{border:1.5px solid var(--line-dim);border-radius:10px;padding:6px 3px;text-align:center}
-.stat .k{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:uppercase}
-.stat .v{font-family:var(--display);font-size:32px;line-height:1}
-.stat .f{font-size:13px;color:var(--muted)}
-.bar{height:4px;border-radius:2px;background:rgba(143,207,122,.18);margin-top:3px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--torch)}
-.msg{min-height:40px;padding:9px 12px;border-radius:10px;background:#0b1a10;border:1.5px solid var(--line-dim);font-size:19px}
-.msg b{color:var(--torch)}
-.mons{display:flex;flex-direction:column;gap:6px}
-.mon-row{display:flex;gap:10px;align-items:center;border:1.5px solid var(--line-dim);border-radius:10px;padding:6px 10px}
-.mon-row.atk{border-color:var(--foe);background:rgba(255,106,92,.08)}
-.mon-row .em{font-size:26px}
-.mon-row .nm{font-family:var(--display);font-size:22px;line-height:1}
-.mon-row .st{font-size:15px;color:var(--muted)}
-.mon-row .hpn{margin-left:auto;font-family:var(--display);font-size:26px;color:var(--foe)}
+.foot{display:grid;grid-template-columns:54px 1fr;align-items:center;gap:10px;border-top:1.5px solid var(--line-dim);padding:10px 4px 2px}
+.foot .ico{width:54px;height:54px;border:1.5px solid var(--line-dim);border-radius:8px;display:grid;place-items:center;font-size:30px}
+.foot .nm{font-family:var(--display);font-size:22px;line-height:1}
+.foot .nm small{font-family:var(--body);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-left:6px}
+.st5{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:6px}
+.st5 div{text-align:center;border:1px solid var(--line-dim);border-radius:5px;padding:2px 0 1px}
+.st5 b{display:block;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.st5 span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.panel{display:flex;flex-direction:column;gap:10px}
+.bannerp{display:flex;gap:10px;align-items:center;min-height:36px}
+.step{flex:none;width:28px;height:28px;display:grid;place-items:center;border:1.5px solid var(--torch);color:var(--torch);border-radius:50%;font-weight:700;font-size:16px}
+.bannerp p{margin:0;font-size:18px}
+.bannerp p em{font-style:normal;color:var(--torch);font-weight:700}
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cbox{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:74px;padding:6px 4px;background:rgba(143,207,122,.06);border:1.5px solid var(--line-dim);border-radius:9px;text-align:center;color:var(--chalk)}
+.cbox .lbl{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.cbox .val{font-size:32px;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.cbox .sub{font-size:12.5px;color:var(--muted);min-height:18px;font-weight:500}
+.cbox.slot{border-style:dashed;border-color:var(--line)}
+.cbox.slot.filled{border-style:solid;border-color:var(--torch);background:rgba(255,177,59,.08)}
+.cbox.slot.tgt{border-color:var(--sel);background:rgba(108,196,255,.08)}
+.cbox .bar{position:absolute;left:8px;right:8px;bottom:4px;height:3px;background:var(--line-dim);border-radius:2px;overflow:hidden}
+.cbox .bar i{display:block;height:100%;background:var(--torch)}
+.dice-row{display:flex;gap:14px;justify-content:center;min-height:62px;align-items:center}
+.die{position:relative;width:58px;height:58px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--chalk);color:#10240f;border:0;border-radius:11px;box-shadow:0 3px 0 #9dbb8c;transition:transform .15s}
+.die b{font-family:var(--display);font-weight:400;font-size:34px;line-height:.95}
+.die small{position:absolute;right:5px;top:3px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#4b6b42}
+.die.sel{transform:translateY(-4px);box-shadow:0 0 0 3px var(--torch),0 6px 0 #9dbb8c}
+.die.used{opacity:.25;pointer-events:none}
+.die.rr{box-shadow:0 0 0 3px var(--torch),0 3px 0 #9dbb8c}
+.actions{display:flex;gap:8px}
+.actions .btn{flex:1}
+.log{margin:0;min-height:40px;color:var(--muted);font-size:18px}
+.log b{color:var(--torch);font-weight:700}
+.hint{color:var(--torch);font-weight:600}
+.pickhint{text-align:center;color:var(--muted);font-size:15px;margin:0}
 /* modales */
-.veil{position:fixed;inset:0;background:rgba(2,8,4,.78);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
-.modal{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:10px;
+.veil{position:fixed;inset:0;background:rgba(2,8,4,.78);display:flex;align-items:flex-end;justify-content:center;padding:0;z-index:10}
+.modal{background:var(--card);border:1.5px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);max-width:440px;width:100%;max-height:90vh;overflow:auto;display:flex;flex-direction:column;gap:10px;
   box-shadow:inset 0 0 0 4px var(--card),inset 0 0 0 5px var(--line-dim)}
 .up{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .up.three{grid-template-columns:1fr 1fr 1fr}
 ul.rules{padding-left:18px;margin:0;display:flex;flex-direction:column;gap:6px;font-size:18px}
-.hint{color:var(--sel);font-weight:600}
 </style>
 </head>
 <body>
@@ -212,7 +227,7 @@ const LEVEL_DEFS = [
 
 /* Prueba 2 «Muda»: mismos mapas y monstruos, otras cantidades y posiciones (se afinan con design.js). */
 const LEVEL_DEFS_MUDA = LEVEL_DEFS.map(d => Object.assign({}, d));
-const MUDA_AT = [[[3,2],[4,4],[5,1]],[[1,5]],[[0,1],[2,4]],[[3,4]],[[5,5],[3,0],[4,4],[0,2],[5,4],[3,5]],[[2,1],[0,2],[0,0]],[[2,3],[2,4],[0,3],[1,3]],[[0,4],[5,1],[2,0],[1,5],[4,4]],[[4,0],[0,0],[5,1],[3,0],[1,3],[3,4],[5,2],[2,0],[5,3]],[[0,0],[1,3],[5,1],[0,1]],[[4,5],[0,0],[0,3],[3,3],[1,5],[4,3]],[[3,2],[5,5],[0,4],[5,0],[2,5],[0,3]]];
+const MUDA_AT = [[[1,0],[2,2],[4,2]],[[0,2]],[[3,4],[0,0]],[[0,3]],[[2,1],[2,0],[5,4],[4,2],[4,3],[2,2]],[[0,0],[1,0],[3,0]],[[0,1],[5,4],[0,2],[0,5]],[[1,3],[5,0],[3,4],[0,4],[5,2]],[[5,0],[4,0],[5,1],[5,2],[3,4],[5,5],[3,0],[4,2],[5,3],[3,2]],[[0,1],[0,0],[0,5],[4,2],[3,2]],[[2,3],[0,2],[2,4],[1,3],[3,5],[4,5],[2,5]],[[5,4],[5,3],[0,4],[3,0],[2,5],[5,0],[3,2]]];
 LEVEL_DEFS_MUDA.forEach((d, i) => { d.at = MUDA_AT[i]; });
 const DEFS = { kits: LEVEL_DEFS, muda: LEVEL_DEFS_MUDA };
 
@@ -589,6 +604,7 @@ return API;
 'use strict';
 const { idx, XY, N, COLS } = E;
 const SK = { spd: 'Movimiento', atk: 'Ataque', def: 'Defensa', rng: 'Alcance' };
+const SKS = { spd: 'MOV', atk: 'ATQ', def: 'DEF', rng: 'ALC' };
 const app = document.getElementById('app');
 const IN_REPO = location.pathname.indexOf('/garden/') >= 0;
 const ADV = {
@@ -694,79 +710,77 @@ function boardHTML() {
   if (move) for (const m of S.mons) { const inf = E.attackInfo(S, m); if (inf.ok) atkOk[idx(m.x, m.y)] = inf; }
   let h = '';
   for (let i = 0; i < N; i++) {
-    const [x, y] = XY(i), alt = (x + y) % 2 ? ' alt' : '';
-    if (lv.walls[i]) { h += `<div class="cell wall${alt}" aria-label="Seto"></div>`; continue; }
+    if (lv.walls[i]) { h += `<div class="tile wall" aria-label="Seto"></div>`; continue; }
     const m = mons.find(o => idx(o.x, o.y) === i);
     const fx = ui.fx[i] ? `<span class="fx">${ui.fx[i]}</span>` : '';
     if (i === heroI) {
       const hero = E.HEROES[S.hero];
-      const amb = move && E.ambushReady(S) ? `<span class="badge ok">×2</span>` : '';
-      h += `<div class="cell hero${alt}${ui.fx[i] ? ' shake' : ''}" aria-label="Tu héroe"><span class="em">${hero.emoji}</span>${amb}${fx}</div>`;
+      const amb = move && E.ambushReady(S) ? `<span class="amb">×2</span>` : '';
+      h += `<div class="tile hero${ui.fx[i] ? ' shake' : ''}" aria-label="Tu héroe"><span class="spot">${hero.emoji}</span>${amb}${fx}</div>`;
     } else if (m) {
-      const info = lv.mon, can = atkOk[i];
-      const pp = Array.from({ length: m.maxHp }, (_, k) => `<span class="pip ${k < m.hp ? '' : 'lost'}"></span>`).join('');
-      h += `<button class="cell mon${alt}${can ? ' atk' : ''}" data-act="mon" data-id="${m.id}" aria-label="${esc(info.name)}"><span class="em">${info.emoji}</span><span class="pips">${pp}</span>${can ? `<span class="badge">−${can.cost}</span>` : ''}${fx}</button>`;
+      const can = atkOk[i];
+      h += `<button class="tile mon${can ? ' target' : ''}" data-act="mon" data-id="${m.id}" aria-label="${esc(lv.mon.name)}"><span class="tok">${lv.mon.emoji}</span>${can ? `<span class="cost">−${can.cost}</span>` : ''}<span class="badge">${m.hp}</span>${fx}</button>`;
     } else if (R && R.dist[i] > 0 && R.dist[i] <= S.turn.spdLeft) {
-      h += `<button class="cell reach${alt}" data-act="go" data-i="${i}" aria-label="Moverte aquí"><span class="cost">${R.dist[i]}</span>${fx}</button>`;
-    } else h += `<div class="cell${alt}">${fx}</div>`;
+      h += `<button class="tile reach" data-act="go" data-i="${i}" data-cost="${R.dist[i]}" aria-label="Moverte aquí">${fx}</button>`;
+    } else h += `<div class="tile">${fx}</div>`;
   }
-  return `<div id="board">${h}</div>`;
+  return `<div class="board"><div class="grid">${h}</div></div>`;
 }
 function dieHTML(i) {
   const t = S.turn, used = ['spd', 'atk', 'def'].some(k => t.assign[k] === i);
-  return `<button class="die ${ui.selDie === i ? 'sel' : ''} ${used ? 'used' : ''} ${ui.rr ? 'rr' : ''}" data-act="die" data-i="${i}"><b>${t.dice[i]}</b><small>D${t.sides[i]}</small></button>`;
+  return `<button class="die ${ui.selDie === i ? 'sel' : ''} ${used ? 'used' : ''} ${ui.rr ? 'rr' : ''}" data-act="die" data-i="${i}"><small>D${t.sides[i]}</small><b>${t.dice[i]}</b></button>`;
 }
 function energyHTML() {
   const t = S.turn, a = S.adv;
   const slot = k => {
     const d = t.assign[k], extra = k === 'def' && S.equip === 'shield' ? 1 : 0;
-    return `<button class="slot ${d >= 0 ? 'on' : ''} ${ui.selDie >= 0 && d < 0 ? 'tgt' : ''}" data-act="slot" data-k="${k}"><div class="k">${SK[k]}</div>
-      <div class="v">${d >= 0 ? a[k] + t.dice[d] + extra : '—'}</div><div class="f">${d >= 0 ? `${a[k]} + ${t.dice[d]}${extra ? ' +1' : ''}` : `base ${a[k]}`}</div></button>`;
+    return `<button class="cbox slot ${d >= 0 ? 'filled' : ''} ${ui.selDie >= 0 && d < 0 ? 'tgt' : ''}" data-act="slot" data-k="${k}"><span class="lbl">${SKS[k]}</span>
+      <span class="val">${d >= 0 ? a[k] + t.dice[d] + extra : '—'}</span><span class="sub">${d >= 0 ? `${a[k]} + ${t.dice[d]}${extra ? ' +1' : ''}` : `base ${a[k]}`}</span></button>`;
   };
   const done = E.assignComplete(t);
-  return `<div class="card"><h3>Turno ${S.turnNo} · reparte tus dados</h3>
-    <div class="dice">${[0, 1, 2].map(dieHTML).join('')}</div>
-    <div class="small" style="text-align:center">${ui.rr ? '<span class="hint">Toca el dado que quieres repetir</span>' : ui.selDie >= 0 ? '<span class="hint">Ahora toca la habilidad</span>' : 'Toca un dado y luego una habilidad. Toca una habilidad ocupada para soltarla.'}</div>
-    <div class="slots">${['spd', 'atk', 'def'].map(slot).join('')}</div>
-    <div class="row">
-      ${S.equip === 'helm' ? `<button class="btn warn" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : 'Repetir un dado'}</button>` : ''}
-      <button class="btn primary" style="flex:1" data-act="confirm" ${done ? '' : 'disabled'}>Listo</button></div></div>`;
+  const hint = ui.rr ? '<span class="hint">Toca el dado que quieres repetir.</span>' : ui.selDie >= 0 ? '<span class="hint">Ahora toca Movimiento, Ataque o Defensa.</span>' : 'Toca un dado y luego una habilidad. Toca una habilidad ocupada para soltarla.';
+  return `<div class="panel"><div class="bannerp"><span class="step">1</span><p>Reparte tus <em>tres dados</em>, turno ${S.turnNo}.</p></div>
+    <div class="dice-row">${[0, 1, 2].map(dieHTML).join('')}</div>
+    <p class="pickhint">${hint}</p>
+    <div class="cgrid">${['spd', 'atk', 'def'].map(slot).join('')}<div class="cbox"><span class="lbl">ALC</span><span class="val">${a.rng}</span><span class="sub">sin dado</span></div></div>
+    <div class="actions">${S.equip === 'helm' ? `<button class="btn" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : 'Repetir dado'}</button>` : ''}
+      <button class="btn primary" data-act="confirm" ${done ? '' : 'disabled'}>Listo</button></div></div>`;
 }
 function moveHTML() {
   const t = S.turn;
-  const st = (k, left, tot) => `<div class="stat"><div class="k">${SK[k]}</div><div class="v">${left == null ? tot : left}</div><div class="f">${left == null ? 'este turno' : 'de ' + tot}</div>${left == null ? '' : `<div class="bar"><i style="width:${tot ? 100 * left / tot : 0}%"></i></div>`}</div>`;
-  const ab = S.hero === 'beetle' ? `<button class="btn warn" data-act="cornada" ${S.abil ? 'disabled' : ''}>${ui.cornada ? 'Cancelar Cornada' : 'Cornada'}</button>` : '';
-  return `<div class="card"><h3>Turno ${S.turnNo} · tu fase</h3>
-    <div class="stats">${st('spd', t.spdLeft, t.spd)}${st('atk', t.atkLeft, t.atk)}${st('def', null, t.def)}${st('rng', null, t.rng)}</div>
-    <div class="row">${ab}<button class="btn" data-act="undo" ${S.undo.length ? '' : 'disabled'}>Deshacer</button>
-    <button class="btn primary" style="flex:1" data-act="end">Terminar turno</button></div></div>`;
+  const st = (k, left, tot) => `<div class="cbox"><span class="lbl">${SKS[k]}</span><span class="val">${left == null ? tot : left}</span><span class="sub">${left == null ? 'este turno' : 'de ' + tot}</span>${left == null ? '' : `<span class="bar"><i style="width:${tot ? 100 * left / tot : 0}%"></i></span>`}</div>`;
+  const ab = S.hero === 'beetle' ? `<button class="btn" data-act="cornada" ${S.abil ? 'disabled' : ''}>${ui.cornada ? 'Cancelar' : 'Cornada'}</button>` : '';
+  return `<div class="panel"><div class="bannerp"><span class="step">2</span><p>Tu fase: <em>muévete</em> y <em>ataca</em>. Turno ${S.turnNo}.</p></div>
+    <div class="cgrid">${st('spd', t.spdLeft, t.spd)}${st('atk', t.atkLeft, t.atk)}${st('def', null, t.def)}${st('rng', null, t.rng)}</div>
+    <div class="actions">${ab}<button class="btn" data-act="undo" ${S.undo.length ? '' : 'disabled'}>Deshacer</button>
+    <button class="btn primary" data-act="end">Terminar turno</button></div></div>`;
 }
-function monsHTML() {
-  const lv = E.lvOf(S), mi = lv.mon, move = S.phase === 'move' && !ui.anim;
-  if (!S.mons.length) return '';
-  return `<div class="card plain"><h3>${mi.emoji} ${S.mons.length} × ${S.mons.length > 1 ? mi.plural : mi.name}</h3><div class="small">${mi.txt} Vida ${mi.hp} · Vel ${mi.spd} · Atq ${mi.atk} · Def ${mi.def} · Alc ${mi.rng}</div>
-    <div class="mons">${S.mons.map(m => {
-      const inf = move ? E.attackInfo(S, m) : { ok: false };
-      return `<div class="mon-row ${inf.ok ? 'atk' : ''}"><span class="em">${mi.emoji}</span><span><span class="nm">${mi.name} ${m.id}</span><div class="st">${inf.ok ? 'Puedes atacarlo (cuesta ' + inf.cost + ')' : move ? (inf.why === 'range' ? 'Fuera de tu alcance' : inf.why === 'los' ? 'Sin línea de tiro' : 'Te faltan puntos de Ataque') : ''}</div></span><span class="hpn">♥ ${m.hp}</span></div>`;
-    }).join('')}</div></div>`;
+function footHTML() {
+  const lv = E.lvOf(S), mi = lv.mon, n = S.mons.length;
+  return `<div class="foot"><span class="ico">${mi.emoji}</span><div><div class="nm">${n > 1 ? mi.plural : mi.name}<small>${n ? n + (n > 1 ? ' quedan' : ' queda') : 'ninguno'}</small></div>
+    <div class="st5"><div><b>${mi.hp}</b><span>Vida</span></div><div><b>${mi.spd}</b><span>Vel</span></div><div><b>${mi.atk}</b><span>Atq</span></div><div><b>${mi.def}</b><span>Def</span></div><div><b>${mi.rng}</b><span>Alc</span></div></div></div></div>`;
 }
 function gameHTML() {
   const lv = E.lvOf(S), hero = E.HEROES[S.hero], q = E.EQUIPS[S.equip];
   const panel = S.phase === 'energy' ? energyHTML() : S.phase === 'move' ? moveHTML() : '';
   const kit = S.mode === 'muda' ? ' · ' + S.kit.map(s => 'D' + s).join('·') : '';
-  return `<div class="top"><div class="brand"><span class="mark">Garden Crawler</span><span class="sub">${ADV[S.mode].tag}</span></div>
-    <div class="top-actions"><button class="ghost" data-act="rules" aria-label="Reglas">?</button><button class="ghost" data-act="menu">Menú</button></div></div>
-  <div class="card"><div class="hud"><div class="lv">Nivel ${lv.num}/12 · ${esc(lv.title)}</div><div class="hearts" aria-label="Vida ${S.adv.hp}">${hearts(S.adv.hp)}</div><div class="small sub">${hero.emoji} ${hero.name} · ${q.emoji} ${q.name}${kit}</div></div>
-  ${boardHTML()}</div>
-  <div class="msg" id="msg">${ui.msg || 'Reparte tus dados para empezar.'}</div>
-  ${panel}${monsHTML()}`;
+  const hp = S.adv.hp, pipsd = Array.from({ length: E.START_HP }, (_, k) => `<i class="${k < hp ? 'on' : ''}"></i>`).join('');
+  const dots = Array.from({ length: 12 }, (_, k) => `<i class="${k < lv.num - 1 ? 'done' : k === lv.num - 1 ? 'now' : ''}"></i>`).join('');
+  return `<div class="top game"><div class="brand"><span class="mark">Garden Crawler</span></div>
+    <div class="hp"><span class="pipsd" aria-hidden="true">${pipsd}</span><span class="hpnum" aria-label="Vida ${hp} de ${E.START_HP}">${hp}/${E.START_HP}</span></div>
+    <div class="top-actions"><button class="ghost icon" data-act="rules" aria-label="Reglas">?</button><button class="ghost icon" data-act="menu" aria-label="Menú">☰</button></div></div>
+  <div class="card"><div class="card-head"><span class="kind">${ADV[S.mode].tag}</span>
+    <div class="head-row"><h2 class="lvl-name">${esc(lv.title)}</h2><div class="lvl-r"><span class="lvl-num">Nivel <b>${lv.num}</b> de 12</span><div class="dots">${dots}</div></div></div>
+    <span class="small">${hero.emoji} ${hero.name} · ${q.emoji} ${q.name}${kit}</span></div>
+  ${boardHTML()}${footHTML()}</div>
+  ${panel}<p class="log" id="msg">${ui.msg || 'Reparte tus dados para empezar.'}</p>`;
 }
 function modalHTML() {
   const m = ui.modal; if (!m) return '';
   let body = '';
   if (m.t === 'break') {
     const a = S.adv, b = (k, lbl) => `<button class="btn" data-act="up" data-k="${k}" ${a[k] >= E.SKILL_MAX ? 'disabled' : ''}><span>${lbl}</span><small>${a[k]} → ${Math.min(E.SKILL_MAX, a[k] + 1)}</small></button>`;
-    const dice = S.mode === 'muda' ? `<div class="sect">Mudar un dado</div><div class="up three">${S.kit.map((s, i) => `<button class="btn" data-act="up" data-k="dice${i}" ${E.nextDie(s) ? '' : 'disabled'}><span>Dado ${i + 1}</span><small>D${s}${E.nextDie(s) ? ' → D' + E.nextDie(s) : ' (máximo)'}</small></button>`).join('')}</div>` : '';
+    const dice = S.mode === 'muda' ? `<div class="sect">Mudar un dado</div><p class="small" style="margin:0">Si mejoras siempre el mismo dado, llega antes a D12.</p><div class="up three">${S.kit.map((s, i) => `<button class="btn" data-act="up" data-k="dice${i}" ${E.nextDie(s) ? '' : 'disabled'}><span>Dado ${i + 1}</span><small>D${s}${E.nextDie(s) ? ' → D' + E.nextDie(s) : ' (máximo)'}</small></button>`).join('')}</div>` : '';
     body = `<h2>¡Nivel superado!</h2><p class="lead">Vida ${a.hp}/6. Elige una mejora o cúrate por completo.</p>
       <div class="sect">Habilidad</div><div class="up">${b('spd', 'Movimiento')}${b('atk', 'Ataque')}${b('def', 'Defensa')}${b('rng', 'Alcance')}</div>${dice}
       <button class="btn warn full" data-act="up" data-k="heal">Curarte (Vida 6)</button>`;

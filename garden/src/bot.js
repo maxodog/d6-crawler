@@ -99,7 +99,7 @@ function playLevel(st, maxTurns = 40) {
 }
 function pickDie(st) {
   let bi = -1;
-  st.kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s < st.kit[bi])) bi = i; });
+  st.kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s > st.kit[bi])) bi = i; });
   return bi < 0 ? null : 'dice' + bi;
 }
 function pickBreak(st, opts) {
