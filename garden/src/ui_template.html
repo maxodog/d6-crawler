@@ -312,7 +312,7 @@ function energyHTML() {
     <div class="dice-row">${[0, 1, 2].map(dieHTML).join('')}</div>
     <p class="pickhint">${hint}</p>
     <div class="cgrid">${['spd', 'atk', 'def'].map(slot).join('')}<div class="cbox"><span class="lbl">ALC</span><span class="val">${a.rng}</span><span class="sub">sin dado</span></div></div>
-    <div class="actions">${S.equip === 'helm' ? `<button class="btn" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : 'Repetir dado'}</button>` : ''}
+    <div class="actions">${S.equip === 'helm' ? `<button class="btn" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : S.turn.rerolled || E.canReroll(S) ? 'Repetir dado' : 'Recargando'}</button>` : ''}
       <button class="btn primary" data-act="confirm" ${done ? '' : 'disabled'}>Listo</button></div></div>`;
 }
 function moveHTML() {

@@ -73,6 +73,7 @@ function helmReroll(st) {
   if (!E.canReroll(st)) return;
   const t = st.turn; let bi = -1, br = 1;
   for (let i = 0; i < 3; i++) { const r = t.dice[i] / t.sides[i]; if (r < br) { br = r; bi = i; } }
+  if (br > (+process.env.HELM_THR || 1)) return;
   E.useHelm(st, bi);
 }
 // Juega un nivel hasta ganar o morir. Devuelve {won, turns, dmg}

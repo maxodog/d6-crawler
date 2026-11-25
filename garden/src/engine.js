@@ -25,7 +25,7 @@ const nextDie = s => DIE_STEPS[DIE_STEPS.indexOf(s) + 1] || 0;
 const EQUIPS = {
   thorn: { key: 'thorn', name: 'Espina de rosa', emoji: '🌹', type: 'Arma', txt: 'Tus ataques cuestan 1 punto de Ataque menos (mínimo 1).' },
   shield: { key: 'shield', name: 'Escudo de pétalo', emoji: '🌸', type: 'Armadura', txt: 'Tu Defensa es 1 punto más alta en cada turno.' },
-  helm: { key: 'helm', name: 'Casco de bellota', emoji: '🌰', type: 'Armadura', txt: 'Una vez por turno, repites un dado y te quedas con el mejor de los dos resultados.' }
+  helm: { key: 'helm', name: 'Casco de bellota', emoji: '🌰', type: 'Armadura', txt: 'Cada 2 turnos (puedes usarlo en el primero), repites un dado y te quedas con el mejor de los dos resultados.' }
 };
 const MONS = {
   tij: { key: 'tij', name: 'Tijereta', plural: 'Tijeretas', emoji: '🦂', color: '#b5473a', hp: 2, spd: 6, atk: 4, def: 3, rng: 3, txt: 'Rápida y frágil.' },
@@ -191,6 +191,7 @@ function setupLevel(st, i) {
     return { id: n + 1, x: mx, y: my, hp: m.hp, maxHp: m.hp, spd: m.spd, atk: m.atk, def: m.def, rng: m.rng };
   });
   st.abil = false;
+  st.lastHelm = -99;
   st.phase = 'energy';
   st.turn = freshTurn(st);
   rollTurn(st);
@@ -219,13 +220,15 @@ function assignDie(st, skill, die) {
 }
 function unassign(st, skill) { st.turn.assign[skill] = -1; }
 const assignComplete = t => t.assign.spd >= 0 && t.assign.atk >= 0 && t.assign.def >= 0;
-function canReroll(st) { return st.equip === 'helm' && st.phase === 'energy' && !st.turn.rerolled; }
+let HELM_EVERY = 2; // el Casco se puede usar cada N turnos (1 = todos los turnos; 99 = una vez por nivel)
+const setHelmEvery = n => { HELM_EVERY = n; };
+function canReroll(st) { return st.equip === 'helm' && st.phase === 'energy' && !st.turn.rerolled && st.turnNo - (st.lastHelm == null ? -99 : st.lastHelm) >= HELM_EVERY; }
 function useHelm(st, die) {
   if (!canReroll(st) || die < 0 || die > 2) return false;
   const nw = roll(st.turn.sides[die]);
   st.turn.lastRoll = nw;
   st.turn.dice[die] = Math.max(st.turn.dice[die], nw);
-  st.turn.rerolled = true;
+  st.turn.rerolled = true; st.lastHelm = st.turnNo;
   return true;
 }
 function confirmEnergy(st) {
@@ -422,7 +425,7 @@ function nextLevel(st) {
   return true;
 }
 
-const API = { LEVEL_DEFS_MUDA, DEFS, MUDA_KITS, DIE_STEPS, nextDie, COLS, ROWS, N, idx, XY, START_HP, SKILL_MAX, HEROES, EQUIPS, MONS, MAPS, LEVEL_DEFS, get LEVELS() { return LEVELS; }, loadLevels, setRng, roll,
+const API = { setHelmEvery, LEVEL_DEFS_MUDA, DEFS, MUDA_KITS, DIE_STEPS, nextDie, COLS, ROWS, N, idx, XY, START_HP, SKILL_MAX, HEROES, EQUIPS, MONS, MAPS, LEVEL_DEFS, get LEVELS() { return LEVELS; }, loadLevels, setRng, roll,
   dijkstra, rangeDist, hasLOS, adjOf, lvOf, newRun, retryLevel, setupLevel, assignDie, unassign, assignComplete, canReroll, useHelm, confirmEnergy,
   pushUndo, popUndo, reachFromAdv, moveAdv, atkCost, ambushReady, attackInfo, attackMon, cornadaInfo, cornada, chooseMove, attackers, playMonsters, endTurn,
   levelCleared, applyBreak, nextLevel, freshTurn, rollTurn };

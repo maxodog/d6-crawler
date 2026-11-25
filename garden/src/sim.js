@@ -1,5 +1,6 @@
 const E = require('./engine.js'), B = require('./bot.js');
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+if (process.env.HELM_EVERY) E.setHelmEvery(+process.env.HELM_EVERY);
 const runs = +process.env.RUNS || 20, seed = +process.env.SEED || 1;
 const heroes = (process.env.HEROES || 'beetle,mantis').split(','), equips = (process.env.EQUIPS || 'thorn,shield,helm').split(',');
 const t0 = Date.now();
