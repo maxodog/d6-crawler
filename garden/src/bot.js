@@ -103,7 +103,53 @@ function pickDie(st) {
   st.kit.forEach((s, i) => { if (E.nextDie(s) && (bi < 0 || s > st.kit[bi])) bi = i; });
   return bi < 0 ? null : 'dice' + bi;
 }
+/* Estrategias de mejora (opts.strat). Habilidades: orden de prioridad ('rng3' = Alcance hasta 3). Muda: mezcla de dados y habilidades. */
+const SK_ORDERS = {
+  def: ['def', 'rng3', 'atk', 'spd', 'rng'],     // Defensa a tope, luego Alcance 3, Ataque, Velocidad
+  defatk: ['def', 'atk', 'spd', 'rng'],          // Defensa y Ataque a tope, sin Alcance
+  atkdef: ['atk', 'def', 'spd', 'rng3', 'rng'],  // Ataque primero
+  spddef: ['spd', 'def', 'atk', 'rng3', 'rng'],  // Velocidad primero
+  rngdef: ['rng3', 'def', 'atk', 'spd', 'rng']   // Alcance 3 primero
+};
+const STRATS_KITS = ['def', 'defatk', 'atkdef', 'spddef', 'rngdef', 'bal', 'heal'];
+// mix: dice = dados y luego habilidades; skills = habilidades y luego dados; alt; onlydice; onlyskills. die: big|small. sk: orden de habilidades
+const STRATS_MUDA = {
+  'dados>def':   { mix: 'dice', die: 'big', sk: 'def' },
+  'def>dados':   { mix: 'skills', die: 'big', sk: 'def' },
+  'alt':         { mix: 'alt', die: 'big', sk: 'def' },
+  'solo-dados':  { mix: 'onlydice', die: 'big', sk: 'def' },
+  'solo-hab':    { mix: 'onlyskills', die: 'big', sk: 'def' },
+  'dados-chicos>def': { mix: 'dice', die: 'small', sk: 'def' },
+  'atk>dados':   { mix: 'skills', die: 'big', sk: 'atkdef' },
+  'dados>atk':   { mix: 'dice', die: 'big', sk: 'atkdef' },
+  'solo-hab-atk': { mix: 'onlyskills', die: 'big', sk: 'atkdef' }
+};
+function skillPick(a, order) {
+  for (const k of order) { const kk = k === 'rng3' ? 'rng' : k, lim = k === 'rng3' ? 3 : E.SKILL_MAX; if (a[kk] < lim) return kk; }
+  return null;
+}
+function diePick(st, which) {
+  let bi = -1;
+  st.kit.forEach((sd, i) => { if (!E.nextDie(sd)) return; if (bi < 0 || (which === 'small' ? sd < st.kit[bi] : sd > st.kit[bi])) bi = i; });
+  return bi < 0 ? null : 'dice' + bi;
+}
+function pickStrat(st, opts) {
+  const a = st.adv, heal = opts.heal == null ? 2 : opts.heal;
+  if (a.hp <= heal) return 'heal';
+  if (opts.strat === 'heal') return 'heal';
+  if (opts.strat === 'bal') {
+    let best = null; for (const k of ['def', 'atk', 'spd', 'rng']) if (a[k] < E.SKILL_MAX && (best === null || a[k] < a[best])) best = k;
+    return best || 'heal';
+  }
+  if (st.mode === 'muda') {
+    const c = STRATS_MUDA[opts.strat], n = st.breakNo = (st.breakNo || 0) + 1, d = diePick(st, c.die), k = skillPick(a, SK_ORDERS[c.sk]);
+    const seq = c.mix === 'dice' ? [d, k] : c.mix === 'skills' ? [k, d] : c.mix === 'onlydice' ? [d] : c.mix === 'onlyskills' ? [k] : (n % 2 ? [d, k] : [k, d]);
+    return seq.find(Boolean) || 'heal';
+  }
+  return skillPick(a, SK_ORDERS[opts.strat]) || 'heal';
+}
 function pickBreak(st, opts) {
+  if (opts.strat) return pickStrat(st, opts);
   const a = st.adv;
   if (a.hp <= (opts.heal == null ? 2 : opts.heal)) return 'heal';
   if (st.mode === 'muda') {
@@ -141,4 +187,4 @@ function campaign(hero, equip, opts = {}) {
     E.nextLevel(st);
   }
 }
-module.exports = { clone, planTurn, playLevel, campaign, pickBreak };
+module.exports = { clone, planTurn, playLevel, campaign, pickBreak, STRATS_KITS, STRATS_MUDA };
