@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Garden Crawler — Prueba 1: kits de dados</title>
+<style>
+:root{
+  --bg:#efe9d2; --card:#fbf8ec; --ink:#2b2a1f; --mut:#6d6a55; --line:#d8d1b3;
+  --leaf:#3f7d3b; --leaf-d:#2c5a2a; --soil:#7a5a3a; --acc:#d9822b; --bad:#b5473a; --good:#3f7d3b; --sel:#2a6fb0;
+  --t1:#d3e4b4; --t2:#c5d9a2; --wall:#2f6b3a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh}
+#app{max-width:520px;margin:0 auto;padding:10px 12px 40px}
+h1,h2,h3{margin:0;font-family:Georgia,"Times New Roman",serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.brand{font-family:Georgia,serif;font-weight:700;font-size:19px;color:var(--leaf-d)}
+.tag{font-size:11px;background:var(--leaf);color:#fff;border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle;font-family:system-ui}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.btn{background:var(--leaf);color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:600;font-size:15px;min-height:44px}
+.btn:disabled{background:#b9b7a6;color:#f4f2e6;cursor:not-allowed}
+.btn.alt{background:#fff;color:var(--leaf-d);border:1.5px solid var(--leaf)}
+.btn.warn{background:var(--acc)}
+.btn.full{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pick{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0}
+.pick.on{border-color:var(--leaf);background:#f1f8e6;box-shadow:0 0 0 2px #cfe4b0}
+.pick .em{font-size:30px;line-height:1}
+.pick b{display:block}
+.chips{display:flex;gap:5px;margin:4px 0;flex-wrap:wrap}
+.chip{background:#ece6c9;border-radius:8px;padding:1px 7px;font-size:12px;font-weight:600}
+.small{font-size:12.5px;color:var(--mut)}
+.lead{color:var(--mut);margin:4px 0 8px}
+/* estado */
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 8px}
+.hud .lv{font-weight:700}
+.hearts{font-size:18px;letter-spacing:1px;white-space:nowrap}
+/* tablero */
+#board{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;background:var(--soil);padding:5px;border-radius:14px;width:100%;aspect-ratio:1/1;touch-action:manipulation}
+.cell{position:relative;border-radius:7px;background:var(--t1);display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;border:0;padding:0;overflow:hidden}
+.cell.alt{background:var(--t2)}
+.cell.wall{background:var(--wall);background-image:radial-gradient(circle at 25% 30%,#4c8a4a 0 22%,transparent 24%),radial-gradient(circle at 70% 65%,#3e7c3d 0 26%,transparent 28%),radial-gradient(circle at 55% 20%,#58985a 0 16%,transparent 18%)}
+.cell.reach{background:#b9dba0;box-shadow:inset 0 0 0 2px #6aa84f;cursor:pointer}
+.cell.reach .cost{position:absolute;right:3px;bottom:1px;font-size:11px;font-weight:700;color:#2c5a2a}
+.cell .em{font-size:clamp(20px,8.4vw,40px);line-height:1;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.cell.hero{box-shadow:inset 0 0 0 3px var(--sel)}
+.cell.hero .em{font-size:clamp(22px,9vw,42px)}
+.cell.mon{box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+.cell.atk{box-shadow:inset 0 0 0 3px var(--bad);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 3px var(--bad),0 0 8px 1px rgba(181,71,58,.6)}}
+.pips{position:absolute;left:0;right:0;bottom:1px;display:flex;justify-content:center;gap:2px}
+.pip{width:6px;height:6px;border-radius:50%;background:#d93b2f;border:1px solid #fff}
+.pip.lost{background:#bbb}
+.badge{position:absolute;top:1px;left:2px;font-size:11px;font-weight:800;background:#fff;border-radius:6px;padding:0 4px;color:var(--bad)}
+.badge.ok{color:var(--good)}
+.fx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;text-shadow:0 0 4px #000,0 0 4px #000;pointer-events:none;animation:rise .9s forwards}
+@keyframes rise{0%{transform:translateY(8px);opacity:0}20%{opacity:1}100%{transform:translateY(-14px);opacity:0}}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* paneles */
+.dice{display:flex;gap:10px;justify-content:center;margin:8px 0}
+.die{width:72px;height:72px;border-radius:14px;background:#fff;border:2.5px solid #8a8668;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.die b{font-size:30px;line-height:1}
+.die small{font-size:11px;color:var(--mut);font-weight:700}
+.die.sel{border-color:var(--sel);box-shadow:0 0 0 3px #bcd8f2}
+.die.used{opacity:.45}
+.die.rr{border-color:var(--acc);box-shadow:0 0 0 3px #f6d6b0}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{background:#fff;border:2px dashed #a9a58a;border-radius:12px;padding:8px 4px;text-align:center;min-height:74px}
+.slot.on{border-style:solid;border-color:var(--leaf);background:#f1f8e6}
+.slot.tgt{border-color:var(--sel);background:#eaf3fb}
+.slot .k{font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.slot .v{font-size:19px;font-weight:800;margin-top:2px}
+.slot .f{font-size:11.5px;color:var(--mut)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+.stat .k{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase}
+.stat .v{font-size:20px;font-weight:800}
+.stat .f{font-size:11px;color:var(--mut)}
+.bar{height:5px;border-radius:3px;background:#e6e0c3;margin-top:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--leaf)}
+.msg{min-height:38px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:14px;margin:8px 0}
+.mons{display:flex;flex-direction:column;gap:6px}
+.mon-row{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.mon-row.atk{border-color:var(--bad);background:#fdf1ef}
+.mon-row .em{font-size:24px}
+.mon-row .nm{font-weight:700;font-size:13.5px}
+.mon-row .st{font-size:12px;color:var(--mut)}
+.mon-row .hpn{margin-left:auto;font-weight:800;color:var(--bad)}
+.veil{position:fixed;inset:0;background:rgba(30,28,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{background:var(--card);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow:auto;border:1px solid var(--line)}
+.modal h2{margin-bottom:6px}
+.up{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.up .btn{display:flex;flex-direction:column;align-items:center;gap:0;padding:8px}
+.up .btn small{font-weight:500;opacity:.9;font-size:12px}
+details{margin:8px 0}
+summary{cursor:pointer;font-weight:700;color:var(--leaf-d)}
+ul.rules{padding-left:18px;margin:6px 0}
+ul.rules li{margin:4px 0}
+.hint{color:var(--sel);font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const E = (function(){
+'use strict';
+/* Garden Crawler — motor (sin DOM). Reglas basadas en D6 Crawler, tablero 6x6 y kits de dados por héroe. */
+const COLS = 6, ROWS = 6, N = COLS * ROWS;
+const idx = (x, y) => y * COLS + x;
+const XY = i => [i % COLS, (i / COLS) | 0];
+// [dx, dy, coste de Movimiento]: recto 2, diagonal 3
+const DIRS = [[1,0,2],[-1,0,2],[0,1,2],[0,-1,2],[1,1,3],[1,-1,3],[-1,1,3],[-1,-1,3]];
+const START_HP = 6, SKILL_MAX = 6;
+
+let rnd = Math.random;
+function setRng(f) { rnd = f || Math.random; }
+const roll = s => 1 + Math.floor(rnd() * s);
+
+/* ---------- Datos ---------- */
+const HEROES = {
+  beetle: { key: 'beetle', name: 'Escarabajo rinoceronte', emoji: '🪲', kit: [8, 6, 4],
+    abil: 'Cornada', txt: 'Una vez por nivel, empuja a un monstruo pegado a ti (en recto) hasta 3 casillas. Si choca con un muro, el borde u otro monstruo, recibe 1 de daño (y el otro monstruo también).' },
+  mantis: { key: 'mantis', name: 'Mantis religiosa', emoji: '🦗', kit: [12, 4, 4],
+    abil: 'Emboscada', txt: 'Pasiva: si todavía no te has movido en el turno, tu primer ataque hace 2 de daño.' }
+};
+const EQUIPS = {
+  thorn: { key: 'thorn', name: 'Espina de rosa', emoji: '🌹', type: 'Arma', txt: 'Tus ataques cuestan 1 punto de Ataque menos (mínimo 1).' },
+  shield: { key: 'shield', name: 'Escudo de pétalo', emoji: '🌸', type: 'Armadura', txt: 'Tu Defensa es 1 punto más alta en cada turno.' },
+  helm: { key: 'helm', name: 'Casco de bellota', emoji: '🌰', type: 'Armadura', txt: 'Una vez por turno, repites un dado y te quedas con el mejor de los dos resultados.' }
+};
+const MONS = {
+  tij: { key: 'tij', name: 'Tijereta', plural: 'Tijeretas', emoji: '🦂', color: '#b5473a', hp: 2, spd: 6, atk: 4, def: 3, rng: 3, txt: 'Rápida y frágil.' },
+  bom: { key: 'bom', name: 'Escarabajo bombardero', plural: 'Escarabajos bombarderos', emoji: '🐞', color: '#c0792b', hp: 3, spd: 4, atk: 5, def: 5, rng: 5, txt: 'Dispara a distancia.' },
+  coc: { key: 'coc', name: 'Cochinilla', plural: 'Cochinillas', emoji: '🐌', color: '#6c7a89', hp: 4, spd: 3, atk: 6, def: 6, rng: 3, txt: 'Lenta y acorazada.' },
+  avi: { key: 'avi', name: 'Avispón', plural: 'Avispones', emoji: '🐝', color: '#c9a227', hp: 4, spd: 5, atk: 8, def: 5, rng: 4, txt: 'Golpea muy fuerte.' }
+};
+const MAPS = {
+  A: ['......', '.#..#.', '......', '..##..', '.#....', 'H...#.'],
+  B: ['..#...', '...#..', '.##...', '...#.#', '.#....', '....#H']
+};
+const rot180 = m => m.slice().reverse().map(r => r.split('').reverse().join(''));
+MAPS.A2 = rot180(MAPS.A); MAPS.B2 = rot180(MAPS.B);
+
+// 12 niveles: cada combinación mapa+giro enfrenta siempre al mismo monstruo; cambian la cantidad y las posiciones
+const LEVEL_DEFS = [
+  { t: 'Los tulipanes',   map: 'A',  m: 'tij', at: [[3,2],[2,0],[4,2],[2,2]] },
+  { t: 'El seto de boj',  map: 'B',  m: 'coc', at: [[5,0]] },
+  { t: 'Macetas volcadas', map: 'A2', m: 'bom', at: [[0,1],[0,4],[0,3]] },
+  { t: 'El compost',      map: 'B2', m: 'avi', at: [[5,2],[5,4]] },
+  { t: 'El rosal',        map: 'A',  m: 'tij', at: [[0,1],[1,0],[3,1],[1,3],[2,2],[5,0],[4,2]] },
+  { t: 'La enredadera',   map: 'B',  m: 'coc', at: [[2,5],[4,0],[1,0]] },
+  { t: 'El invernadero',  map: 'A2', m: 'bom', at: [[3,3],[0,3],[4,5],[5,4],[0,5]] },
+  { t: 'El cobertizo',    map: 'B2', m: 'avi', at: [[5,1],[4,4],[5,2],[5,5],[1,5],[5,4]] },
+  { t: 'La glorieta',     map: 'A',  m: 'tij', at: [[5,0],[4,4],[5,5],[3,1],[2,2],[2,4],[1,3],[4,0],[4,3]] },
+  { t: 'El estanque seco', map: 'B', m: 'coc', at: [[3,0],[2,1],[4,1],[0,4]] },
+  { t: 'El muro de piedra', map: 'A2', m: 'bom', at: [[3,1],[5,4],[1,1],[3,3],[2,1],[0,4],[4,3]] },
+  { t: 'El panal',        map: 'B2', m: 'avi', at: [[0,5],[5,3],[5,2],[5,4],[1,5],[1,4],[3,1],[5,1]] }
+];
+
+let LEVELS = [];
+function buildLevel(def, num) {
+  const rows = MAPS[def.map], walls = new Array(N).fill(false);
+  let start = 0;
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    const c = rows[y][x];
+    if (c === '#') walls[idx(x, y)] = true;
+    if (c === 'H') start = idx(x, y);
+  }
+  return { num, title: def.t, mapKey: def.map, mon: MONS[def.m], walls, start, spawns: def.at.map(([x, y]) => idx(x, y)), rd: {}, lm: {} };
+}
+function loadLevels(defs) { LEVELS = (defs || LEVEL_DEFS).map((d, i) => buildLevel(d, i + 1)); return LEVELS; }
+loadLevels();
+
+/* ---------- Caminos ---------- */
+function adjOf(lv) {
+  if (lv._adj) return lv._adj;
+  const adj = new Array(N);
+  for (let i = 0; i < N; i++) {
+    const [x, y] = XY(i), out = [];
+    for (const [dx, dy, c] of DIRS) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) continue;
+      const j = idx(nx, ny);
+      if (lv.walls[j]) continue;
+      out.push(c === 3 ? [j, c, idx(x + dx, y), idx(x, y + dy)] : [j, c, -1, -1]);
+    }
+    adj[i] = out;
+  }
+  lv._adj = adj;
+  return adj;
+}
+function dijkstra(lv, src, blocked, cut) {
+  const dist = new Array(N).fill(Infinity), prev = new Array(N).fill(-1), done = new Array(N).fill(false);
+  const adj = adjOf(lv);
+  dist[src] = 0;
+  for (;;) {
+    let u = -1, b = Infinity;
+    for (let i = 0; i < N; i++) if (!done[i] && dist[i] < b) { b = dist[i]; u = i; }
+    if (u < 0) break;
+    done[u] = true;
+    const ns = adj[u];
+    for (let k = 0; k < ns.length; k++) {
+      const v = ns[k][0], c = ns[k][1];
+      if (blocked && blocked[v]) continue;
+      if (c === 3) { const h = ns[k][2], w = ns[k][3]; if ((lv.walls[h] || (cut && cut[h])) && (lv.walls[w] || (cut && cut[w]))) continue; }
+      if (b + c < dist[v]) { dist[v] = b + c; prev[v] = u; }
+    }
+  }
+  return { dist, prev };
+}
+function rangeDist(lv, a, b) {
+  let d = lv.rd[a];
+  if (!d) d = lv.rd[a] = dijkstra(lv, a, null).dist;
+  return d[b];
+}
+function distAdv(lv, src, advI) {
+  if (!lv._dc) lv._dc = new Map();
+  let tab = lv._dc.get(advI);
+  if (!tab) { tab = new Array(N); lv._dc.set(advI, tab); }
+  let r = tab[src];
+  if (!r) { const bl = new Array(N).fill(false); bl[advI] = true; r = tab[src] = dijkstra(lv, src, bl, bl); }
+  return r;
+}
+
+/* ---------- Línea de visión ---------- */
+const LOS_PTS = [0.02, 0.2, 0.5, 0.8, 0.98];
+function segTouches(ax, ay, bx, by, sx, sy) {
+  const dx = bx - ax, dy = by - ay;
+  let lo = 0, hi = 1;
+  if (dx === 0) { if (ax < sx || ax > sx + 1) return false; }
+  else {
+    let t1 = (sx - ax) / dx, t2 = (sx + 1 - ax) / dx;
+    if (t1 > t2) { const t = t1; t1 = t2; t2 = t; }
+    lo = Math.max(lo, t1); hi = Math.min(hi, t2);
+  }
+  if (dy === 0) { if (ay < sy || ay > sy + 1) return false; }
+  else {
+    let t1 = (sy - ay) / dy, t2 = (sy + 1 - ay) / dy;
+    if (t1 > t2) { const t = t1; t1 = t2; t2 = t; }
+    lo = Math.max(lo, t1); hi = Math.min(hi, t2);
+  }
+  return hi - lo >= -1e-9;
+}
+function losSegs(lv, a, b) {
+  const key = a * N + b;
+  if (lv.lm[key] !== undefined) return lv.lm[key];
+  const [ax, ay] = XY(a), [bx, by] = XY(b), walls = [], out = [];
+  for (let w = 0; w < N; w++) if (lv.walls[w] && w !== a && w !== b) walls.push(XY(w));
+  for (const u of LOS_PTS) for (const v of LOS_PTS) for (const x of LOS_PTS) for (const y of LOS_PTS) {
+    const p = ax + u, q = ay + v, r = bx + x, s = by + y;
+    let ok = true;
+    for (const [wx, wy] of walls) if (segTouches(p, q, r, s, wx, wy)) { ok = false; break; }
+    if (ok) out.push(p, q, r, s);
+  }
+  lv.lm[key] = out;
+  return out;
+}
+function hasLOS(lv, a, b, blockers) {
+  if (a === b) return true;
+  const segs = losSegs(lv, a, b);
+  if (!segs.length) return false;
+  const bl = blockers.filter(t => t !== a && t !== b).map(XY);
+  if (!bl.length) return true;
+  for (let k = 0; k < segs.length; k += 4) {
+    let ok = true;
+    for (const [tx, ty] of bl) if (segTouches(segs[k], segs[k + 1], segs[k + 2], segs[k + 3], tx, ty)) { ok = false; break; }
+    if (ok) return true;
+  }
+  return false;
+}
+
+/* ---------- Estado ---------- */
+const lvOf = st => LEVELS[st.levelIdx];
+function freshTurn(st) {
+  return { dice: null, sides: HEROES[st.hero].kit.slice(), assign: { spd: -1, atk: -1, def: -1 }, rerolled: false, moved: false, attacks: 0,
+           spd: 0, atk: 0, def: 0, rng: 0, spdLeft: 0, atkLeft: 0 };
+}
+function rollTurn(st) { st.turn.dice = st.turn.sides.map(roll); }
+function setupLevel(st, i) {
+  const lv = LEVELS[i];
+  st.levelIdx = i;
+  const [x, y] = XY(lv.start);
+  st.adv.x = x; st.adv.y = y;
+  st.mons = lv.spawns.map((s, n) => {
+    const [mx, my] = XY(s), m = lv.mon;
+    return { id: n + 1, x: mx, y: my, hp: m.hp, maxHp: m.hp, spd: m.spd, atk: m.atk, def: m.def, rng: m.rng };
+  });
+  st.abil = false;
+  st.phase = 'energy';
+  st.turn = freshTurn(st);
+  rollTurn(st);
+  st.undo = [];
+  st.turnNo = 1;
+  st.cp = { hp: st.adv.hp, adv: Object.assign({}, st.adv) };
+  return st;
+}
+function newRun(hero, equip) {
+  const st = { hero, equip, levelIdx: 0, adv: { x: 0, y: 0, hp: START_HP, spd: 1, atk: 1, def: 1, rng: 2 }, mons: [], phase: 'energy', turn: null, undo: [], turnNo: 1, abil: false, cp: null };
+  return setupLevel(st, 0);
+}
+function retryLevel(st) {
+  const cp = st.cp;
+  st.adv = Object.assign({}, cp.adv);
+  return setupLevel(st, st.levelIdx);
+}
+
+/* ---------- Fase de energía ---------- */
+function assignDie(st, skill, die) {
+  const t = st.turn;
+  for (const k of ['spd', 'atk', 'def']) if (t.assign[k] === die) t.assign[k] = -1;
+  t.assign[skill] = die;
+}
+function unassign(st, skill) { st.turn.assign[skill] = -1; }
+const assignComplete = t => t.assign.spd >= 0 && t.assign.atk >= 0 && t.assign.def >= 0;
+function canReroll(st) { return st.equip === 'helm' && st.phase === 'energy' && !st.turn.rerolled; }
+function useHelm(st, die) {
+  if (!canReroll(st) || die < 0 || die > 2) return false;
+  const nw = roll(st.turn.sides[die]);
+  st.turn.lastRoll = nw;
+  st.turn.dice[die] = Math.max(st.turn.dice[die], nw);
+  st.turn.rerolled = true;
+  return true;
+}
+function confirmEnergy(st) {
+  const t = st.turn, a = st.adv;
+  t.spd = a.spd + t.dice[t.assign.spd]; t.atk = a.atk + t.dice[t.assign.atk]; t.def = a.def + t.dice[t.assign.def] + (st.equip === 'shield' ? 1 : 0); t.rng = a.rng;
+  t.spdLeft = t.spd; t.atkLeft = t.atk;
+  st.phase = 'move';
+  st.undo = [];
+}
+
+/* ---------- Fase del héroe ---------- */
+function pushUndo(st) {
+  st.undo.push(JSON.stringify({ x: st.adv.x, y: st.adv.y, hp: st.adv.hp, mons: st.mons, spdLeft: st.turn.spdLeft, atkLeft: st.turn.atkLeft,
+    moved: st.turn.moved, attacks: st.turn.attacks, abil: st.abil }));
+}
+function popUndo(st) {
+  const s = JSON.parse(st.undo.pop());
+  st.adv.x = s.x; st.adv.y = s.y; st.adv.hp = s.hp; st.mons = s.mons;
+  st.turn.spdLeft = s.spdLeft; st.turn.atkLeft = s.atkLeft; st.turn.moved = s.moved; st.turn.attacks = s.attacks; st.abil = s.abil;
+}
+function reachFromAdv(st) {
+  const lv = lvOf(st), src = idx(st.adv.x, st.adv.y), blocked = new Array(N).fill(false);
+  for (const m of st.mons) blocked[idx(m.x, m.y)] = true;
+  return dijkstra(lv, src, blocked, blocked);
+}
+function moveAdv(st, i, dist) {
+  pushUndo(st);
+  const [x, y] = XY(i);
+  st.turn.spdLeft -= dist; st.turn.moved = true;
+  st.adv.x = x; st.adv.y = y;
+}
+const atkCost = (st, m) => Math.max(1, m.def - (st.equip === 'thorn' ? 1 : 0));
+const ambushReady = st => st.hero === 'mantis' && !st.turn.moved && st.turn.attacks === 0;
+function attackInfo(st, m) {
+  const lv = lvOf(st), a = idx(st.adv.x, st.adv.y), t = idx(m.x, m.y);
+  const rd = rangeDist(lv, a, t);
+  if (rd > st.turn.rng) return { ok: false, why: 'range', rd };
+  if (!hasLOS(lv, a, t, st.mons.filter(o => o !== m).map(o => idx(o.x, o.y)))) return { ok: false, why: 'los', rd };
+  if (st.turn.atkLeft < atkCost(st, m)) return { ok: false, why: 'points', rd, cost: atkCost(st, m) };
+  return { ok: true, rd, cost: atkCost(st, m) };
+}
+function attackMon(st, m) {
+  pushUndo(st);
+  const dmg = ambushReady(st) ? 2 : 1;
+  st.turn.atkLeft -= atkCost(st, m);
+  st.turn.attacks++;
+  m.hp -= dmg;
+  const dead = m.hp <= 0;
+  st.mons = st.mons.filter(o => o.hp > 0);
+  return { dead, dmg };
+}
+// Cornada del Escarabajo
+function cornadaInfo(st, m) {
+  if (st.hero !== 'beetle' || st.abil) return { ok: false, why: 'unavailable' };
+  const dx = m.x - st.adv.x, dy = m.y - st.adv.y;
+  if (Math.abs(dx) + Math.abs(dy) !== 1) return { ok: false, why: 'adjacent' };
+  return { ok: true, dx, dy };
+}
+function cornada(st, m) {
+  const inf = cornadaInfo(st, m);
+  if (!inf.ok) return null;
+  pushUndo(st);
+  const lv = lvOf(st), res = { from: [m.x, m.y], steps: 0, hit: null, dmg: [] };
+  let x = m.x, y = m.y;
+  for (let k = 0; k < 3; k++) {
+    const nx = x + inf.dx, ny = y + inf.dy;
+    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS || lv.walls[idx(nx, ny)]) { res.hit = 'wall'; break; }
+    const other = st.mons.find(o => o !== m && o.x === nx && o.y === ny);
+    if (other) { res.hit = 'mon'; res.other = other; break; }
+    x = nx; y = ny; res.steps++;
+  }
+  m.x = x; m.y = y;
+  if (res.hit) { m.hp -= 1; res.dmg.push(m.id); if (res.other) { res.other.hp -= 1; res.dmg.push(res.other.id); } }
+  st.abil = true;
+  res.to = [x, y];
+  st.mons = st.mons.filter(o => o.hp > 0);
+  return res;
+}
+
+/* ---------- Fase de los monstruos ---------- */
+function chooseMove(lv, st, m) {
+  const advI = idx(st.adv.x, st.adv.y), me = idx(m.x, m.y);
+  const others = st.mons.filter(o => o !== m).map(o => idx(o.x, o.y));
+  const D = distAdv(lv, me, advI);
+  const spd = Math.max(0, m.spd);
+  const stand = i => i === me || (!lv.walls[i] && i !== advI && !others.includes(i) && D.dist[i] < Infinity);
+  const R = () => m.rng;
+  const canHit = i => rangeDist(lv, i, advI) <= R() && hasLOS(lv, i, advI, others);
+  // A) posición de ataque alcanzable este turno: la de mayor distancia dentro de su Alcance
+  let best = -1, bRd = -1, bC = Infinity;
+  for (let i = 0; i < N; i++) {
+    if (!stand(i) || D.dist[i] > spd || !canHit(i)) continue;
+    const rd = rangeDist(lv, i, advI);
+    if (rd > bRd || (rd === bRd && D.dist[i] < bC)) { best = i; bRd = rd; bC = D.dist[i]; }
+  }
+  if (best >= 0) return best;
+  // B) destino de ataque para los próximos turnos (turnos contados de verdad)
+  const fromD = [];
+  const dOf = u => fromD[u] || (fromD[u] = u === me ? D.dist : distAdv(lv, u, advI).dist);
+  const turnsFrom = s => {
+    const tn = new Array(N).fill(Infinity); tn[s] = 0; let front = [s];
+    for (let k = 1; front.length; k++) {
+      const nx = [];
+      for (const u of front) { const du = dOf(u); for (let w = 0; w < N; w++) if (tn[w] === Infinity && stand(w) && du[w] <= spd) { tn[w] = k; nx.push(w); } }
+      front = nx;
+    }
+    return tn;
+  };
+  const TM = turnsFrom(me);
+  let target = -1, tT = Infinity, tRd = -1, tC = Infinity;
+  for (let i = 0; i < N; i++) {
+    if (!stand(i) || TM[i] === Infinity || !canHit(i)) continue;
+    const tn = TM[i], rd = rangeDist(lv, i, advI);
+    if (tn < tT || (tn === tT && (rd > tRd || (rd === tRd && D.dist[i] < tC)))) { target = i; tT = tn; tRd = rd; tC = D.dist[i]; }
+  }
+  if (target >= 0) {
+    const TT = turnsFrom(target), T = dOf(target);
+    let b = me, bTT = TT[me], bT = T[me], bR = rangeDist(lv, me, advI), c0 = 0;
+    for (let i = 0; i < N; i++) {
+      if (!stand(i) || D.dist[i] > spd) continue;
+      const r = rangeDist(lv, i, advI);
+      if (TT[i] < bTT || (TT[i] === bTT && (T[i] < bT || (T[i] === bT && (r < bR || (r === bR && D.dist[i] < c0)))))) { b = i; bTT = TT[i]; bT = T[i]; bR = r; c0 = D.dist[i]; }
+    }
+    return b;
+  }
+  // C) acercarse todo lo posible
+  let b = me, bD = rangeDist(lv, me, advI), c0 = 0;
+  for (let i = 0; i < N; i++) {
+    if (!stand(i) || D.dist[i] > spd) continue;
+    const d = rangeDist(lv, i, advI);
+    if (d < bD || (d === bD && D.dist[i] < c0)) { b = i; bD = d; c0 = D.dist[i]; }
+  }
+  return b;
+}
+function attackers(st) {
+  const lv = lvOf(st), advI = idx(st.adv.x, st.adv.y);
+  return st.mons.filter(m => {
+    const me = idx(m.x, m.y);
+    if (rangeDist(lv, me, advI) > m.rng) return false;
+    return hasLOS(lv, me, advI, st.mons.filter(o => o !== m).map(o => idx(o.x, o.y)));
+  });
+}
+// Secuencia estricta y una sola vuelta, en orden de cercanía. Muta el estado y devuelve eventos.
+function playMonsters(st) {
+  const lv = lvOf(st), advI = idx(st.adv.x, st.adv.y), ev = [];
+  const order = st.mons.slice().sort((a, b) => rangeDist(lv, advI, idx(a.x, a.y)) - rangeDist(lv, advI, idx(b.x, b.y)) || a.id - b.id);
+  for (const m of order) {
+    const from = idx(m.x, m.y), to = chooseMove(lv, st, m);
+    if (to !== from) {
+      const D = distAdv(lv, from, advI), path = [];
+      for (let c = to; c !== -1; c = D.prev[c]) path.push(c);
+      path.reverse();
+      const [x, y] = XY(to); m.x = x; m.y = y;
+      ev.push({ t: 'move', id: m.id, from, to, path });
+    }
+  }
+  const att = attackers(st);
+  const total = att.reduce((s, m) => s + m.atk, 0);
+  const def = Math.max(1, st.turn.def);
+  let dmg = Math.floor(total / def);
+  let shielded = 0;
+  
+  st.adv.hp = Math.max(0, st.adv.hp - dmg);
+  ev.push({ t: 'attack', ids: att.map(m => m.id), total, def, dmg, shielded });
+  return ev;
+}
+function endTurn(st) {
+  const ev = playMonsters(st);
+  if (st.adv.hp <= 0) { st.phase = 'dead'; return ev; }
+  st.phase = 'energy';
+  st.turn = freshTurn(st);
+  rollTurn(st);
+  st.undo = [];
+  st.turnNo++;
+  return ev;
+}
+
+/* ---------- Entre niveles ---------- */
+const levelCleared = st => st.mons.length === 0;
+function applyBreak(st, choice) {
+  if (choice === 'heal') { st.adv.hp = START_HP; return true; }
+  if (!['spd', 'atk', 'def', 'rng'].includes(choice) || st.adv[choice] >= SKILL_MAX) return false;
+  st.adv[choice] += 1; return true;
+}
+function nextLevel(st) {
+  if (st.levelIdx >= LEVELS.length - 1) { st.phase = 'won'; return false; }
+  setupLevel(st, st.levelIdx + 1);
+  return true;
+}
+
+const API = { COLS, ROWS, N, idx, XY, START_HP, SKILL_MAX, HEROES, EQUIPS, MONS, MAPS, LEVEL_DEFS, get LEVELS() { return LEVELS; }, loadLevels, setRng, roll,
+  dijkstra, rangeDist, hasLOS, adjOf, lvOf, newRun, retryLevel, setupLevel, assignDie, unassign, assignComplete, canReroll, useHelm, confirmEnergy,
+  pushUndo, popUndo, reachFromAdv, moveAdv, atkCost, ambushReady, attackInfo, attackMon, cornadaInfo, cornada, chooseMove, attackers, playMonsters, endTurn,
+  levelCleared, applyBreak, nextLevel, freshTurn, rollTurn };
+return API;
+
+})();
+</script>
+<script>
+(function(){
+'use strict';
+const { idx, XY, N, COLS } = E;
+const SK = { spd: 'Movimiento', atk: 'Ataque', def: 'Defensa', rng: 'Alcance' };
+const app = document.getElementById('app');
+let S = null;
+const ui = { screen: 'start', hero: null, equip: null, selDie: -1, rr: false, msg: '', modal: null, disp: null, anim: false, fx: {}, log: [] };
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const hearts = hp => '❤️'.repeat(Math.max(0, hp)) + '🖤'.repeat(Math.max(0, E.START_HP - hp));
+
+function say(t) { ui.msg = t; }
+
+/* ---------- Pantallas ---------- */
+function rulesHTML() {
+  return `<details><summary>Cómo se juega</summary><ul class="rules">
+  <li><b>Turno:</b> tiras los 3 dados de tu héroe y reparte uno a Movimiento, otro a Ataque y otro a Defensa. Cada habilidad es su valor base más el dado.</li>
+  <li><b>Moverte:</b> cada paso recto cuesta 2 puntos y cada diagonal 3. No puedes pasar por muros ni por monstruos.</li>
+  <li><b>Atacar:</b> toca un monstruo a tu Alcance y con línea de tiro libre. Cuesta tantos puntos de Ataque como su Defensa y le quita 1 de vida. Puedes repetir mientras te queden puntos.</li>
+  <li><b>Distancia:</b> se mide como el Movimiento: recto 2, diagonal 3. Tu Alcance base es 2 (casilla pegada).</li>
+  <li><b>Monstruos:</b> después de ti se mueven, uno por uno, y los que te alcanzan con línea de tiro atacan juntos: daño = suma de sus Ataques ÷ tu Defensa (hacia abajo).</li>
+  <li><b>Entre niveles:</b> te curas por completo o subes una habilidad en 1 (máximo 6). Si caes, repites el nivel.</li>
+  <li><b>Equipo:</b> eliges uno al empezar y vale toda la partida.</li></ul></details>`;
+}
+function startHTML() {
+  const H = Object.values(E.HEROES), Q = Object.values(E.EQUIPS);
+  return `<div class="top"><div class="brand">Garden Crawler<span class="tag">Prueba 1</span></div></div>
+  <div class="card"><h2>Kits de dados por héroe</h2>
+  <p class="lead">12 niveles en un jardín de 6×6. Cada héroe tira unos dados distintos y tiene su propia mecánica.</p>
+  <h3>1. Elige tu héroe</h3>
+  ${H.map(h => `<button class="pick ${ui.hero === h.key ? 'on' : ''}" data-act="hero" data-k="${h.key}"><span class="em">${h.emoji}</span><span><b>${h.name}</b>
+    <span class="chips">${h.kit.map(s => `<span class="chip">D${s}</span>`).join('')}</span>
+    <span class="small"><b>${h.abil}.</b> ${h.txt}</span></span></button>`).join('')}
+  <h3 style="margin-top:12px">2. Elige un equipo</h3>
+  ${Q.map(q => `<button class="pick ${ui.equip === q.key ? 'on' : ''}" data-act="equip" data-k="${q.key}"><span class="em">${q.emoji}</span><span><b>${q.name}</b> <span class="small">· ${q.type}</span>
+    <span class="small" style="display:block">${q.txt}</span></span></button>`).join('')}
+  <button class="btn full" style="margin-top:12px" data-act="begin" ${ui.hero && ui.equip ? '' : 'disabled'}>Empezar aventura</button></div>
+  ${rulesHTML()}`;
+}
+function monInfo(m) {
+  const lv = E.lvOf(S);
+  return { key: lv.mon.key, name: lv.mon.name, emoji: lv.mon.emoji, color: lv.mon.color };
+}
+function boardHTML() {
+  const lv = E.lvOf(S), heroI = idx(S.adv.x, S.adv.y), mons = ui.disp || S.mons;
+  const move = S.phase === 'move' && !ui.anim;
+  const R = move ? E.reachFromAdv(S) : null;
+  const atkOk = {};
+  if (move) for (const m of S.mons) { const inf = E.attackInfo(S, m); if (inf.ok) atkOk[idx(m.x, m.y)] = inf; }
+  let h = '';
+  for (let i = 0; i < N; i++) {
+    const [x, y] = XY(i), alt = (x + y) % 2 ? ' alt' : '';
+    if (lv.walls[i]) { h += `<div class="cell wall${alt}" aria-label="Seto"></div>`; continue; }
+    const m = mons.find(o => idx(o.x, o.y) === i);
+    const fx = ui.fx[i] ? `<span class="fx">${ui.fx[i]}</span>` : '';
+    if (i === heroI) {
+      const hero = E.HEROES[S.hero];
+      const amb = move && E.ambushReady(S) ? `<span class="badge ok">×2</span>` : '';
+      h += `<div class="cell hero${alt}${ui.fx[i] ? ' shake' : ''}" aria-label="Tu héroe"><span class="em">${hero.emoji}</span>${amb}${fx}</div>`;
+    } else if (m) {
+      const info = lv.mon, can = atkOk[i];
+      const pips = Array.from({ length: m.maxHp }, (_, k) => `<span class="pip ${k < m.hp ? '' : 'lost'}"></span>`).join('');
+      h += `<button class="cell mon${alt}${can ? ' atk' : ''}" data-act="mon" data-id="${m.id}" aria-label="${esc(info.name)}"><span class="em">${info.emoji}</span><span class="pips">${pips}</span>${can ? `<span class="badge">−${can.cost}</span>` : ''}${fx}</button>`;
+    } else if (R && R.dist[i] > 0 && R.dist[i] <= S.turn.spdLeft) {
+      h += `<button class="cell reach${alt}" data-act="go" data-i="${i}" aria-label="Moverte aquí"><span class="cost">${R.dist[i]}</span>${fx}</button>`;
+    } else h += `<div class="cell${alt}">${fx}</div>`;
+  }
+  return `<div id="board">${h}</div>`;
+}
+function dieHTML(i) {
+  const t = S.turn, used = ['spd', 'atk', 'def'].some(k => t.assign[k] === i);
+  return `<button class="die ${ui.selDie === i ? 'sel' : ''} ${used ? 'used' : ''} ${ui.rr ? 'rr' : ''}" data-act="die" data-i="${i}"><b>${t.dice[i]}</b><small>D${t.sides[i]}</small></button>`;
+}
+function energyHTML() {
+  const t = S.turn, a = S.adv;
+  const slot = k => {
+    const d = t.assign[k], extra = k === 'def' && S.equip === 'shield' ? 1 : 0;
+    return `<button class="slot ${d >= 0 ? 'on' : ''} ${ui.selDie >= 0 && d < 0 ? 'tgt' : ''}" data-act="slot" data-k="${k}"><div class="k">${SK[k]}</div>
+      <div class="v">${d >= 0 ? a[k] + t.dice[d] + extra : '—'}</div><div class="f">${d >= 0 ? `${a[k]} + ${t.dice[d]}${extra ? ' +1' : ''}` : `base ${a[k]}`}</div></button>`;
+  };
+  const done = E.assignComplete(t);
+  return `<div class="card"><h3>Turno ${S.turnNo} · reparte tus dados</h3>
+    <div class="dice">${[0, 1, 2].map(dieHTML).join('')}</div>
+    <div class="small" style="text-align:center;margin-bottom:6px">${ui.rr ? '<span class="hint">Toca el dado que quieres repetir</span>' : ui.selDie >= 0 ? '<span class="hint">Ahora toca la habilidad</span>' : 'Toca un dado y luego una habilidad. Toca una habilidad ocupada para soltarla.'}</div>
+    <div class="slots">${['spd', 'atk', 'def'].map(slot).join('')}</div>
+    <div class="row" style="margin-top:10px">
+      ${S.equip === 'helm' ? `<button class="btn alt" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : 'Repetir un dado'}</button>` : ''}
+      <button class="btn" style="flex:1" data-act="confirm" ${done ? '' : 'disabled'}>Listo</button></div></div>`;
+}
+function moveHTML() {
+  const t = S.turn;
+  const st = (k, left, tot) => `<div class="stat"><div class="k">${SK[k]}</div><div class="v">${left == null ? tot : left}</div><div class="f">${left == null ? 'este turno' : 'de ' + tot}</div>${left == null ? '' : `<div class="bar"><i style="width:${tot ? 100 * left / tot : 0}%"></i></div>`}</div>`;
+  const ab = S.hero === 'beetle' ? `<button class="btn alt" data-act="cornada" ${S.abil ? 'disabled' : ''}>${ui.cornada ? 'Cancelar Cornada' : 'Cornada'}</button>` : '';
+  return `<div class="card"><h3>Turno ${S.turnNo} · tu fase</h3>
+    <div class="stats" style="margin-top:6px">${st('spd', t.spdLeft, t.spd)}${st('atk', t.atkLeft, t.atk)}${st('def', null, t.def)}${st('rng', null, t.rng)}</div>
+    <div class="row" style="margin-top:10px">${ab}<button class="btn alt" data-act="undo" ${S.undo.length ? '' : 'disabled'}>Deshacer</button>
+    <button class="btn warn" style="flex:1" data-act="end">Terminar turno</button></div></div>`;
+}
+function monsHTML() {
+  const lv = E.lvOf(S), mi = lv.mon, move = S.phase === 'move' && !ui.anim;
+  if (!S.mons.length) return '';
+  return `<div class="card"><h3>${mi.emoji} ${S.mons.length} × ${S.mons.length > 1 ? mi.plural : mi.name}</h3><div class="small" style="margin-bottom:6px">${mi.txt} Vida ${mi.hp} · Vel ${mi.spd} · Atq ${mi.atk} · Def ${mi.def} · Alc ${mi.rng}</div>
+    <div class="mons">${S.mons.map(m => {
+      const inf = move ? E.attackInfo(S, m) : { ok: false };
+      return `<div class="mon-row ${inf.ok ? 'atk' : ''}"><span class="em">${mi.emoji}</span><span><span class="nm">${mi.name} ${m.id}</span><div class="st">${inf.ok ? 'Puedes atacarlo (cuesta ' + inf.cost + ')' : move ? (inf.why === 'range' ? 'Fuera de tu alcance' : inf.why === 'los' ? 'Sin línea de tiro' : 'Te faltan puntos de Ataque') : ''}</div></span><span class="hpn">♥ ${m.hp}</span></div>`;
+    }).join('')}</div></div>`;
+}
+function gameHTML() {
+  const lv = E.lvOf(S), hero = E.HEROES[S.hero], q = E.EQUIPS[S.equip];
+  const panel = S.phase === 'energy' ? energyHTML() : S.phase === 'move' ? moveHTML() : '';
+  return `<div class="top"><div class="brand">Garden Crawler<span class="tag">Prueba 1</span></div><button class="ghost" data-act="menu">Menú</button></div>
+  <div class="hud"><div><div class="lv">Nivel ${lv.num}/12 · ${esc(lv.title)}</div><div class="small">${hero.emoji} ${hero.name} · ${q.emoji} ${q.name}</div></div><div class="hearts" aria-label="Vida ${S.adv.hp}">${hearts(S.adv.hp)}</div></div>
+  ${boardHTML()}
+  <div class="msg" id="msg">${ui.msg || 'Reparte tus dados para empezar.'}</div>
+  ${panel}${monsHTML()}${rulesHTML()}`;
+}
+function modalHTML() {
+  const m = ui.modal; if (!m) return '';
+  if (m.t === 'break') {
+    const a = S.adv, b = (k, lbl) => `<button class="btn" data-act="up" data-k="${k}" ${a[k] >= E.SKILL_MAX ? 'disabled' : ''}><span>${lbl}</span><small>${a[k]} → ${Math.min(E.SKILL_MAX, a[k] + 1)}</small></button>`;
+    return `<div class="veil"><div class="modal"><h2>¡Nivel superado!</h2><p class="lead">Vida ${a.hp}/6. Elige una mejora o cúrate por completo.</p>
+      <div class="up">${b('spd', 'Movimiento')}${b('atk', 'Ataque')}${b('def', 'Defensa')}${b('rng', 'Alcance')}</div>
+      <button class="btn warn full" data-act="up" data-k="heal">Curarte (Vida 6)</button></div></div>`;
+  }
+  if (m.t === 'dead') return `<div class="veil"><div class="modal"><h2>Tu héroe cayó</h2><p class="lead">Puedes repetir este nivel desde el principio, con la misma vida y mejoras que traías.</p><button class="btn full" data-act="retry">Reintentar nivel</button></div></div>`;
+  if (m.t === 'won') return `<div class="veil"><div class="modal"><h2>🌻 ¡Jardín salvado!</h2><p class="lead">Superaste los 12 niveles con ${E.HEROES[S.hero].name} y ${E.EQUIPS[S.equip].name}.</p><button class="btn full" data-act="restart">Volver al inicio</button></div></div>`;
+  if (m.t === 'menu') return `<div class="veil"><div class="modal"><h2>Menú</h2><p class="lead">Si reinicias, pierdes el avance de esta partida.</p><div class="row"><button class="btn alt" style="flex:1" data-act="close">Seguir jugando</button><button class="btn warn" style="flex:1" data-act="restart">Reiniciar</button></div>${location.pathname.indexOf('/garden/') >= 0 ? '<p style="text-align:center;margin:14px 0 0"><a href="../index.html" style="color:inherit">← Volver a D6 Crawler</a></p>' : ''}</div></div>`;
+  return '';
+}
+function render() {
+  app.innerHTML = (ui.screen === 'start' ? startHTML() : gameHTML()) + modalHTML();
+}
+
+/* ---------- Acciones ---------- */
+function afterAction() {
+  if (S.phase === 'move' && E.levelCleared(S)) {
+    if (S.levelIdx >= E.LEVELS.length - 1) { ui.modal = { t: 'won' }; S.phase = 'won'; }
+    else ui.modal = { t: 'break' };
+  }
+  render();
+}
+function fx(i, txt) { ui.fx[i] = txt; setTimeout(() => { delete ui.fx[i]; if (!ui.anim) render(); }, 900); }
+async function endTurn() {
+  if (ui.anim || S.phase !== 'move') return;
+  ui.anim = true; ui.cornada = false;
+  ui.disp = S.mons.map(m => Object.assign({}, m));
+  const ev = E.endTurn(S);
+  say('Los monstruos se mueven…'); render();
+  for (const e of ev) {
+    if (e.t === 'move') {
+      const d = ui.disp.find(o => o.id === e.id);
+      for (const c of e.path.slice(1)) { const [x, y] = XY(c); d.x = x; d.y = y; render(); await sleep(150); }
+    } else if (e.t === 'attack') {
+      const hi = idx(S.adv.x, S.adv.y);
+      if (!e.ids.length) say('Ningún monstruo te alcanza.');
+      else if (e.dmg > 0) { say(`Te atacan ${e.ids.length}: Ataque total ${e.total} ÷ tu Defensa ${e.def} = <b>${e.dmg} de daño</b>.`); fx(hi, '−' + e.dmg); }
+      else say(`Te atacan ${e.ids.length}: Ataque total ${e.total} ÷ tu Defensa ${e.def} = 0 de daño.`);
+      render(); await sleep(500);
+    }
+  }
+  ui.disp = null; ui.anim = false;
+  if (S.phase === 'dead') { ui.modal = { t: 'dead' }; }
+  else { ui.selDie = -1; ui.rr = false; say('Nuevo turno: reparte tus dados.'); }
+  render();
+}
+function onClick(ev) {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, k = el.dataset.k;
+  if (ui.anim) return;
+  if (act === 'hero') { ui.hero = k; render(); return; }
+  if (act === 'equip') { ui.equip = k; render(); return; }
+  if (act === 'begin') { S = E.newRun(ui.hero, ui.equip); ui.screen = 'game'; ui.selDie = -1; ui.rr = false; ui.modal = null; ui.cornada = false; say(`Nivel 1. Tira de tus dados y repártelos.`); render(); return; }
+  if (act === 'menu') { ui.modal = { t: 'menu' }; render(); return; }
+  if (act === 'close') { ui.modal = null; render(); return; }
+  if (act === 'restart') { ui.screen = 'start'; ui.modal = null; S = null; render(); return; }
+  if (!S) return;
+  if (act === 'retry') { E.retryLevel(S); ui.modal = null; ui.selDie = -1; ui.rr = false; ui.cornada = false; say('Nivel reiniciado. Reparte tus dados.'); render(); return; }
+  if (act === 'up') {
+    if (!E.applyBreak(S, k)) return;
+    const done = !E.nextLevel(S);
+    ui.modal = done ? { t: 'won' } : null; ui.selDie = -1; ui.rr = false; ui.cornada = false;
+    say(`Nivel ${S.levelIdx + 1}: ${E.lvOf(S).title}. Reparte tus dados.`); render(); return;
+  }
+  if (ui.modal) return;
+  if (S.phase === 'energy') {
+    const t = S.turn;
+    if (act === 'die') {
+      const i = +el.dataset.i;
+      if (ui.rr) { const old = t.dice[i]; E.useHelm(S, i); ui.rr = false; const nw = t.lastRoll; say(`Repetiste el D${t.sides[i]}: tenías ${old}, salió ${nw}. ` + (nw > old ? `Te quedas con <b>${nw}</b>.` : `Te quedas con <b>${old}</b> (el mejor de los dos).`)); render(); return; }
+      ui.selDie = ui.selDie === i ? -1 : i; render(); return;
+    }
+    if (act === 'slot') {
+      if (ui.selDie >= 0) { E.assignDie(S, k, ui.selDie); ui.selDie = -1; }
+      else if (t.assign[k] >= 0) E.unassign(S, k);
+      render(); return;
+    }
+    if (act === 'helm') { if (E.canReroll(S)) { ui.rr = !ui.rr; ui.selDie = -1; render(); } return; }
+    if (act === 'confirm') {
+      if (!E.assignComplete(t)) return;
+      E.confirmEnergy(S); ui.selDie = -1; ui.rr = false;
+      say(S.hero === 'mantis' ? 'Tu fase. Si atacas antes de moverte, tu primer golpe hace 2 de daño.' : 'Tu fase: muévete (casillas verdes) y ataca (monstruos con borde rojo).');
+      render(); return;
+    }
+    return;
+  }
+  if (S.phase !== 'move') return;
+  if (act === 'go') {
+    const i = +el.dataset.i, R = E.reachFromAdv(S);
+    if (!(R.dist[i] > 0 && R.dist[i] <= S.turn.spdLeft)) return;
+    E.moveAdv(S, i, R.dist[i]); ui.cornada = false; say(`Te mueves (−${R.dist[i]} de Movimiento).`); afterAction(); return;
+  }
+  if (act === 'mon') {
+    const m = S.mons.find(o => o.id === +el.dataset.id); if (!m) return;
+    if (ui.cornada) {
+      const r = E.cornada(S, m);
+      ui.cornada = false;
+      if (!r) { say('La Cornada solo empuja a un monstruo pegado a ti, en recto (no en diagonal).'); render(); return; }
+      const [tx, ty] = r.to;
+      say(r.hit ? `¡Cornada! Choca ${r.hit === 'wall' ? 'con un muro o el borde' : 'con otro monstruo'}: recibe 1 de daño${r.other ? ' (y el otro también)' : ''}.` : `¡Cornada! Lo empujas ${r.steps} casillas.`);
+      if (r.hit) fx(idx(tx, ty), '−1');
+      afterAction(); return;
+    }
+    const inf = E.attackInfo(S, m);
+    if (!inf.ok) {
+      say(inf.why === 'range' ? `Fuera de alcance: está a distancia ${inf.rd} y tu Alcance es ${S.turn.rng}.` : inf.why === 'los' ? 'No tienes línea de tiro: un muro u otro monstruo estorba.' : `Te faltan puntos de Ataque: cuesta ${inf.cost} y te quedan ${S.turn.atkLeft}.`);
+      render(); return;
+    }
+    const r = E.attackMon(S, m);
+    say(`Golpeas a ${E.lvOf(S).mon.name} ${m.id} (−${inf.cost} de Ataque, ${r.dmg} de daño)${r.dead ? ' y lo derrotas.' : '.'}`);
+    fx(idx(m.x, m.y), '−' + r.dmg); afterAction(); return;
+  }
+  if (act === 'cornada') {
+    if (S.abil) return;
+    ui.cornada = !ui.cornada;
+    say(ui.cornada ? 'Toca un monstruo pegado a ti (arriba, abajo o a los lados) para empujarlo.' : 'Cornada cancelada.'); render(); return;
+  }
+  if (act === 'undo') { if (S.undo.length) { E.popUndo(S); ui.cornada = false; say('Acción deshecha.'); render(); } return; }
+  if (act === 'end') { endTurn(); return; }
+}
+app.addEventListener('click', onClick);
+window.__gc = { E, get S() { return S; }, ui };
+render();
+})();
+</script>
+</body>
+</html>

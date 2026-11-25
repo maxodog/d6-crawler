@@ -97,3 +97,11 @@ Proyecto de Max. Responde siempre en **español**, corto (lo lee en el celular).
 - `world_text_test.py` revisa que no queden nombres del original en pantalla en ambos mundos e idiomas.
 - Commit con los trailers de atribución que indique la sesión y `git -c push.negotiate=true push origin main`.
 - Cambios de UI o reglas que también apliquen al juego antiguo: aplícalos además en `maxodog/dungeon-in-one-card` (mismo `ui.js` base, sin `worlds.js`).
+
+## Garden Crawler (tercer juego, aparte del motor de Archeodice/Colossus)
+- Héroes insecto en un jardín, tablero **6x6**, dados mixtos (D4/D6/D8/D12 según el héroe), equipos permanentes en vez de objetos. Max eligió el nombre. Hoy solo existe la **aventura 1, «Prueba 1: kits de dados»** (12 niveles, 2 héroes, 3 equipos, 4 monstruos); las otras aventuras y la «Prueba 2 (Muda)» se hacen después.
+- Vive en `garden/index.html`, una página autónoma (motor propio, sin nube ni usuarios ni estrellas). Se llega desde la tarjeta del selector de juegos y desde el botón «Jugar Garden Crawler» del menú (`ui.js`); el menú del juego tiene «Volver a D6 Crawler». **No es un mundo de `WORLDS`**: no toca `engine.js`, `worlds.js` ni los datos guardados.
+- Fuentes en `garden/src/` (`engine.js`, `ui_template.html`, `build.py`, bots `bot.js`/`sim.js`/`probe.js`/`design.js`). Para reconstruir: `cd garden/src && python3 build.py` (escribe `index.html` ahí; cópialo a `garden/index.html`). `build.py` lee `engine.js` y `ui_template.html` de su carpeta.
+- Reglas: las mismas del motor (movimiento 2/3 diagonal, ataque cuesta la Defensa del objetivo, daño total÷Defensa, Vida 6), con Cornada (Escarabajo) y Emboscada (Mantis). Casco: repite un dado y te quedas con el mejor de los dos (el mensaje muestra el tiro nuevo). Escudo: +1 Defensa por turno. Espina: ataques cuestan 1 menos (mín. 1).
+- Monstruos (vida/vel/atq/def/alc): Tijereta 2/6/4/3/3, Escarabajo bombardero 3/4/5/5/5, Cochinilla 4/3/6/6/3, Avispón 4/5/8/5/4. Mapas A, B y sus giros 180°; A→Tijereta, B→Cochinilla, A'→Bombardero, B'→Avispón. Cantidades por nivel: 4,1,3,2 | 7,3,5,6 | 9,4,7,8. Victorias del bot: 53–97 % según héroe y equipo.
+- Pendiente: más héroes y aventuras, Prueba 2 (Muda: los dados crecen entre niveles), íconos propios (hoy emojis), integrar usuarios/estrellas/nube si Max lo pide.

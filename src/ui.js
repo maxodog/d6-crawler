@@ -1803,6 +1803,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
         <button type="button" class="btn ${slots.length ? '' : 'primary'} menu-main" id="mNew"><span>${L('Nueva partida', 'New game')}</span></button>
         <button type="button" class="ghost" id="mRules">${L('Cómo se juega', 'How to play')}</button>
         ${W ? `<button type="button" class="world-switch ws-${OTHER_WORLD}" id="mWorld"><img src="img/${OTHER_WORLD}/base.jpg" alt=""><span class="ws-txt"><small>${L('Otro mundo', 'Other world')}</small><b>${L('Cambiar a ', 'Switch to ')}${WORLDS[OTHER_WORLD].name}</b></span><span class="ws-arrow">⇄</span></button>` : ''}
+        ${W ? `<a class="ghost" id="mGarden" href="garden/index.html" style="text-align:center;text-decoration:none">${L('Jugar Garden Crawler (nuevo)', 'Play Garden Crawler (new)')}</a>` : ''}
       </div>
       <div class="lang-sw" role="group" aria-label="${L('Idioma', 'Language')}"><button type="button" data-lang="es" class="${LANG === 'es' ? 'on' : ''}">Español</button><button type="button" data-lang="en" class="${LANG === 'en' ? 'on' : ''}">English</button></div>
       <p class="fine">${W ? CREDIT() : L('Versión no oficial de One Card Dungeon, de Barny Skinner.', 'Unofficial version of One Card Dungeon, by Barny Skinner.')} · ${L('versión', 'version')} ${(document.querySelector('meta[name=build]') || {}).content || '?'}</p></div>`,
@@ -2775,6 +2776,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
   function worldPicker() {
     const sc = showScreen(`<div class="splash worlds"><h2 class="wp-h">${LANG === 'en' ? 'Choose a game' : 'Elige un juego'}</h2><div class="world-list">
       ${Object.keys(WORLDS).map(w => `<button type="button" class="world-card" data-w="${w}"><img src="img/${w}/base.jpg" alt="${WORLDS[w].name}"><b>${WORLDS[w].name}${WORLDS[w].logo[1] ? ': Kaiju Protocol' : ''}</b><small>${WORLDS[w].tagline[LANG === 'en' ? 1 : 0]}</small></button>`).join('')}
+        <a class="world-card" href="garden/index.html" style="text-decoration:none"><div style="width:100%;aspect-ratio:10/14;border-radius:8px;display:grid;place-items:center;font-size:64px;background:linear-gradient(160deg,#6a9a3f,#2f5a2a)">🪲</div><b>Garden Crawler</b><small>${LANG === 'en' ? 'Insect heroes, mixed dice and a 6x6 garden. New.' : 'Héroes insecto, dados mixtos y un jardín de 6x6. Nuevo.'}</small></a>
       </div><p class="fine">${LANG === 'en' ? 'Same rules, two worlds. Your progress is kept separately in each one; you can switch from the menu.' : 'Mismas reglas, dos mundos. Tu progreso se guarda por separado en cada uno; puedes cambiar desde el menú.'}</p>
       <div class="lang-sw" role="group" aria-label="Idioma"><button type="button" data-lang="es" class="${LANG === 'es' ? 'on' : ''}">Español</button><button type="button" data-lang="en" class="${LANG === 'en' ? 'on' : ''}">English</button></div></div>`);
     sc.querySelectorAll('[data-w]').forEach(b => b.addEventListener('click', () => setWorld(b.dataset.w)));

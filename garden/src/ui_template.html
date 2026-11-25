@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Garden Crawler — Prueba 1: kits de dados</title>
+<style>
+:root{
+  --bg:#efe9d2; --card:#fbf8ec; --ink:#2b2a1f; --mut:#6d6a55; --line:#d8d1b3;
+  --leaf:#3f7d3b; --leaf-d:#2c5a2a; --soil:#7a5a3a; --acc:#d9822b; --bad:#b5473a; --good:#3f7d3b; --sel:#2a6fb0;
+  --t1:#d3e4b4; --t2:#c5d9a2; --wall:#2f6b3a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh}
+#app{max-width:520px;margin:0 auto;padding:10px 12px 40px}
+h1,h2,h3{margin:0;font-family:Georgia,"Times New Roman",serif}
+button{font:inherit;color:inherit;cursor:pointer}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.brand{font-family:Georgia,serif;font-weight:700;font-size:19px;color:var(--leaf-d)}
+.tag{font-size:11px;background:var(--leaf);color:#fff;border-radius:99px;padding:2px 8px;margin-left:6px;vertical-align:middle;font-family:system-ui}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0}
+.btn{background:var(--leaf);color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:600;font-size:15px;min-height:44px}
+.btn:disabled{background:#b9b7a6;color:#f4f2e6;cursor:not-allowed}
+.btn.alt{background:#fff;color:var(--leaf-d);border:1.5px solid var(--leaf)}
+.btn.warn{background:var(--acc)}
+.btn.full{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pick{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:12px;padding:10px;margin:6px 0}
+.pick.on{border-color:var(--leaf);background:#f1f8e6;box-shadow:0 0 0 2px #cfe4b0}
+.pick .em{font-size:30px;line-height:1}
+.pick b{display:block}
+.chips{display:flex;gap:5px;margin:4px 0;flex-wrap:wrap}
+.chip{background:#ece6c9;border-radius:8px;padding:1px 7px;font-size:12px;font-weight:600}
+.small{font-size:12.5px;color:var(--mut)}
+.lead{color:var(--mut);margin:4px 0 8px}
+/* estado */
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 8px}
+.hud .lv{font-weight:700}
+.hearts{font-size:18px;letter-spacing:1px;white-space:nowrap}
+/* tablero */
+#board{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;background:var(--soil);padding:5px;border-radius:14px;width:100%;aspect-ratio:1/1;touch-action:manipulation}
+.cell{position:relative;border-radius:7px;background:var(--t1);display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;border:0;padding:0;overflow:hidden}
+.cell.alt{background:var(--t2)}
+.cell.wall{background:var(--wall);background-image:radial-gradient(circle at 25% 30%,#4c8a4a 0 22%,transparent 24%),radial-gradient(circle at 70% 65%,#3e7c3d 0 26%,transparent 28%),radial-gradient(circle at 55% 20%,#58985a 0 16%,transparent 18%)}
+.cell.reach{background:#b9dba0;box-shadow:inset 0 0 0 2px #6aa84f;cursor:pointer}
+.cell.reach .cost{position:absolute;right:3px;bottom:1px;font-size:11px;font-weight:700;color:#2c5a2a}
+.cell .em{font-size:clamp(20px,8.4vw,40px);line-height:1;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
+.cell.hero{box-shadow:inset 0 0 0 3px var(--sel)}
+.cell.hero .em{font-size:clamp(22px,9vw,42px)}
+.cell.mon{box-shadow:inset 0 0 0 2px rgba(0,0,0,.18)}
+.cell.atk{box-shadow:inset 0 0 0 3px var(--bad);animation:pulse 1.2s infinite}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 3px var(--bad),0 0 8px 1px rgba(181,71,58,.6)}}
+.pips{position:absolute;left:0;right:0;bottom:1px;display:flex;justify-content:center;gap:2px}
+.pip{width:6px;height:6px;border-radius:50%;background:#d93b2f;border:1px solid #fff}
+.pip.lost{background:#bbb}
+.badge{position:absolute;top:1px;left:2px;font-size:11px;font-weight:800;background:#fff;border-radius:6px;padding:0 4px;color:var(--bad)}
+.badge.ok{color:var(--good)}
+.fx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;text-shadow:0 0 4px #000,0 0 4px #000;pointer-events:none;animation:rise .9s forwards}
+@keyframes rise{0%{transform:translateY(8px);opacity:0}20%{opacity:1}100%{transform:translateY(-14px);opacity:0}}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* paneles */
+.dice{display:flex;gap:10px;justify-content:center;margin:8px 0}
+.die{width:72px;height:72px;border-radius:14px;background:#fff;border:2.5px solid #8a8668;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.die b{font-size:30px;line-height:1}
+.die small{font-size:11px;color:var(--mut);font-weight:700}
+.die.sel{border-color:var(--sel);box-shadow:0 0 0 3px #bcd8f2}
+.die.used{opacity:.45}
+.die.rr{border-color:var(--acc);box-shadow:0 0 0 3px #f6d6b0}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{background:#fff;border:2px dashed #a9a58a;border-radius:12px;padding:8px 4px;text-align:center;min-height:74px}
+.slot.on{border-style:solid;border-color:var(--leaf);background:#f1f8e6}
+.slot.tgt{border-color:var(--sel);background:#eaf3fb}
+.slot .k{font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.slot .v{font-size:19px;font-weight:800;margin-top:2px}
+.slot .f{font-size:11.5px;color:var(--mut)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center}
+.stat .k{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase}
+.stat .v{font-size:20px;font-weight:800}
+.stat .f{font-size:11px;color:var(--mut)}
+.bar{height:5px;border-radius:3px;background:#e6e0c3;margin-top:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--leaf)}
+.msg{min-height:38px;padding:8px 10px;border-radius:10px;background:#fff;border:1px solid var(--line);font-size:14px;margin:8px 0}
+.mons{display:flex;flex-direction:column;gap:6px}
+.mon-row{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.mon-row.atk{border-color:var(--bad);background:#fdf1ef}
+.mon-row .em{font-size:24px}
+.mon-row .nm{font-weight:700;font-size:13.5px}
+.mon-row .st{font-size:12px;color:var(--mut)}
+.mon-row .hpn{margin-left:auto;font-weight:800;color:var(--bad)}
+.veil{position:fixed;inset:0;background:rgba(30,28,15,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{background:var(--card);border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow:auto;border:1px solid var(--line)}
+.modal h2{margin-bottom:6px}
+.up{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.up .btn{display:flex;flex-direction:column;align-items:center;gap:0;padding:8px}
+.up .btn small{font-weight:500;opacity:.9;font-size:12px}
+details{margin:8px 0}
+summary{cursor:pointer;font-weight:700;color:var(--leaf-d)}
+ul.rules{padding-left:18px;margin:6px 0}
+ul.rules li{margin:4px 0}
+.hint{color:var(--sel);font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+(function(){
+'use strict';
+const { idx, XY, N, COLS } = E;
+const SK = { spd: 'Movimiento', atk: 'Ataque', def: 'Defensa', rng: 'Alcance' };
+const app = document.getElementById('app');
+let S = null;
+const ui = { screen: 'start', hero: null, equip: null, selDie: -1, rr: false, msg: '', modal: null, disp: null, anim: false, fx: {}, log: [] };
+const esc = s => String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const hearts = hp => '❤️'.repeat(Math.max(0, hp)) + '🖤'.repeat(Math.max(0, E.START_HP - hp));
+
+function say(t) { ui.msg = t; }
+
+/* ---------- Pantallas ---------- */
+function rulesHTML() {
+  return `<details><summary>Cómo se juega</summary><ul class="rules">
+  <li><b>Turno:</b> tiras los 3 dados de tu héroe y reparte uno a Movimiento, otro a Ataque y otro a Defensa. Cada habilidad es su valor base más el dado.</li>
+  <li><b>Moverte:</b> cada paso recto cuesta 2 puntos y cada diagonal 3. No puedes pasar por muros ni por monstruos.</li>
+  <li><b>Atacar:</b> toca un monstruo a tu Alcance y con línea de tiro libre. Cuesta tantos puntos de Ataque como su Defensa y le quita 1 de vida. Puedes repetir mientras te queden puntos.</li>
+  <li><b>Distancia:</b> se mide como el Movimiento: recto 2, diagonal 3. Tu Alcance base es 2 (casilla pegada).</li>
+  <li><b>Monstruos:</b> después de ti se mueven, uno por uno, y los que te alcanzan con línea de tiro atacan juntos: daño = suma de sus Ataques ÷ tu Defensa (hacia abajo).</li>
+  <li><b>Entre niveles:</b> te curas por completo o subes una habilidad en 1 (máximo 6). Si caes, repites el nivel.</li>
+  <li><b>Equipo:</b> eliges uno al empezar y vale toda la partida.</li></ul></details>`;
+}
+function startHTML() {
+  const H = Object.values(E.HEROES), Q = Object.values(E.EQUIPS);
+  return `<div class="top"><div class="brand">Garden Crawler<span class="tag">Prueba 1</span></div></div>
+  <div class="card"><h2>Kits de dados por héroe</h2>
+  <p class="lead">12 niveles en un jardín de 6×6. Cada héroe tira unos dados distintos y tiene su propia mecánica.</p>
+  <h3>1. Elige tu héroe</h3>
+  ${H.map(h => `<button class="pick ${ui.hero === h.key ? 'on' : ''}" data-act="hero" data-k="${h.key}"><span class="em">${h.emoji}</span><span><b>${h.name}</b>
+    <span class="chips">${h.kit.map(s => `<span class="chip">D${s}</span>`).join('')}</span>
+    <span class="small"><b>${h.abil}.</b> ${h.txt}</span></span></button>`).join('')}
+  <h3 style="margin-top:12px">2. Elige un equipo</h3>
+  ${Q.map(q => `<button class="pick ${ui.equip === q.key ? 'on' : ''}" data-act="equip" data-k="${q.key}"><span class="em">${q.emoji}</span><span><b>${q.name}</b> <span class="small">· ${q.type}</span>
+    <span class="small" style="display:block">${q.txt}</span></span></button>`).join('')}
+  <button class="btn full" style="margin-top:12px" data-act="begin" ${ui.hero && ui.equip ? '' : 'disabled'}>Empezar aventura</button></div>
+  ${rulesHTML()}`;
+}
+function monInfo(m) {
+  const lv = E.lvOf(S);
+  return { key: lv.mon.key, name: lv.mon.name, emoji: lv.mon.emoji, color: lv.mon.color };
+}
+function boardHTML() {
+  const lv = E.lvOf(S), heroI = idx(S.adv.x, S.adv.y), mons = ui.disp || S.mons;
+  const move = S.phase === 'move' && !ui.anim;
+  const R = move ? E.reachFromAdv(S) : null;
+  const atkOk = {};
+  if (move) for (const m of S.mons) { const inf = E.attackInfo(S, m); if (inf.ok) atkOk[idx(m.x, m.y)] = inf; }
+  let h = '';
+  for (let i = 0; i < N; i++) {
+    const [x, y] = XY(i), alt = (x + y) % 2 ? ' alt' : '';
+    if (lv.walls[i]) { h += `<div class="cell wall${alt}" aria-label="Seto"></div>`; continue; }
+    const m = mons.find(o => idx(o.x, o.y) === i);
+    const fx = ui.fx[i] ? `<span class="fx">${ui.fx[i]}</span>` : '';
+    if (i === heroI) {
+      const hero = E.HEROES[S.hero];
+      const amb = move && E.ambushReady(S) ? `<span class="badge ok">×2</span>` : '';
+      h += `<div class="cell hero${alt}${ui.fx[i] ? ' shake' : ''}" aria-label="Tu héroe"><span class="em">${hero.emoji}</span>${amb}${fx}</div>`;
+    } else if (m) {
+      const info = lv.mon, can = atkOk[i];
+      const pips = Array.from({ length: m.maxHp }, (_, k) => `<span class="pip ${k < m.hp ? '' : 'lost'}"></span>`).join('');
+      h += `<button class="cell mon${alt}${can ? ' atk' : ''}" data-act="mon" data-id="${m.id}" aria-label="${esc(info.name)}"><span class="em">${info.emoji}</span><span class="pips">${pips}</span>${can ? `<span class="badge">−${can.cost}</span>` : ''}${fx}</button>`;
+    } else if (R && R.dist[i] > 0 && R.dist[i] <= S.turn.spdLeft) {
+      h += `<button class="cell reach${alt}" data-act="go" data-i="${i}" aria-label="Moverte aquí"><span class="cost">${R.dist[i]}</span>${fx}</button>`;
+    } else h += `<div class="cell${alt}">${fx}</div>`;
+  }
+  return `<div id="board">${h}</div>`;
+}
+function dieHTML(i) {
+  const t = S.turn, used = ['spd', 'atk', 'def'].some(k => t.assign[k] === i);
+  return `<button class="die ${ui.selDie === i ? 'sel' : ''} ${used ? 'used' : ''} ${ui.rr ? 'rr' : ''}" data-act="die" data-i="${i}"><b>${t.dice[i]}</b><small>D${t.sides[i]}</small></button>`;
+}
+function energyHTML() {
+  const t = S.turn, a = S.adv;
+  const slot = k => {
+    const d = t.assign[k], extra = k === 'def' && S.equip === 'shield' ? 1 : 0;
+    return `<button class="slot ${d >= 0 ? 'on' : ''} ${ui.selDie >= 0 && d < 0 ? 'tgt' : ''}" data-act="slot" data-k="${k}"><div class="k">${SK[k]}</div>
+      <div class="v">${d >= 0 ? a[k] + t.dice[d] + extra : '—'}</div><div class="f">${d >= 0 ? `${a[k]} + ${t.dice[d]}${extra ? ' +1' : ''}` : `base ${a[k]}`}</div></button>`;
+  };
+  const done = E.assignComplete(t);
+  return `<div class="card"><h3>Turno ${S.turnNo} · reparte tus dados</h3>
+    <div class="dice">${[0, 1, 2].map(dieHTML).join('')}</div>
+    <div class="small" style="text-align:center;margin-bottom:6px">${ui.rr ? '<span class="hint">Toca el dado que quieres repetir</span>' : ui.selDie >= 0 ? '<span class="hint">Ahora toca la habilidad</span>' : 'Toca un dado y luego una habilidad. Toca una habilidad ocupada para soltarla.'}</div>
+    <div class="slots">${['spd', 'atk', 'def'].map(slot).join('')}</div>
+    <div class="row" style="margin-top:10px">
+      ${S.equip === 'helm' ? `<button class="btn alt" data-act="helm" ${E.canReroll(S) ? '' : 'disabled'}>🌰 ${ui.rr ? 'Cancelar' : 'Repetir un dado'}</button>` : ''}
+      <button class="btn" style="flex:1" data-act="confirm" ${done ? '' : 'disabled'}>Listo</button></div></div>`;
+}
+function moveHTML() {
+  const t = S.turn;
+  const st = (k, left, tot) => `<div class="stat"><div class="k">${SK[k]}</div><div class="v">${left == null ? tot : left}</div><div class="f">${left == null ? 'este turno' : 'de ' + tot}</div>${left == null ? '' : `<div class="bar"><i style="width:${tot ? 100 * left / tot : 0}%"></i></div>`}</div>`;
+  const ab = S.hero === 'beetle' ? `<button class="btn alt" data-act="cornada" ${S.abil ? 'disabled' : ''}>${ui.cornada ? 'Cancelar Cornada' : 'Cornada'}</button>` : '';
+  return `<div class="card"><h3>Turno ${S.turnNo} · tu fase</h3>
+    <div class="stats" style="margin-top:6px">${st('spd', t.spdLeft, t.spd)}${st('atk', t.atkLeft, t.atk)}${st('def', null, t.def)}${st('rng', null, t.rng)}</div>
+    <div class="row" style="margin-top:10px">${ab}<button class="btn alt" data-act="undo" ${S.undo.length ? '' : 'disabled'}>Deshacer</button>
+    <button class="btn warn" style="flex:1" data-act="end">Terminar turno</button></div></div>`;
+}
+function monsHTML() {
+  const lv = E.lvOf(S), mi = lv.mon, move = S.phase === 'move' && !ui.anim;
+  if (!S.mons.length) return '';
+  return `<div class="card"><h3>${mi.emoji} ${S.mons.length} × ${S.mons.length > 1 ? mi.plural : mi.name}</h3><div class="small" style="margin-bottom:6px">${mi.txt} Vida ${mi.hp} · Vel ${mi.spd} · Atq ${mi.atk} · Def ${mi.def} · Alc ${mi.rng}</div>
+    <div class="mons">${S.mons.map(m => {
+      const inf = move ? E.attackInfo(S, m) : { ok: false };
+      return `<div class="mon-row ${inf.ok ? 'atk' : ''}"><span class="em">${mi.emoji}</span><span><span class="nm">${mi.name} ${m.id}</span><div class="st">${inf.ok ? 'Puedes atacarlo (cuesta ' + inf.cost + ')' : move ? (inf.why === 'range' ? 'Fuera de tu alcance' : inf.why === 'los' ? 'Sin línea de tiro' : 'Te faltan puntos de Ataque') : ''}</div></span><span class="hpn">♥ ${m.hp}</span></div>`;
+    }).join('')}</div></div>`;
+}
+function gameHTML() {
+  const lv = E.lvOf(S), hero = E.HEROES[S.hero], q = E.EQUIPS[S.equip];
+  const panel = S.phase === 'energy' ? energyHTML() : S.phase === 'move' ? moveHTML() : '';
+  return `<div class="top"><div class="brand">Garden Crawler<span class="tag">Prueba 1</span></div><button class="ghost" data-act="menu">Menú</button></div>
+  <div class="hud"><div><div class="lv">Nivel ${lv.num}/12 · ${esc(lv.title)}</div><div class="small">${hero.emoji} ${hero.name} · ${q.emoji} ${q.name}</div></div><div class="hearts" aria-label="Vida ${S.adv.hp}">${hearts(S.adv.hp)}</div></div>
+  ${boardHTML()}
+  <div class="msg" id="msg">${ui.msg || 'Reparte tus dados para empezar.'}</div>
+  ${panel}${monsHTML()}${rulesHTML()}`;
+}
+function modalHTML() {
+  const m = ui.modal; if (!m) return '';
+  if (m.t === 'break') {
+    const a = S.adv, b = (k, lbl) => `<button class="btn" data-act="up" data-k="${k}" ${a[k] >= E.SKILL_MAX ? 'disabled' : ''}><span>${lbl}</span><small>${a[k]} → ${Math.min(E.SKILL_MAX, a[k] + 1)}</small></button>`;
+    return `<div class="veil"><div class="modal"><h2>¡Nivel superado!</h2><p class="lead">Vida ${a.hp}/6. Elige una mejora o cúrate por completo.</p>
+      <div class="up">${b('spd', 'Movimiento')}${b('atk', 'Ataque')}${b('def', 'Defensa')}${b('rng', 'Alcance')}</div>
+      <button class="btn warn full" data-act="up" data-k="heal">Curarte (Vida 6)</button></div></div>`;
+  }
+  if (m.t === 'dead') return `<div class="veil"><div class="modal"><h2>Tu héroe cayó</h2><p class="lead">Puedes repetir este nivel desde el principio, con la misma vida y mejoras que traías.</p><button class="btn full" data-act="retry">Reintentar nivel</button></div></div>`;
+  if (m.t === 'won') return `<div class="veil"><div class="modal"><h2>🌻 ¡Jardín salvado!</h2><p class="lead">Superaste los 12 niveles con ${E.HEROES[S.hero].name} y ${E.EQUIPS[S.equip].name}.</p><button class="btn full" data-act="restart">Volver al inicio</button></div></div>`;
+  if (m.t === 'menu') return `<div class="veil"><div class="modal"><h2>Menú</h2><p class="lead">Si reinicias, pierdes el avance de esta partida.</p><div class="row"><button class="btn alt" style="flex:1" data-act="close">Seguir jugando</button><button class="btn warn" style="flex:1" data-act="restart">Reiniciar</button></div>${location.pathname.indexOf('/garden/') >= 0 ? '<p style="text-align:center;margin:14px 0 0"><a href="../index.html" style="color:inherit">← Volver a D6 Crawler</a></p>' : ''}</div></div>`;
+  return '';
+}
+function render() {
+  app.innerHTML = (ui.screen === 'start' ? startHTML() : gameHTML()) + modalHTML();
+}
+
+/* ---------- Acciones ---------- */
+function afterAction() {
+  if (S.phase === 'move' && E.levelCleared(S)) {
+    if (S.levelIdx >= E.LEVELS.length - 1) { ui.modal = { t: 'won' }; S.phase = 'won'; }
+    else ui.modal = { t: 'break' };
+  }
+  render();
+}
+function fx(i, txt) { ui.fx[i] = txt; setTimeout(() => { delete ui.fx[i]; if (!ui.anim) render(); }, 900); }
+async function endTurn() {
+  if (ui.anim || S.phase !== 'move') return;
+  ui.anim = true; ui.cornada = false;
+  ui.disp = S.mons.map(m => Object.assign({}, m));
+  const ev = E.endTurn(S);
+  say('Los monstruos se mueven…'); render();
+  for (const e of ev) {
+    if (e.t === 'move') {
+      const d = ui.disp.find(o => o.id === e.id);
+      for (const c of e.path.slice(1)) { const [x, y] = XY(c); d.x = x; d.y = y; render(); await sleep(150); }
+    } else if (e.t === 'attack') {
+      const hi = idx(S.adv.x, S.adv.y);
+      if (!e.ids.length) say('Ningún monstruo te alcanza.');
+      else if (e.dmg > 0) { say(`Te atacan ${e.ids.length}: Ataque total ${e.total} ÷ tu Defensa ${e.def} = <b>${e.dmg} de daño</b>.`); fx(hi, '−' + e.dmg); }
+      else say(`Te atacan ${e.ids.length}: Ataque total ${e.total} ÷ tu Defensa ${e.def} = 0 de daño.`);
+      render(); await sleep(500);
+    }
+  }
+  ui.disp = null; ui.anim = false;
+  if (S.phase === 'dead') { ui.modal = { t: 'dead' }; }
+  else { ui.selDie = -1; ui.rr = false; say('Nuevo turno: reparte tus dados.'); }
+  render();
+}
+function onClick(ev) {
+  const el = ev.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, k = el.dataset.k;
+  if (ui.anim) return;
+  if (act === 'hero') { ui.hero = k; render(); return; }
+  if (act === 'equip') { ui.equip = k; render(); return; }
+  if (act === 'begin') { S = E.newRun(ui.hero, ui.equip); ui.screen = 'game'; ui.selDie = -1; ui.rr = false; ui.modal = null; ui.cornada = false; say(`Nivel 1. Tira de tus dados y repártelos.`); render(); return; }
+  if (act === 'menu') { ui.modal = { t: 'menu' }; render(); return; }
+  if (act === 'close') { ui.modal = null; render(); return; }
+  if (act === 'restart') { ui.screen = 'start'; ui.modal = null; S = null; render(); return; }
+  if (!S) return;
+  if (act === 'retry') { E.retryLevel(S); ui.modal = null; ui.selDie = -1; ui.rr = false; ui.cornada = false; say('Nivel reiniciado. Reparte tus dados.'); render(); return; }
+  if (act === 'up') {
+    if (!E.applyBreak(S, k)) return;
+    const done = !E.nextLevel(S);
+    ui.modal = done ? { t: 'won' } : null; ui.selDie = -1; ui.rr = false; ui.cornada = false;
+    say(`Nivel ${S.levelIdx + 1}: ${E.lvOf(S).title}. Reparte tus dados.`); render(); return;
+  }
+  if (ui.modal) return;
+  if (S.phase === 'energy') {
+    const t = S.turn;
+    if (act === 'die') {
+      const i = +el.dataset.i;
+      if (ui.rr) { const old = t.dice[i]; E.useHelm(S, i); ui.rr = false; const nw = t.lastRoll; say(`Repetiste el D${t.sides[i]}: tenías ${old}, salió ${nw}. ` + (nw > old ? `Te quedas con <b>${nw}</b>.` : `Te quedas con <b>${old}</b> (el mejor de los dos).`)); render(); return; }
+      ui.selDie = ui.selDie === i ? -1 : i; render(); return;
+    }
+    if (act === 'slot') {
+      if (ui.selDie >= 0) { E.assignDie(S, k, ui.selDie); ui.selDie = -1; }
+      else if (t.assign[k] >= 0) E.unassign(S, k);
+      render(); return;
+    }
+    if (act === 'helm') { if (E.canReroll(S)) { ui.rr = !ui.rr; ui.selDie = -1; render(); } return; }
+    if (act === 'confirm') {
+      if (!E.assignComplete(t)) return;
+      E.confirmEnergy(S); ui.selDie = -1; ui.rr = false;
+      say(S.hero === 'mantis' ? 'Tu fase. Si atacas antes de moverte, tu primer golpe hace 2 de daño.' : 'Tu fase: muévete (casillas verdes) y ataca (monstruos con borde rojo).');
+      render(); return;
+    }
+    return;
+  }
+  if (S.phase !== 'move') return;
+  if (act === 'go') {
+    const i = +el.dataset.i, R = E.reachFromAdv(S);
+    if (!(R.dist[i] > 0 && R.dist[i] <= S.turn.spdLeft)) return;
+    E.moveAdv(S, i, R.dist[i]); ui.cornada = false; say(`Te mueves (−${R.dist[i]} de Movimiento).`); afterAction(); return;
+  }
+  if (act === 'mon') {
+    const m = S.mons.find(o => o.id === +el.dataset.id); if (!m) return;
+    if (ui.cornada) {
+      const r = E.cornada(S, m);
+      ui.cornada = false;
+      if (!r) { say('La Cornada solo empuja a un monstruo pegado a ti, en recto (no en diagonal).'); render(); return; }
+      const [tx, ty] = r.to;
+      say(r.hit ? `¡Cornada! Choca ${r.hit === 'wall' ? 'con un muro o el borde' : 'con otro monstruo'}: recibe 1 de daño${r.other ? ' (y el otro también)' : ''}.` : `¡Cornada! Lo empujas ${r.steps} casillas.`);
+      if (r.hit) fx(idx(tx, ty), '−1');
+      afterAction(); return;
+    }
+    const inf = E.attackInfo(S, m);
+    if (!inf.ok) {
+      say(inf.why === 'range' ? `Fuera de alcance: está a distancia ${inf.rd} y tu Alcance es ${S.turn.rng}.` : inf.why === 'los' ? 'No tienes línea de tiro: un muro u otro monstruo estorba.' : `Te faltan puntos de Ataque: cuesta ${inf.cost} y te quedan ${S.turn.atkLeft}.`);
+      render(); return;
+    }
+    const r = E.attackMon(S, m);
+    say(`Golpeas a ${E.lvOf(S).mon.name} ${m.id} (−${inf.cost} de Ataque, ${r.dmg} de daño)${r.dead ? ' y lo derrotas.' : '.'}`);
+    fx(idx(m.x, m.y), '−' + r.dmg); afterAction(); return;
+  }
+  if (act === 'cornada') {
+    if (S.abil) return;
+    ui.cornada = !ui.cornada;
+    say(ui.cornada ? 'Toca un monstruo pegado a ti (arriba, abajo o a los lados) para empujarlo.' : 'Cornada cancelada.'); render(); return;
+  }
+  if (act === 'undo') { if (S.undo.length) { E.popUndo(S); ui.cornada = false; say('Acción deshecha.'); render(); } return; }
+  if (act === 'end') { endTurn(); return; }
+}
+app.addEventListener('click', onClick);
+window.__gc = { E, get S() { return S; }, ui };
+render();
+})();
+</script>
+</body>
+</html>
