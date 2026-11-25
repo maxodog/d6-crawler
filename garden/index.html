@@ -612,10 +612,8 @@ const SKS = { spd: 'MOV', atk: 'ATQ', def: 'DEF', rng: 'ALC' };
 const app = document.getElementById('app');
 const IN_REPO = location.pathname.indexOf('/garden/') >= 0;
 const ADV = {
-  kits: { n: 1, key: 'kits', name: 'Kits de dados', kind: 'Aventura 1 · Prueba 1', tag: 'Prueba 1 · Kits',
-    txt: '12 niveles y 4 clases de bichos. Cada héroe tira sus propios dados: unos grandes y otros chicos.' },
-  muda: { n: 2, key: 'muda', name: 'Muda', kind: 'Aventura 1 · Prueba 2', tag: 'Prueba 2 · Muda',
-    txt: '12 niveles y 4 clases de bichos. Empiezas con dados chicos y en cada pausa haces mudar uno: D4, D6, D8, D12.' }
+  kits: { n: 1, key: 'kits', name: 'Kits de dados', kind: 'Aventura 1', tag: 'Aventura 1 · Kits de dados',
+    txt: '12 niveles y 4 clases de bichos. Cada héroe tira sus propios dados: unos grandes y otros chicos.' }
 };
 let S = null;
 const ui = { screen: 'menu', mode: 'kits', hero: null, equip: null, selDie: -1, rr: false, msg: '', modal: null, disp: null, anim: false, fx: {}, cornada: false };
@@ -677,7 +675,7 @@ const Snd = (() => {
 })();
 const sndBtn = cls => `<button class="${cls}" data-act="snd" aria-pressed="${Snd.on}" aria-label="${Snd.on ? 'Silenciar' : 'Activar sonido'}">${cls.indexOf('icon') >= 0 ? (Snd.on ? '🔊' : '🔇') : (Snd.on ? '🔊 Sonido: sí' : '🔇 Sonido: no')}</button>`;
 const hearts = hp => '❤️'.repeat(Math.max(0, hp)) + '🖤'.repeat(Math.max(0, E.START_HP - hp));
-const kitOf = (hero, mode) => mode === 'muda' ? E.MUDA_KITS[hero] : E.HEROES[hero].kit;
+const kitOf = (hero, mode) => E.HEROES[hero].kit;
 function say(t) { ui.msg = t; }
 
 /* ---------- Ilustraciones (SVG propio) ---------- */
@@ -722,21 +720,20 @@ function coverSVG(mode) {
 
 /* ---------- Pantallas ---------- */
 function rulesHTML() {
-  const m = ui.mode === 'muda';
   return `<h2>Cómo se juega</h2><ul class="rules">
   <li><b>Turno:</b> tiras los 3 dados de tu héroe y repartes uno a Movimiento, otro a Ataque y otro a Defensa. Cada habilidad es su valor base más el dado.</li>
   <li><b>Moverte:</b> cada paso recto cuesta 2 puntos y cada diagonal 3. No puedes pasar por muros ni por bichos.</li>
   <li><b>Atacar:</b> toca un bicho a tu Alcance y con línea de tiro libre. Cuesta tantos puntos de Ataque como su Defensa y le quita 1 de vida. Puedes repetir mientras te queden puntos.</li>
   <li><b>Distancia:</b> se mide como el Movimiento: recto 2, diagonal 3. Tu Alcance base es 2 (casilla pegada).</li>
   <li><b>Bichos:</b> después de ti se mueven, uno por uno, y los que te alcanzan con línea de tiro atacan juntos: daño = suma de sus Ataques ÷ tu Defensa (hacia abajo).</li>
-  <li><b>Entre niveles:</b> ${m ? 'te curas por completo, subes una habilidad en 1 (máximo 6) o <b>haces mudar un dado</b> al siguiente tamaño: D4 → D6 → D8 → D12.' : 'te curas por completo o subes una habilidad en 1 (máximo 6).'} Si caes, repites el nivel.</li>
+  <li><b>Entre niveles:</b> te curas por completo o subes una habilidad en 1 (máximo 6). Si caes, repites el nivel.</li>
   <li><b>Equipo:</b> eliges uno al empezar y vale toda la partida.</li>
-  <li><b>Dados:</b> ${m ? 'empiezas con dados chicos; mientras más grandes, más alto puede salir tu número.' : 'cada héroe tiene un kit propio: no todos tiran los mismos dados.'}</li></ul>
+  <li><b>Dados:</b> cada héroe tiene un kit propio: no todos tiran los mismos dados.</li></ul>
   <button class="btn primary full" data-act="close">Entendido</button>`;
 }
 function menuHTML() {
   return `<div class="menu-s">${bannerSVG()}
-  <div class="logo"><b>Garden Crawler</b><span>Aventura 1 · Pruebas</span></div>
+  <div class="logo"><b>Garden Crawler</b><span>Aventura 1</span></div>
   <p class="tag-line">Un jardín, dados de varios tamaños y bichos que cazar.</p>
   <div class="menu-btns"><button class="btn main" data-act="new">Nueva partida</button>
   <button class="ghost" data-act="rules">Cómo se juega</button>${sndBtn('ghost')}</div>
@@ -749,7 +746,7 @@ function advHTML() {
 }
 function heroScreenHTML() {
   const a = ADV[ui.mode];
-  return `<button class="ghost back" data-act="back">‹ Volver</button><h2>Elige tu héroe</h2><p class="lead">${a.name}: ${ui.mode === 'muda' ? 'dados chicos que irán mudando.' : 'cada héroe con su propio kit de dados.'}</p>
+  return `<button class="ghost back" data-act="back">‹ Volver</button><h2>Elige tu héroe</h2><p class="lead">${a.name}: cada héroe con su propio kit de dados.</p>
   <div class="sect">${a.tag}</div>
   ${Object.values(E.HEROES).map(h => `<button class="hero-card" data-act="hero" data-k="${h.key}"><span class="ic">${h.emoji}</span><span><h3>${h.name}</h3>
     <span class="chips">${kitOf(h.key, ui.mode).map(s => `<span class="chip">D${s}</span>`).join('')}</span>
@@ -822,7 +819,7 @@ function footHTML() {
 function gameHTML() {
   const lv = E.lvOf(S), hero = E.HEROES[S.hero], q = E.EQUIPS[S.equip];
   const panel = S.phase === 'energy' ? energyHTML() : S.phase === 'move' ? moveHTML() : '';
-  const kit = S.mode === 'muda' ? ' · ' + S.kit.map(s => 'D' + s).join('·') : '';
+  const kit = '';
   const hp = S.adv.hp, pipsd = Array.from({ length: E.START_HP }, (_, k) => `<i class="${k < hp ? 'on' : ''}"></i>`).join('');
   const dots = Array.from({ length: 12 }, (_, k) => `<i class="${k < lv.num - 1 ? 'done' : k === lv.num - 1 ? 'now' : ''}"></i>`).join('');
   return `<div class="top game"><div class="brand"><span class="mark">Garden Crawler</span></div>
@@ -839,7 +836,7 @@ function modalHTML() {
   let body = '';
   if (m.t === 'break') {
     const a = S.adv, b = (k, lbl) => `<button class="btn" data-act="up" data-k="${k}" ${a[k] >= E.SKILL_MAX ? 'disabled' : ''}><span>${lbl}</span><small>${a[k]} → ${Math.min(E.SKILL_MAX, a[k] + 1)}</small></button>`;
-    const dice = S.mode === 'muda' ? `<div class="sect">Mudar un dado</div><p class="small" style="margin:0">Si mejoras siempre el mismo dado, llega antes a D12.</p><div class="up three">${S.kit.map((s, i) => `<button class="btn" data-act="up" data-k="dice${i}" ${E.nextDie(s) ? '' : 'disabled'}><span>Dado ${i + 1}</span><small>D${s}${E.nextDie(s) ? ' → D' + E.nextDie(s) : ' (máximo)'}</small></button>`).join('')}</div>` : '';
+    const dice = '';
     body = `<h2>¡Nivel superado!</h2><p class="lead">Vida ${a.hp}/6. Elige una mejora o cúrate por completo.</p>
       <div class="sect">Habilidad</div><div class="up">${b('spd', 'Movimiento')}${b('atk', 'Ataque')}${b('def', 'Defensa')}${b('rng', 'Alcance')}</div>${dice}
       <button class="btn warn full" data-act="up" data-k="heal">Curarte (Vida 6)</button>`;
