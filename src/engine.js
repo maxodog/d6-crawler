@@ -423,11 +423,15 @@ function lvOf(st) {
 
 /* ---------- Bonos de casilla de los monstruos (agua de Harbour Clash) ---------- */
 const NO_BONUS = {};
+// Marea (Bahía Abisal de Colossus): bonus del agua solo con marea alta, en los turnos pares (el primer turno es de marea baja)
+const tideHigh = st => st.turnNo % 2 === 0;
 function monBonus(st, m, tile) {
-  const lv = LEVELS[st.levelIdx], b = lv.mon.bonus;
+  const lv = LEVELS[st.levelIdx], b = lv.mon.bonus, on = lv.mon.bonusOn;
   if (!b || st.sands) return NO_BONUS;
-  if (lv.mon.bonusOn === 'hero') return lv.damned[idx(st.adv.x, st.adv.y)] ? b : NO_BONUS;   // Puerta del Infierno: cuenta dónde está el aventurero
+  if (on === 'hero') return lv.damned[idx(st.adv.x, st.adv.y)] ? b : NO_BONUS;   // Puerta del Infierno: cuenta dónde está el aventurero
+  if (on === 'refuge') return lv.damned[idx(st.adv.x, st.adv.y)] ? NO_BONUS : b;  // Fisura Infernal (Colossus): al revés, la grieta te protege
   const t = tile == null ? idx(m.x, m.y) : tile;
+  if (on === 'tide') return lv.water[t] && tideHigh(st) ? b : NO_BONUS;           // Bahía Abisal (Colossus): solo con marea alta
   return lv.water[t] ? b : NO_BONUS;
 }
 const mStat = (st, m, k, tile) => m[k] + (monBonus(st, m, tile)[k] || 0);
@@ -675,12 +679,16 @@ function stoneInfo(st) {
 }
 function breakStone(st) {
   pushUndo(st);
-  const dmg = st.fist ? 2 : 1;
+  const lv = LEVELS[st.levelIdx], refuge = lv.mon.bonusOn === 'refuge';
+  const base = st.fist ? 2 : 1;
   st.turn.atkLeft -= st.stone.val;
   st.stone.broken = true; st.fist = false;
-  for (const m of st.mons) m.hp -= dmg;
+  // Roca del Núcleo (Colossus): los kaiju sobre una grieta reciben 1 más, y tú no sufres daño si estás sobre una
+  st.lastBreak = st.mons.map(m => [m.x, m.y, base + (refuge && lv.damned[idx(m.x, m.y)] ? 1 : 0)]);
+  st.mons.forEach((m, i) => { m.hp -= st.lastBreak[i][2]; });
   st.mons = st.mons.filter(m => m.hp > 0);
-  st.adv.hp = Math.max(0, st.adv.hp - 1);
+  st.lastBreakHero = refuge && lv.damned[idx(st.adv.x, st.adv.y)] ? 0 : 1;
+  st.adv.hp = Math.max(0, st.adv.hp - st.lastBreakHero);
   return reviveIfDead(st);
 }
 // Colgante de alma: al caer a 0 de Vida, vuelves con 1 (una sola vez)
@@ -1218,7 +1226,7 @@ if (typeof module !== 'undefined') {
     HERO_KEYS, ITEM_KEYS, itemPool, rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleSherpa, toggleCorsair, setAbil, abilVar, swapInfo, swapMon, heroRng, burstInfo, burstTargets, burstStrike, abilityInfo,
     necroInfo, necroStrike, demonReach, demonMove, chestInfo, openChest, stoneInfo, breakStone, reviveIfDead, resolveAttack,
     laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd, ORIENTS_HELL, LEVEL_DEFS_HELL, BOSS_DEFS_HELL,
-    itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef,
+    itemUsable, useItem, tideHigh, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef,
     encodePassword, decodePassword, retryLevel, PW_TOTAL, PW5_TOTAL, PW7_GAMES, PW8_GAME, pw7Total, reachFromAdv, chestBlock, attackInfo, moveAdv, attackMon, popUndo, _dbg,
     playMonsters, endTurnCleanup, levelCleared, afterClear, applyBreak, SKILL_MAX, nextLevel, attackers, freshTurn, chooseMove };
 }

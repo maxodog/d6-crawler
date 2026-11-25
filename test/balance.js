@@ -26,8 +26,9 @@ OWN.forEach((lv, i) => {
   if (lv.map.length !== 5 || lv.map.some(r => r.length !== 5)) { console.log('mapa mal formado', i + 1); bad++; }
   if (lv.start < 0 || lv.stairs.length) { console.log('inicio o escaleras', i + 1); bad++; }
   // el cofre cerrado cuenta como muro: la conexión del mapa se mide con él puesto
-  const cut = lv.chestAt >= 0 ? (() => { const c = new Array(E.N).fill(false); c[lv.chestAt] = true; return c; })() : null;
-  const d = E.dijkstra(lv, lv.start, cut).dist;
+  // (con una copia del nivel donde el cofre es un muro de verdad, como hace el motor: así tampoco se cuela en diagonal)
+  const lvc = lv.chestAt >= 0 ? Object.assign({}, lv, { walls: lv.walls.map((w, t) => w || t === lv.chestAt), rd: {}, lm: {}, _adj: null, _dc: null }) : lv;
+  const d = E.dijkstra(lvc, lv.start, null).dist;
   for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.chestAt && d[t] === Infinity) { console.log('casilla aislada', i + 1, E.XY(t)); bad++; }
   lv.spawns.forEach(p => { if (lv.walls[p] || p === lv.start) { console.log('aparición inválida', i + 1, E.XY(p)); bad++; } });
   if (lv.chestAt >= 0 && (lv.spawns.includes(lv.chestAt) || lv.chestAt === lv.start)) { console.log('cofre ocupado', i + 1, E.XY(lv.chestAt)); bad++; }

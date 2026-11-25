@@ -89,9 +89,10 @@ const RANGE = i => CNT ? [CNT[i], CNT[i]] : (i < 3 ? [1, 3] : [1, 5]);   // i = 
 const STATS = Object.assign({}, W.stats, (W.gstats || {})[GAME]);
 function mk(d, at) { return E.ownLevels([Object.assign({}, d, { at })], STATS, 0)[0]; }
 function freeTiles(lv, startIdx) {
-  const out = [], dist = E.dijkstra(lv, lv.start, null).dist;
+  const lvc = lv.chestAt >= 0 ? Object.assign({}, lv, { walls: lv.walls.map((w, t) => w || t === lv.chestAt), rd: {}, lm: {}, _adj: null, _dc: null }) : lv;
+  const out = [], dist = E.dijkstra(lvc, lv.start, null).dist;
   const cofre = lv.chestAt;   // el cofre cerrado es un muro
-  for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.start && t !== cofre && dist[t] >= 6) out.push(E.XY(t));
+  for (let t = 0; t < E.N; t++) if (!lv.walls[t] && t !== lv.start && t !== cofre && dist[t] >= 6 && dist[t] < 1e6) out.push(E.XY(t));
   return out;
 }
 let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;

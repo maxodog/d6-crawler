@@ -4,7 +4,7 @@
   const NO_SKILLS = () => ({ spd: -1, atk: -1, def: -1, rng: -1 });
   const E = { newRun, rollTurn, assignComplete, confirmEnergy, reachFromAdv, attackInfo, moveAdv, attackMon, popUndo, playMonsters, endTurnCleanup, levelCleared, applyBreak, SKILL_MAX, nextLevel,
     rerollDice, useReroll, rollWithKeep, toggleRanger, toggleKnight, useRogue, toggleCorsair, abilityInfo, encodePassword, decodePassword, retryLevel,
-    toggleSherpa, setAbil, abilVar, swapInfo, swapMon, heroRng, burstInfo, burstTargets, burstStrike, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, itemPool,
+    toggleSherpa, setAbil, abilVar, swapInfo, swapMon, heroRng, burstInfo, burstTargets, burstStrike, itemUsable, useItem, useFlame, useEye, resolveDamage, blizzPen, atkAvail, heroDef, useGame, afterClear, lvOf, mStat, tideHigh, itemPool,
     chestInfo, openChest, setLoot, necroInfo, necroStrike, demonReach, demonMove,
     stoneInfo, breakStone, resolveAttack, laurelStart, laurelMon, laurelReach, laurelMove, laurelAttackInfo, laurelAttack, laurelEnd };
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -481,9 +481,9 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     sands: { name: L('Arenas ocultas', 'Hidden Sands'), short: L('Arenas', 'Sands'), txt: L('Durante todo un nivel, los monstruos no reciben los bonos del agua.', 'For a whole level, monsters don\'t get water bonuses.') },
     gorgon: { name: L('Cabeza de Gorgona', 'Gorgon\'s Head'), short: L('Gorgona', 'Gorgon'), txt: L('Durante un turno, los monstruos no se mueven (sí pueden atacar).', 'For one turn, monsters don\'t move (they can still attack).') },
     pendant: { name: L('Colgante de alma', 'Soul Pendant'), short: L('Colgante', 'Pendant'), txt: L('Si tu Vida llega a 0, vuelves a la vida con 1.', 'If your Health reaches 0, you come back to life with 1.') },
-    holy: { name: L('Agua bendita', 'Holy Water'), short: L('Agua', 'Water'), txt: L('Durante todo un nivel, los monstruos no reciben los bonos de las casillas malditas.', 'For a whole level, monsters don\'t get bonuses from cursed tiles.') },
+    holy: { name: L('Agua bendita', 'Holy Water'), short: L('Agua', 'Water'), txt: WORLD_ID === 'kaiju' ? L('Durante todo un nivel, los monstruos no reciben sus bonos de la Fisura, estés donde estés.', 'For a whole level, monsters don\'t get their Rift bonuses, wherever you stand.') : L('Durante todo un nivel, los monstruos no reciben los bonos de las casillas malditas.', 'For a whole level, monsters don\'t get bonuses from cursed tiles.') },
     laurel: { name: L('Corona de laurel', 'Laurel Crown'), short: L('Corona', 'Crown'), txt: L('Tras tu fase de aventurero, ordena a un monstruo que se mueva y ataque a otros monstruos con sus propias cifras. Luego siguen las fases normales de los monstruos.', 'After your adventurer phase, order a monster to move and attack other monsters with its own stats. Then the normal monster phases follow.') },
-    fist: { name: L('Puño de hierro', 'Iron Fist'), short: L('Puño', 'Fist'), txt: L('Cuando rompas la Piedra de la Perdición, haces 2 de daño a todos los monstruos y 1 a tu aventurero.', 'When you break the Stone of Doom, you deal 2 damage to all monsters and 1 to your adventurer.') },
+    fist: { name: L('Puño de hierro', 'Iron Fist'), short: L('Puño', 'Fist'), txt: WORLD_ID === 'kaiju' ? L('Cuando rompas la Piedra de la Perdición, haces 2 de daño a todos los monstruos (3 a los que estén sobre una grieta) y 1 a tu aventurero (nada si estás sobre una grieta).', 'When you break the Stone of Doom, you deal 2 damage to all monsters (3 if on a crack) and 1 to your adventurer (none if you stand on a crack).') : L('Cuando rompas la Piedra de la Perdición, haces 2 de daño a todos los monstruos y 1 a tu aventurero.', 'When you break the Stone of Doom, you deal 2 damage to all monsters and 1 to your adventurer.') },
     mail: { name: L('Cota de malla', 'Chainmail'), short: L('Cota', 'Mail'), txt: L('Cuando te atacan los monstruos, suma 3 a tu Defensa.', 'When monsters attack you, add 3 to your Defence.') }
   };
   if (W) for (const k in W.items) if (ITEMS[k]) { const p = W.items[k].split('|'); ITEMS[k].name = p[LANG === 'en' ? 2 : 0]; ITEMS[k].short = p[LANG === 'en' ? 3 : 1]; }
@@ -1148,7 +1148,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       if (!el.dataset.anim) setPos(el, m.x, m.y);
       el.querySelector('.badge').textContent = m.hp;
       const boosted = E.mStat(G, m, 'atk') !== m.atk || E.mStat(G, m, 'def') !== m.def || E.mStat(G, m, 'rng') !== m.rng;
-      const hellMon = LEVELS[G.levelIdx].mon.bonusOn === 'hero';
+      const hellMon = ['hero', 'refuge'].includes(LEVELS[G.levelIdx].mon.bonusOn);
       el.classList.toggle('wet', boosted && !hellMon);
       el.classList.toggle('cursed', boosted && hellMon);
     }
@@ -1282,7 +1282,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       <div>
         <div class="nm">${m.plural}<small>${lv.boss ? L('jefe', 'boss') : L(`quedan ${G.mons.length} de ${lv.spawns.length}`, `${G.mons.length} of ${lv.spawns.length} left`)}</small></div>
         <div class="stats">${['hp', 'spd', 'atk', 'def', 'rng'].map(k => st(k, m[k])).join('')}</div>
-        ${bo ? (m.bonusOn === 'hero' ? `<div class="wnote hell ${G.sands ? 'off' : lv.damned[idx(G.adv.x, G.adv.y)] ? 'on' : ''}">${G.sands ? L('Agua bendita: los bonos no cuentan este nivel.', "Holy Water: bonuses don't count this level.") : lv.damned[idx(G.adv.x, G.adv.y)] ? L('Estás en casilla maldita: suman el bono.', "You're on a cursed tile: they add the bonus.") : L('Si estás en casilla maldita, suman el bono en rojo.', "If you're on a cursed tile, they add the red bonus.")}</div>` : `<div class="wnote">${L('En casillas de agua suman el bono en azul.', 'On water tiles they add the blue bonus.')}</div>`) : ''}
+        ${bo ? (m.bonusOn === 'refuge' ? `<div class="wnote hell ${G.sands ? 'off' : lv.damned[idx(G.adv.x, G.adv.y)] ? 'off' : 'on'}">${G.sands ? L('Agua bendita: los bonos no cuentan este nivel.', "Holy Water: bonuses don't count this level.") : lv.damned[idx(G.adv.x, G.adv.y)] ? L('Estás sobre una grieta: el bono se apaga.', "You're on a crack: the bonus is off.") : L('Fuera de una grieta suman el bono en rojo.', 'Off a crack they add the red bonus.')}</div>` : m.bonusOn === 'tide' ? `<div class="wnote ${G.sands ? '' : E.tideHigh(G) ? 'tide-hi' : ''}">${G.sands ? L('Arenas ocultas: el agua no da bono este nivel.', "Hidden Sands: water gives no bonus this level.") : E.tideHigh(G) ? L('Marea alta: en el agua suman el bono en azul.', 'High tide: on water they add the blue bonus.') : L('Marea baja: el agua no da bono. Sube el próximo turno.', "Low tide: water gives no bonus. It rises next turn.")}</div>` : m.bonusOn === 'hero' ? `<div class="wnote hell ${G.sands ? 'off' : lv.damned[idx(G.adv.x, G.adv.y)] ? 'on' : ''}">${G.sands ? L('Agua bendita: los bonos no cuentan este nivel.', "Holy Water: bonuses don't count this level.") : lv.damned[idx(G.adv.x, G.adv.y)] ? L('Estás en casilla maldita: suman el bono.', "You're on a cursed tile: they add the bonus.") : L('Si estás en casilla maldita, suman el bono en rojo.', "If you're on a cursed tile, they add the red bonus.")}</div>` : `<div class="wnote">${L('En casillas de agua suman el bono en azul.', 'On water tiles they add the blue bonus.')}</div>`) : ''}
       </div>`;
     const gt = GAME_TITLE[G.game] || GAME_TITLE.base, wn = $('#foot .wnote');
     $('#gameName').textContent = gt; $('#sysSub').textContent = gt;
@@ -1528,10 +1528,10 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       <p>${g === 'base' ? 'Only in adventures with chests. ' : ''}Each level has a chest ${WORLD_ID === 'kaiju' ? 'on the tile marked with an X' : 'on the stairs opposite the entrance (or on the tile marked with an X)'}. Its number is its <b>Defence</b> and its <b>loot</b>. Until you open it, it counts as a wall: it can't be crossed and blocks sight. Open it by attacking it, within your Range and in sight, with at least that many Atk points. In an Energy phase, loot points are added to <b>one</b> skill per turn (Mov, Atk, Def or Rng), in that level and its boss. Whatever you don't spend is lost when the level ends.</p>` : ''}
       ${has('mguf') || has('hell') ? `<h4>Bosses</h4>
       <p>After levels 3, 6, 9 and 12 you play a boss map as an <b>extension</b> of the level: you can't upgrade or heal before it, and an opened chest stays with you. Bosses are shown with a 12-sided die. The final boss ends the adventure.</p>` : ''}
-      ${has('harbour') ? `<h4>Water (Harbour Clash)</h4>
-      <p>Monsters standing on a water tile add the blue bonuses to their Attack, Defence or Range. You don't get them.</p>` : ''}
-      ${has('hell') ? `<h4>Cursed tiles and the Stone (Hell's Door)</h4>
-      <p>Monsters get the red bonuses on their card <b>while you stand on a cursed tile</b> (the bonus applies to all of them). The <b>Stone of Doom</b> is a special wall with a number (D4): attack it within your Range and in sight, spending as many Atk points as its number. When it breaks, <b>every monster takes 1 damage</b> and <b>so do you</b>. It's still a wall. The Demon Hunter can move a monster up to 3 tiles.</p>` : ''}
+      ${has('harbour') ? `<h4>Water${WORLD_ID === 'kaiju' ? ' and tide' : ''} (Harbour Clash)</h4>
+      <p>${WORLD_ID === 'kaiju' ? 'The tide changes every turn: <b>odd turns are low tide</b> and <b>even turns are high tide</b> (the first turn is low tide). Monsters standing on a water tile add the blue bonuses to their Attack, Defence or Range <b>only at high tide</b>. You never get them, so strike at low tide.' : "Monsters standing on a water tile add the blue bonuses to their Attack, Defence or Range. You don't get them."}</p>` : ''}
+      ${has('hell') ? `<h4>${WORLD_ID === 'kaiju' ? 'Magma cracks' : 'Cursed tiles'} and the Stone (Hell's Door)</h4>
+      <p>${WORLD_ID === 'kaiju' ? 'Monsters have the red bonuses on their card <b>always, except while you stand on a magma crack</b> (the crack is a refuge: the bonus switches off for all of them at once).' : 'Monsters get the red bonuses on their card <b>while you stand on a cursed tile</b> (the bonus applies to all of them).'} The <b>Stone of Doom</b> is a special wall with a number (D4): attack it within your Range and in sight, spending as many Atk points as its number. When it breaks, <b>every monster takes 1 damage</b> and <b>so do you</b>${WORLD_ID === 'kaiju' ? ' (monsters standing on a crack take 2, and you take nothing if you stand on a crack)' : ''}. It's still a wall. The Demon Hunter can move a monster up to 3 tiles.</p>` : ''}
       ${has('peak') ? `<h4>Blizzard (Eternal Peak)</h4>
       <p>While you stand on a blizzard tile, your base Attack and Defence are 1 lower.</p>` : ''}
       <h4>Items</h4>
@@ -1567,10 +1567,10 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       <p>${g === 'base' ? 'Solo en las aventuras con cofre. ' : ''}Cada nivel tiene un cofre ${WORLD_ID === 'kaiju' ? 'en la casilla marcada con una X' : 'en la escalera opuesta a la de entrada (o en la casilla marcada con una X)'}. Su número es su <b>Defensa</b> y su <b>botín</b>. Hasta que lo abras cuenta como un muro: no se cruza y tapa la visión. Ábrelo atacándolo, a tu Alcance y a la vista, con al menos esos puntos de Atq. Los puntos del botín se suman, en una fase de Energía, a <b>una</b> habilidad por turno (Mov, Atq, Def o Alc), en ese nivel y en su jefe. Lo que no gastes se pierde al terminar el nivel.</p>` : ''}
       ${has('mguf') || has('hell') ? `<h4>Jefes</h4>
       <p>Al terminar los niveles 3, 6, 9 y 12 se juega un mapa de jefe como <b>prolongación</b> del nivel: antes no puedes mejorar ni curarte, y el cofre abierto sigue contigo. Los jefes se representan con un dado de 12 caras. Con el jefe final termina la aventura.</p>` : ''}
-      ${has('harbour') ? `<h4>Agua (Harbour Clash)</h4>
-      <p>Los monstruos que estén sobre una casilla de agua suman los bonos en azul a su Ataque, Defensa o Alcance. Tú no los recibes.</p>` : ''}
-      ${has('hell') ? `<h4>Casillas malditas y Piedra (La Puerta del Infierno)</h4>
-      <p>Los monstruos ganan los bonos en rojo de su carta <b>mientras tú estés sobre una casilla maldita</b> (el bono es para todos a la vez). La <b>Piedra de la Perdición</b> es un muro especial con un número (D4): atácala a tu Alcance y a la vista, gastando tantos puntos de Atq como su número. Al romperla, <b>todos los monstruos reciben 1 de daño</b> y <b>tú también</b>. Sigue siendo un muro. El Cazador de demonios puede mover a un monstruo hasta 3 casillas.</p>` : ''}
+      ${has('harbour') ? `<h4>Agua${WORLD_ID === 'kaiju' ? ' y marea' : ''} (Harbour Clash)</h4>
+      <p>${WORLD_ID === 'kaiju' ? 'La marea cambia en cada turno: los turnos <b>impares son de marea baja</b> y los <b>pares de marea alta</b> (el primero es de marea baja). Los monstruos que estén sobre una casilla de agua suman los bonos en azul a su Ataque, Defensa o Alcance <b>solo con marea alta</b>. Tú nunca los recibes: aprovecha la marea baja para atacar.' : 'Los monstruos que estén sobre una casilla de agua suman los bonos en azul a su Ataque, Defensa o Alcance. Tú no los recibes.'}</p>` : ''}
+      ${has('hell') ? `<h4>${WORLD_ID === 'kaiju' ? 'Grietas de magma' : 'Casillas malditas'} y Piedra (La Puerta del Infierno)</h4>
+      <p>${WORLD_ID === 'kaiju' ? 'Los monstruos tienen los bonos en rojo de su carta <b>siempre, salvo mientras tú estés sobre una grieta de magma</b> (la grieta es un refugio: el bono se apaga para todos a la vez).' : 'Los monstruos ganan los bonos en rojo de su carta <b>mientras tú estés sobre una casilla maldita</b> (el bono es para todos a la vez).'} La <b>Piedra de la Perdición</b> es un muro especial con un número (D4): atácala a tu Alcance y a la vista, gastando tantos puntos de Atq como su número. Al romperla, <b>todos los monstruos reciben 1 de daño</b> y <b>tú también</b>${WORLD_ID === 'kaiju' ? ' (los monstruos sobre una grieta reciben 2, y tú no recibes nada si estás sobre una grieta)' : ''}. Sigue siendo un muro. El Cazador de demonios puede mover a un monstruo hasta 3 casillas.</p>` : ''}
       ${has('peak') ? `<h4>Ventisca (Montaña Eterna)</h4>
       <p>Mientras estés sobre una casilla de ventisca, tu Ataque y tu Defensa bases valen 1 menos.</p>` : ''}
       <h4>Objetos</h4>
@@ -1600,7 +1600,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     if (nx) {
       const m = nx.mon, n = nx.spawns.length, B = m.bonus || {};
       const st = k => `<span><b>${m[k]}${B[k] ? `<i>+${B[k]}</i>` : ''}</b>${(LANG === 'en' ? { hp: 'Health', spd: 'Spd', atk: 'Atk', def: 'Def', rng: 'Rng' } : { hp: 'Vida', spd: 'Vel', atk: 'Atq', def: 'Def', rng: 'Alc' })[k]}</span>`;
-      const bon = Object.keys(B).length ? `<p class="nf-note">${m.bonusOn === 'hero' ? L('Si pisas una casilla maldita', 'If you step on a cursed tile they add') : L('En casillas de agua', 'On water tiles they add')}${L(' suman', '')} ${Object.keys(B).map(k => `+${B[k]} ${NAMES[k]}`).join(', ')}.</p>` : '';
+      const bon = Object.keys(B).length ? `<p class="nf-note">${m.bonusOn === 'refuge' ? L('Si no estás sobre una grieta', 'Unless you stand on a crack they add') : m.bonusOn === 'tide' ? L('En el agua con marea alta', 'On water at high tide they add') : m.bonusOn === 'hero' ? L('Si pisas una casilla maldita', 'If you step on a cursed tile they add') : L('En casillas de agua', 'On water tiles they add')}${L(' suman', '')} ${Object.keys(B).map(k => `+${B[k]} ${NAMES[k]}`).join(', ')}.</p>` : '';
       foe = `<div class="next-foe"><small>${L('Próximo', 'Next')} · ${stageLabel(nx).toLowerCase()}: ${nx.title}</small>
         <div class="nf-row"><span class="mico">${ICONS[m.key] || ''}</span><b>${n} ${n > 1 ? m.plural : m.name}</b>${m.boss ? `<em>${L('Jefe', 'Boss')}</em>` : ''}</div>
         <div class="nf-stats">${['hp', 'spd', 'atk', 'def', 'rng'].map(st).join('')}</div>${bon}</div>`;
@@ -2005,8 +2005,8 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     base: { img: 'img/core.jpg', alt: L('Portada de One Card Dungeon', 'One Card Dungeon cover'), tag: 'Original', txt: L('12 niveles y tres demonios.', '12 levels and three demons.') },
     mguf: { img: 'img/mguf.jpg', alt: L("Portada de One Card Dungeon: M'Guf-yn Returns", "One Card Dungeon: M'Guf-yn Returns cover"), tag: L('Expansión', 'Expansion'), txt: L('12 niveles, 4 jefes, cofres y 4 héroes.', '12 levels, 4 bosses, chests and 4 heroes.') },
     peak: { img: 'img/peak.jpg', alt: L('Portada de One Card Dungeon: Eternal Peak', 'One Card Dungeon: Eternal Peak cover'), tag: L('Expansión', 'Expansion'), txt: L('10 niveles, ventiscas, Sherpa y objetos.', '10 levels, blizzards, Sherpa and items.') },
-    harbour: { img: 'img/harbour.jpg', alt: L('Portada de One Card Dungeon: Harbour Clash', 'One Card Dungeon: Harbour Clash cover'), tag: L('Expansión', 'Expansion'), txt: L('8 niveles, agua, Corsario y objetos.', '8 levels, water, Corsair and items.') },
-    hell: { img: 'img/hell.jpg', alt: L("Portada de One Card Dungeon: Hell's Door", "One Card Dungeon: Hell's Door cover"), tag: L('Expansión', 'Expansion'), txt: L('12 niveles, 4 jefes, casillas malditas, la Piedra de la Perdición y objetos.', '12 levels, 4 bosses, cursed tiles, the Stone of Doom and items.') }
+    harbour: { img: 'img/harbour.jpg', alt: L('Portada de One Card Dungeon: Harbour Clash', 'One Card Dungeon: Harbour Clash cover'), tag: L('Expansión', 'Expansion'), txt: WORLD_ID === 'kaiju' ? L('8 niveles, agua con marea, Corsario y objetos.', '8 levels, tidal water, Corsair and items.') : L('8 niveles, agua, Corsario y objetos.', '8 levels, water, Corsair and items.') },
+    hell: { img: 'img/hell.jpg', alt: L("Portada de One Card Dungeon: Hell's Door", "One Card Dungeon: Hell's Door cover"), tag: L('Expansión', 'Expansion'), txt: WORLD_ID === 'kaiju' ? L('12 niveles, 4 jefes, grietas refugio, la Piedra de la Perdición y objetos.', '12 levels, 4 bosses, refuge cracks, the Stone of Doom and items.') : L('12 niveles, 4 jefes, casillas malditas, la Piedra de la Perdición y objetos.', '12 levels, 4 bosses, cursed tiles, the Stone of Doom and items.') }
   };
   if (!W) for (const k in ADV_INFO) ADV_INFO[k].img = `img/arch/${k}.jpg`;   // modo de pruebas: sin portadas originales
   if (W) for (const k in ADV_INFO) Object.assign(ADV_INFO[k], { img: `img/${WORLD_ID}/${k}.jpg`, alt: L('Portada de ', 'Cover of ') + GAMES[k].name },
@@ -2126,8 +2126,8 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     base: L('Vence a todos los monstruos de cada nivel.', 'Defeat every monster on each level.'),
     mguf: L("M'Guf-yn Returns: abre cofres para ganar puntos extra y derrota a los comandantes.", "M'Guf-yn Returns: open chests for extra points and defeat the commanders."),
     peak: L('Montaña Eterna: las casillas de ventisca restan 1 a tu Atq y Def.', 'Eternal Peak: blizzard tiles take 1 off your Atk and Def.'),
-    harbour: L('Harbour Clash: los monstruos en agua se vuelven más fuertes.', 'Harbour Clash: monsters in water get stronger.'),
-    hell: L('La Puerta del Infierno: si pisas una casilla maldita, los monstruos se fortalecen. La Piedra de la Perdición se rompe a costa de tu Vida.', "Hell's Door: if you step on a cursed tile, the monsters get stronger. Breaking the Stone of Doom costs you Health.")
+    harbour: WORLD_ID === 'kaiju' ? L('Harbour Clash: la marea sube y baja cada turno; con marea alta los monstruos en agua se vuelven más fuertes.', 'Harbour Clash: the tide rises and falls each turn; at high tide monsters in water get stronger.') : L('Harbour Clash: los monstruos en agua se vuelven más fuertes.', 'Harbour Clash: monsters in water get stronger.'),
+    hell: WORLD_ID === 'kaiju' ? L('La Puerta del Infierno: los monstruos son más fuertes salvo que pises una grieta de magma. La Piedra de la Perdición se rompe a costa de tu Vida, salvo sobre una grieta.', "Hell's Door: monsters are stronger unless you stand on a magma crack. Breaking the Stone of Doom costs you Health, unless you stand on a crack.") : L('La Puerta del Infierno: si pisas una casilla maldita, los monstruos se fortalecen. La Piedra de la Perdición se rompe a costa de tu Vida.', "Hell's Door: if you step on a cursed tile, the monsters get stronger. Breaking the Stone of Doom costs you Health.")
   };
   function startGame(hero, game, items) {
     G = E.newRun(hero, game, items); G.totalTurns = 0; G.runId = newRunId(); G.trackAbil = true; G.abilEver = false; G.itemEver = false; G.startItems = (items || []).slice(); lastHp = START_HP; builtLevel = -1;
@@ -2430,15 +2430,15 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
       const before = G.mons.map(o => [o.x, o.y]);
       const alive = E.breakStone(G);
       if (G.mons.length < before.length) sfxKill(before.length - G.mons.length); else Sfx.play('atk');
-      if (alive) sfxHurt(); else stat('dmgIn');
-      for (const [x, y] of before) floatText(x, y, '−' + dmgM, 'good');
-      floatText(G.adv.x, G.adv.y, '−1', 'dmg');
-      tok.adv.classList.add('hurt'); setTimeout(() => tok.adv.classList.remove('hurt'), 500);
+      const hd = G.lastBreakHero == null ? 1 : G.lastBreakHero, refuge = LEVELS[G.levelIdx].mon.bonusOn === 'refuge';
+      if (!alive) stat('dmgIn'); else if (hd) sfxHurt();
+      for (const [x, y, d] of (G.lastBreak || before.map(([x, y]) => [x, y, dmgM]))) floatText(x, y, '−' + d, 'good');
+      if (hd) { floatText(G.adv.x, G.adv.y, '−' + hd, 'dmg'); tok.adv.classList.add('hurt'); setTimeout(() => tok.adv.classList.remove('hurt'), 500); }
       const rev = G.revived; G.revived = false;
       if (!alive) { G.phase = 'dead'; render(); deathSheet(); return; }
       render();
       if (E.levelCleared(G)) { levelClear(); return; }
-      say(L(`<b>La Piedra de la Perdición se rompe</b> (−${val} Atq). Todos los monstruos reciben ${dmgM} de daño y tú 1.${rev ? ' <b>Colgante de alma:</b> vuelves con 1 de Vida.' : ''}`, `<b>The Stone of Doom breaks</b> (−${val} Atk). All monsters take ${dmgM} damage and you take 1.${rev ? ' <b>Soul Pendant:</b> you come back with 1 Health.' : ''}`));
+      say(L(`<b>La Piedra de la Perdición se rompe</b> (−${val} Atq). Todos los monstruos reciben ${dmgM} de daño${refuge ? ` (${dmgM + 1} los que estén sobre una grieta)` : ''} y tú ${hd}${refuge && !hd ? ' (estabas sobre una grieta)' : ''}.${rev ? ' <b>Colgante de alma:</b> vuelves con 1 de Vida.' : ''}`, `<b>The Stone of Doom breaks</b> (−${val} Atk). All monsters take ${dmgM} damage${refuge ? ` (${dmgM + 1} if standing on a crack)` : ''} and you take ${hd}${refuge && !hd ? ' (you were on a crack)' : ''}.${rev ? ' <b>Soul Pendant:</b> you come back with 1 Health.' : ''}`));
       return;
     }
     if (lv.walls[i]) return;
@@ -2517,7 +2517,7 @@ const WORLD_HERO_ICONS_SRC = {   // íconos de héroe propios de cada mundo (los
     else if (id === 'powder') say(L('<b>Pólvora negra.</b> Tu próximo golpe daña también a todos los demás monstruos.', '<b>Black Powder.</b> Your next hit also damages every other monster.'));
     else if (id === 'sands') say(L('<b>Arenas ocultas.</b> Los monstruos ignoran el agua hasta el final del nivel.', '<b>Hidden Sands.</b> Monsters ignore water until the end of the level.'));
     else if (id === 'gorgon') say(L('<b>Cabeza de Gorgona.</b> Este turno los monstruos no se moverán.', "<b>Gorgon's Head.</b> The monsters won't move this turn."));
-    else if (id === 'holy') say(L('<b>Agua bendita.</b> Los monstruos ignoran las casillas malditas hasta el final del nivel.', '<b>Holy Water.</b> Monsters ignore cursed tiles until the end of the level.'));
+    else if (id === 'holy') say(WORLD_ID === 'kaiju' ? L('<b>Agua bendita.</b> Los monstruos pierden sus bonos de la Fisura hasta el final del nivel.', '<b>Holy Water.</b> Monsters lose their Rift bonuses until the end of the level.') : L('<b>Agua bendita.</b> Los monstruos ignoran las casillas malditas hasta el final del nivel.', '<b>Holy Water.</b> Monsters ignore cursed tiles until the end of the level.'));
     else if (id === 'fist') say(L('<b>Puño de hierro.</b> Al romper la Piedra, los monstruos recibirán 2 de daño.', '<b>Iron Fist.</b> When you break the Stone, the monsters will take 2 damage.'));
     else if (id === 'hourglass') say(L('<b>Reloj de arena.</b> Los monstruos no actúan: nueva fase de Energía. Tira los dados.', "<b>Hourglass.</b> The monsters don't act: new Energy phase. Roll the dice."));
   }

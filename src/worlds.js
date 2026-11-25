@@ -120,6 +120,32 @@ const WORLDS = {
       { t: 'Cacería en la ventisca|Hunt in the Blizzard', m: 'wolf', map: ['...~V', '.#...', '~~.#.', '.#.~~', 'X...H'], at: [[0,3],[2,0],[3,0]] },
       { t: 'Muralla de hielo|Ice Wall', m: 'yeti', map: ['....X', '.#.~~', '~..#.', '.~~..', '..#.H'], at: [[1,0],[0,3],[4,1]] },
       { t: 'El Durmiente despierta|The Sleeper Awakens', m: 'sorcerer', map: ['....X', '~~.#.', '.#.~~', '...#.', 'V~..H'], at: [[2,2]] }
+    ], harbour: [
+      { t: 'Marea de blindados|Armored Tide', m: 'crab', chest: 1, map: ['H...W', '.#.WW', '..X.W', 'W.#WW', 'WW...'], at: [[0,4],[1,3]] },
+      { t: 'Corriente eléctrica|Live Current', m: 'octopus', chest: 1, map: ['H.W..', '.#W#.', '..ZWW', '.W..#', 'WW...'], at: [[3,0],[4,2]] },
+      { t: 'Costa acorazada|Armored Coast', m: 'zombie', chest: 1, map: ['H....', '.##W.', '.WWW.', '.W..X', '..#..'], at: [[4,0]] },
+      { t: 'El Calamar emerge|The Squid Emerges', m: 'kraken', chest: 1, map: ['H..W.', '.WW#.', '.WZW.', '.#WW.', '...W.'], at: [[4,3]] },
+      { t: 'Banco de blindados|Armored Shoal', m: 'crab', chest: 1, map: ['H...W', '.#.WW', '..X.W', 'W.#WW', 'WW...'], at: [[3,1],[4,4],[3,3],[0,4]] },
+      { t: 'Tormenta submarina|Undersea Storm', m: 'octopus', chest: 1, map: ['H.W..', '.#W#.', '..ZWW', '.W..#', 'WW...'], at: [[3,3],[4,4],[4,1],[4,0]] },
+      { t: 'Caparazones en la bruma|Shells in the Mist', m: 'zombie', chest: 1, map: ['H....', '.##W.', '.WWW.', '.W..X', '..#..'], at: [[2,2],[3,1]] },
+      { t: 'Abismo del Calamar|Squid Abyss', m: 'kraken', chest: 1, map: ['H..W.', '.WW#.', '.WZW.', '.#WW.', '...W.'], at: [[0,3],[2,3]] }
+    ], hell: [
+      { t: 'Grieta incipiente|Budding Fissure', m: 'imp', chest: 1, map: ['H..D.', '.D#..', 'D...X', '.#D..', '..D.D'], at: [[3,4],[3,0]] },
+      { t: 'Chorros de lava|Lava Jets', m: 'chained', chest: 1, map: ['H....', 'DD#.D', '..TD.', '.#..X', 'D...D'], at: [[1,4],[4,4]] },
+      { t: 'Élitros de ceniza|Ash Elytra', m: 'fiend', chest: 1, map: ['H.D..', '#.D.#', '.T..D', 'D.#..', '..D.X'], at: [[3,0]] },
+      { boss: 1, t: 'La Incubadora|The Incubator', m: 'cultist', map: ['H.D..', '.#.D.', 'D...D', '.D#..', '..D.D'] },
+      { t: 'Garganta de fuego|Throat of Fire', m: 'maw', chest: 1, map: ['H...D', '.D#..', 'D.T.D', '..#D.', 'X...D'], at: [[4,0]] },
+      { t: 'Nido en ebullición|Boiling Nest', m: 'imp', chest: 1, map: ['H..D.', '.D#..', 'D...X', '.#D..', '..D.D'], at: [[3,1],[4,0],[2,3],[3,0]] },
+      { t: 'Géiser de escupelavas|Spitter Geysers', m: 'chained', chest: 1, map: ['H....', 'DD#.D', '..TD.', '.#..X', 'D...D'], at: [[2,3],[3,0],[0,3]] },
+      { boss: 2, t: 'Centinela de obsidiana|Obsidian Sentinel', m: 'goat', map: ['H...D', '.D#..', '...D.', '.#.D.', 'D...D'] },
+      { t: 'Nube de escarabajos|Beetle Cloud', m: 'fiend', chest: 1, map: ['H.D..', '#.D.#', '.T..D', 'D.#..', '..D.X'], at: [[2,4],[3,0]] },
+      { t: 'Fauces en cadena|Chained Maws', m: 'maw', chest: 1, map: ['H...D', '.D#..', 'D.T.D', '..#D.', 'X...D'], at: [[3,3],[3,2]] },
+      { t: 'Marejada de larvas|Larva Surge', m: 'imp', chest: 1, map: ['H..D.', '.D#..', 'D...X', '.#D..', '..D.D'], at: [[2,4],[4,4],[4,0],[4,3],[0,4]] },
+      { boss: 3, t: 'Mantis ígnea|Fire Mantis', m: 'butcher', map: ['H.D..', 'D#...', '..D.D', '.#.#.', 'D...D'] },
+      { t: 'Cráter de escupelavas|Spitter Crater', m: 'chained', chest: 1, map: ['H....', 'DD#.D', '..TD.', '.#..X', 'D...D'], at: [[3,2],[4,0],[3,3],[0,3],[4,4]] },
+      { t: 'Plaga de ceniza|Ash Plague', m: 'fiend', chest: 1, map: ['H.D..', '#.D.#', '.T..D', 'D.#..', '..D.X'], at: [[3,3],[1,3],[4,3]] },
+      { t: 'Corazón de la Fisura|Heart of the Rift', m: 'maw', chest: 1, map: ['H...D', '.D#..', 'D.T.D', '..#D.', 'X...D'], at: [[4,1],[3,3],[4,2]] },
+      { boss: 4, t: 'El Rey de la Fisura|The King of the Rift', m: 'lord', map: ['H..D.', '.D#..', 'D...D', '.##D.', '.D...'] }
     ] },
     // cifras por aventura (sobreescriben a 'stats'); jefes incluidos
     gstats: {
@@ -132,6 +158,22 @@ const WORLDS = {
       peak: {
         goblin: { hp: 3, spd: 6, atk: 4, def: 3, rng: 4 }, wolf: { hp: 4, spd: 7, atk: 5, def: 4, rng: 3 },
         yeti: { hp: 5, spd: 3, atk: 6, def: 5, rng: 3 }, sorcerer: { hp: 10, spd: 4, atk: 8, def: 7, rng: 6 }
+      },
+      harbour: {
+        crab: { hp: 3, spd: 5, atk: 4, def: 4, rng: 3, bonusOn: 'tide', bonus: { def: 1, rng: 1 } },
+        octopus: { hp: 4, spd: 6, atk: 5, def: 3, rng: 4, bonusOn: 'tide', bonus: { atk: 2 } },
+        zombie: { hp: 5, spd: 3, atk: 7, def: 6, rng: 3, bonusOn: 'tide', bonus: { atk: 1, def: 1 } },
+        kraken: { hp: 6, spd: 5, atk: 7, def: 5, rng: 5, bonusOn: 'tide', bonus: { atk: 2, rng: 1 } }
+      },
+      hell: {
+        imp: { hp: 3, spd: 6, atk: 3, def: 3, rng: 3, bonusOn: 'refuge', bonus: { atk: 2 } },
+        chained: { hp: 3, spd: 4, atk: 5, def: 3, rng: 5, bonusOn: 'refuge', bonus: { def: 2 } },
+        fiend: { hp: 4, spd: 3, atk: 6, def: 4, rng: 3, bonusOn: 'refuge', bonus: { atk: 1, rng: 1 } },
+        maw: { hp: 5, spd: 4, atk: 6, def: 5, rng: 4, bonusOn: 'refuge', bonus: { atk: 1, def: 1 } },
+        cultist: { hp: 5, spd: 3, atk: 6, def: 4, rng: 3, bonusOn: 'refuge', bonus: { atk: 1, def: 1 } },
+        goat: { hp: 7, spd: 4, atk: 5, def: 6, rng: 4, bonusOn: 'refuge', bonus: { def: 1, rng: 1 } },
+        butcher: { hp: 9, spd: 6, atk: 7, def: 5, rng: 4, bonusOn: 'refuge', bonus: { atk: 1, rng: 1 } },
+        lord: { hp: 12, spd: 7, atk: 8, def: 7, rng: 6, bonusOn: 'refuge', bonus: { atk: 1, def: 1 } }
       }
     },
     // habilidades propias de Colossus (distintas al original)
